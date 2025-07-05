@@ -1034,7 +1034,205 @@ const Dashboard = () => {
     }} />
   );
 
-  const renderSettings = () => (
+  // Plans/Pricing Tab
+  const renderPlans = () => {
+    const [plans, setPlans] = useState([]);
+    const [loadingPlans, setLoadingPlans] = useState(true);
+    const [upgradingPlan, setUpgradingPlan] = useState(false);
+
+    useEffect(() => {
+      fetchPlans();
+    }, []);
+
+    const fetchPlans = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/api/plans`);
+        const data = await response.json();
+        setPlans(data.plans);
+      } catch (error) {
+        console.error('Error fetching plans:', error);
+      } finally {
+        setLoadingPlans(false);
+      }
+    };
+
+    const handleUpgrade = async (planId) => {
+      setUpgradingPlan(true);
+      try {
+        // For demo purposes, directly upgrade the user
+        const response = await fetch(`${backendUrl}/api/admin/upgrade-user?user_email=${user.email}&new_plan=${planId}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          alert(`Successfully upgraded to ${planId} plan!`);
+          // Refresh user data
+          window.location.reload();
+        } else {
+          const error = await response.json();
+          alert(`Error: ${error.detail}`);
+        }
+      } catch (error) {
+        console.error('Error upgrading plan:', error);
+        alert('Error upgrading plan. Please try again.');
+      } finally {
+        setUpgradingPlan(false);
+      }
+    };
+
+    if (loadingPlans) {
+      return <div className="text-center py-8">Loading plans...</div>;
+    }
+
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-900">Choose Your Plan</h2>
+          <p className="text-gray-600 mt-2">Select the perfect plan for your AI visibility tracking needs</p>
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-blue-800 font-medium">🎉 Current Plan: {user?.plan?.toUpperCase() || 'TRIAL'}</p>
+            <p className="text-blue-600 text-sm">Domain: futureseo.io (Ready for deployment!)</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          {plans.map((plan) => (
+            <div
+              key={plan.id}
+              className={`relative bg-white p-8 rounded-2xl shadow-lg border-2 ${
+                plan.popular ? 'border-blue-500 transform scale-105' : 'border-gray-200'
+              }`}
+            >
+              {plan.popular && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <span className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+                    Most Popular
+                  </span>
+                </div>
+              )}
+
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
+                <div className="mt-4 flex items-baseline justify-center">
+                  <span className="text-5xl font-extrabold text-gray-900">${plan.price}</span>
+                  <span className="ml-1 text-xl text-gray-500">/{plan.interval}</span>
+                </div>
+                <p className="mt-2 text-gray-500">{plan.scans} AI scans per month</p>
+              </div>
+
+              <ul className="mt-8 space-y-4">
+                {plan.features.map((feature, index) => (
+                  <li key={index} className="flex items-center">
+                    <svg className="h-5 w-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-gray-600">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-8">
+                {user?.plan === plan.id ? (
+                  <button className="w-full bg-green-100 text-green-700 py-3 px-4 rounded-lg font-medium cursor-not-allowed">
+                    Current Plan
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleUpgrade(plan.id)}
+                    disabled={upgradingPlan}
+                    className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                      plan.popular
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-gray-900 text-white hover:bg-gray-800'
+                    } disabled:opacity-50`}
+                  >
+                    {upgradingPlan ? 'Upgrading...' : 'Upgrade to ' + plan.name}
+                  </button>
+                )}
+              </div>
+
+              {plan.id === 'enterprise' && (
+                <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                  <p className="text-purple-800 text-sm font-medium">🚀 Perfect for futureseo.io!</p>
+                  <p className="text-purple-600 text-xs">Full feature testing + enterprise capabilities</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Feature Comparison */}
+        <div className="mt-12 bg-white p-8 rounded-xl border border-gray-200">
+          <h3 className="text-xl font-bold text-gray-900 mb-6">Feature Comparison</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 text-gray-900 font-medium">Feature</th>
+                  <th className="text-center py-3 text-gray-900 font-medium">Basic</th>
+                  <th className="text-center py-3 text-gray-900 font-medium">Pro</th>
+                  <th className="text-center py-3 text-gray-900 font-medium">Enterprise</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                <tr>
+                  <td className="py-4 text-gray-600">AI Platforms</td>
+                  <td className="py-4 text-center text-gray-600">ChatGPT only</td>
+                  <td className="py-4 text-center text-green-600">✓ All platforms</td>
+                  <td className="py-4 text-center text-green-600">✓ All platforms</td>
+                </tr>
+                <tr>
+                  <td className="py-4 text-gray-600">Brands</td>
+                  <td className="py-4 text-center text-gray-600">1</td>
+                  <td className="py-4 text-center text-gray-600">3</td>
+                  <td className="py-4 text-center text-gray-600">10</td>
+                </tr>
+                <tr>
+                  <td className="py-4 text-gray-600">Monthly Scans</td>
+                  <td className="py-4 text-center text-gray-600">50</td>
+                  <td className="py-4 text-center text-gray-600">300</td>
+                  <td className="py-4 text-center text-gray-600">1,500</td>
+                </tr>
+                <tr>
+                  <td className="py-4 text-gray-600">Competitor Analysis</td>
+                  <td className="py-4 text-center text-gray-400">✗</td>
+                  <td className="py-4 text-center text-green-600">✓</td>
+                  <td className="py-4 text-center text-green-600">✓ Advanced</td>
+                </tr>
+                <tr>
+                  <td className="py-4 text-gray-600">Weekly Recommendations</td>
+                  <td className="py-4 text-center text-gray-400">✗</td>
+                  <td className="py-4 text-center text-green-600">✓</td>
+                  <td className="py-4 text-center text-green-600">✓ Custom</td>
+                </tr>
+                <tr>
+                  <td className="py-4 text-gray-600">Team Collaboration</td>
+                  <td className="py-4 text-center text-gray-400">✗</td>
+                  <td className="py-4 text-center text-gray-400">✗</td>
+                  <td className="py-4 text-center text-green-600">✓</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Domain Info */}
+        <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
+          <div className="flex items-center space-x-4">
+            <div className="text-4xl">🌐</div>
+            <div>
+              <h4 className="font-bold text-gray-900">Ready for futureseo.io Deployment!</h4>
+              <p className="text-gray-600">Your domain is ready. Choose Enterprise plan to test all features before going live.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
       
