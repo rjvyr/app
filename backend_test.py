@@ -145,7 +145,7 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         print("✅ Get brand by ID test passed")
 
     def test_08_run_quick_scan(self):
-        """Test running a quick scan"""
+        """Test running a quick scan with real OpenAI GPT-4o-mini integration"""
         if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id'):
             self.skipTest("Previous tests failed, skipping this test")
             
@@ -162,7 +162,19 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         self.assertIn("results", data)
         self.assertIn("visibility_score", data)
         self.assertEqual(len(data["results"]), 5)  # Quick scan should have 5 results
-        print("✅ Run quick scan test passed")
+        
+        # Verify real OpenAI integration
+        for result in data["results"]:
+            self.assertEqual(result["platform"], "ChatGPT")
+            self.assertEqual(result["model"], "gpt-4o-mini")
+            self.assertIn("response", result)
+            self.assertIn("brand_mentioned", result)
+            self.assertIn("competitors_mentioned", result)
+            self.assertIn("tokens_used", result)
+            # Check that the response is not a mock response (should be longer and more varied)
+            self.assertTrue(len(result["response"]) > 50)
+            
+        print("✅ Run quick scan with real OpenAI GPT-4o-mini integration test passed")
 
     def test_09_get_scan_results(self):
         """Test getting scan results"""
