@@ -1,4 +1,5 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
+import PlansPage from './PlansPage';
 import './App.css';
 
 // Context for user authentication
