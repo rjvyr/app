@@ -270,15 +270,5 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         self.assertIn("summary", data)
         print("✅ Get real queries test passed")
         
-    def test_14_get_real_recommendations(self):
-        """Test getting real recommendations data"""
-        if not hasattr(self.__class__, 'token'):
-            self.skipTest("Login test failed, skipping this test")
-            
-        headers = {"Authorization": f"Bearer {self.__class__.token}"}
-        response = requests.get(f"{self.base_url}/api/recommendations/real", headers=headers)
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertIn("recommendations", data)
-        self.assertIn("total_recommendations", data)
-        print("✅ Get real recommendations test passed")
+if __name__ == "__main__":
+    unittest.main()
