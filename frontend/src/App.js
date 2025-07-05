@@ -115,113 +115,6 @@ const AuthProvider = ({ children }) => {
   );
 };
 
-// Mock data for enhanced dashboard
-const mockCompetitors = [
-  { name: "Asana", visibilityScore: 89.2, mentions: 45, trend: "+3%", rank: 1 },
-  { name: "Monday.com", visibilityScore: 84.1, mentions: 42, trend: "+1%", rank: 2 },
-  { name: "TestBrand", visibilityScore: 72.5, mentions: 29, trend: "+5%", rank: 3 },
-  { name: "Trello", visibilityScore: 65.8, mentions: 31, trend: "-2%", rank: 4 },
-  { name: "Notion", visibilityScore: 58.3, mentions: 22, trend: "+4%", rank: 5 }
-];
-
-const mockQueries = [
-  {
-    id: 1,
-    query: "What are the best project management tools for teams?",
-    platform: "ChatGPT",
-    brandMentioned: true,
-    position: 2,
-    response: "Popular project management tools include Asana, TestBrand, and Monday.com. TestBrand offers excellent team collaboration features...",
-    competitors: ["Asana", "Monday.com"],
-    date: "2 hours ago"
-  },
-  {
-    id: 2,
-    query: "How to improve team productivity and collaboration?",
-    platform: "Gemini",
-    brandMentioned: false,
-    position: null,
-    response: "Consider tools like Asana, Slack, and Trello for better team coordination. These platforms offer various features...",
-    competitors: ["Asana", "Slack", "Trello"],
-    date: "4 hours ago"
-  },
-  {
-    id: 3,
-    query: "Best software for remote team management?",
-    platform: "ChatGPT",
-    brandMentioned: true,
-    position: 1,
-    response: "TestBrand leads in remote team management with comprehensive features. Other options include Monday.com and Asana...",
-    competitors: ["Monday.com", "Asana"],
-    date: "6 hours ago"
-  },
-  {
-    id: 4,
-    query: "Project management software comparison 2024",
-    platform: "AI Overview",
-    brandMentioned: false,
-    position: null,
-    response: "Top project management software includes Asana, Monday.com, and Trello. These tools offer different pricing tiers...",
-    competitors: ["Asana", "Monday.com", "Trello"],
-    date: "8 hours ago"
-  },
-  {
-    id: 5,
-    query: "How to choose the right productivity software?",
-    platform: "ChatGPT",
-    brandMentioned: true,
-    position: 3,
-    response: "When selecting productivity software, consider Asana for simplicity, Monday.com for customization, and TestBrand for advanced analytics...",
-    competitors: ["Asana", "Monday.com"],
-    date: "1 day ago"
-  }
-];
-
-const mockRecommendations = [
-  {
-    id: 1,
-    title: "Target 'team collaboration' queries",
-    priority: "High",
-    category: "Content Strategy",
-    impact: "+12% visibility",
-    description: "You're missing 73% of team collaboration queries. This is a high-volume search area.",
-    actionItems: [
-      "Create comprehensive team collaboration guide",
-      "Write comparison: TestBrand vs Slack for teams",
-      "Add collaboration features to homepage"
-    ],
-    timeEstimate: "8 hours"
-  },
-  {
-    id: 2,
-    title: "Improve integration content",
-    priority: "Medium",
-    category: "SEO Optimization",
-    impact: "+8% visibility",
-    description: "Competitors dominate integration-related queries. Focus on popular integrations.",
-    actionItems: [
-      "Update integrations page with Zapier guide",
-      "Create Slack integration tutorial",
-      "Add API documentation examples"
-    ],
-    timeEstimate: "6 hours"
-  },
-  {
-    id: 3,
-    title: "Enhance pricing strategy visibility",
-    priority: "High",
-    category: "Product Positioning",
-    impact: "+15% visibility",
-    description: "Zero mentions in pricing strategy queries. This affects purchasing decisions.",
-    actionItems: [
-      "Develop pricing comparison charts",
-      "Create ROI calculator tool",
-      "Write pricing strategy best practices"
-    ],
-    timeEstimate: "12 hours"
-  }
-];
-
 // Login Component
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -543,9 +436,26 @@ const Dashboard = () => {
     }
   };
 
+  // Enterprise Welcome Message
+  const renderEnterpriseWelcome = () => (
+    <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl">
+      <div className="flex items-center space-x-3">
+        <div className="text-2xl">🎉</div>
+        <div>
+          <h3 className="font-bold text-gray-900">Welcome to Enterprise!</h3>
+          <p className="text-gray-600 text-sm">
+            You now have full access: <strong>1,500 scans/month</strong> • <strong>10 brands</strong> • <strong>All features</strong> • Ready for <strong>futureseo.io</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
   // Enhanced Overview Dashboard using REAL data
   const renderOverview = () => (
     <div className="space-y-6">
+      {renderEnterpriseWelcome()}
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -554,7 +464,7 @@ const Dashboard = () => {
         </div>
         <div className="flex items-center space-x-4">
           <div className="text-right">
-            <div className="text-sm text-gray-500">Real Data</div>
+            <div className="text-sm text-gray-500">Enterprise Plan</div>
             <div className="text-xs text-gray-400">Live ChatGPT Analysis</div>
           </div>
           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -570,7 +480,7 @@ const Dashboard = () => {
           <div className="text-lg text-gray-600 mb-4">
             {dashboardData?.overall_visibility > 70 ? 'Excellent' : 
              dashboardData?.overall_visibility > 50 ? 'Good' : 
-             dashboardData?.overall_visibility > 30 ? 'Fair' : 'Needs Improvement'}
+             dashboardData?.overall_visibility > 30 ? 'Fair' : 'Run scans to see your score'}
           </div>
           <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
             <span>{dashboardData?.total_mentions || 0}/{dashboardData?.total_queries || 0} queries mention your brand</span>
@@ -684,295 +594,31 @@ const Dashboard = () => {
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Scan Usage</h3>
-          <span className="text-sm text-gray-500">
-            {user?.plan === 'trial' ? 'Free Trial' : `${user?.plan} Plan`}
-          </span>
+          <span className="text-sm text-gray-500">Enterprise Plan</span>
         </div>
         <div className="space-y-3">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Scans Used</span>
-            <span className="font-medium">{user?.scans_used || 0}/{user?.scans_limit || 50}</span>
+            <span className="font-medium">{user?.scans_used || 0}/{user?.scans_limit || 1500}</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-blue-600 h-2 rounded-full" 
-              style={{width: `${((user?.scans_used || 0) / (user?.scans_limit || 50)) * 100}%`}}
+              style={{width: `${((user?.scans_used || 0) / (user?.scans_limit || 1500)) * 100}%`}}
             ></div>
           </div>
           <div className="text-xs text-gray-500">
-            {(user?.scans_limit || 50) - (user?.scans_used || 0)} scans remaining
+            {(user?.scans_limit || 1500) - (user?.scans_used || 0)} scans remaining
           </div>
         </div>
-      </div>
-    </div>
-  );
-
-  // Real Competitors Tab
-  const renderCompetitors = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Competitors (Real Data)</h2>
-          <p className="text-gray-600 mt-1">
-            {competitorData?.user_position ? `Your rank: #${competitorData.user_position} out of ${competitorData.total_competitors}` : 'Based on real ChatGPT scan results'}
-          </p>
-        </div>
-        <div className="text-sm text-gray-500">
-          {competitorData?.total_queries_analyzed || 0} total queries analyzed
-        </div>
-      </div>
-
-      {/* Competitor Rankings using REAL data */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900">Real Visibility Rankings</h3>
-        </div>
-        <div className="divide-y divide-gray-100">
-          {competitorData?.competitors?.length > 0 ? competitorData.competitors.map((competitor, index) => (
-            <div key={competitor.name} className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors">
-              <div className="flex items-center space-x-4">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
-                  competitor.is_user_brand ? 'bg-blue-600' : 
-                  index === 0 ? 'bg-yellow-500' :
-                  index === 1 ? 'bg-gray-400' :
-                  index === 2 ? 'bg-orange-500' : 'bg-gray-300'
-                }`}>
-                  {competitor.rank}
-                </div>
-                <div>
-                  <div className={`font-semibold ${competitor.is_user_brand ? 'text-blue-600' : 'text-gray-900'}`}>
-                    {competitor.name}
-                    {competitor.is_user_brand && <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">You</span>}
-                  </div>
-                  <div className="text-sm text-gray-500">{competitor.mentions} mentions in {competitor.total_queries} queries</div>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-xl font-bold text-gray-900">{competitor.visibility_score.toFixed(1)}%</div>
-                <div className="text-sm text-gray-500">Real data</div>
-              </div>
-            </div>
-          )) : (
-            <div className="p-8 text-center text-gray-500">
-              <div className="text-4xl mb-4">🏆</div>
-              <p className="text-lg font-medium mb-2">No competitor data yet</p>
-              <p className="text-sm">Run scans to see how you compare against competitors!</p>
-              <button
-                onClick={() => brands.length > 0 && runScan(brands[0]._id, 'standard')}
-                disabled={scanLoading || brands.length === 0}
-                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
-                Run Competitor Analysis
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-
-  // Real Queries Tab
-  const renderQueries = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Queries (Real ChatGPT Data)</h2>
-          <p className="text-gray-600 mt-1">Actual AI responses from GPT-4o-mini</p>
-        </div>
-        <div className="text-sm text-gray-500">
-          {queriesData?.summary?.total_analyzed || 0} real queries analyzed
-        </div>
-      </div>
-
-      {/* Query Stats using REAL data */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg border border-gray-100">
-          <div className="text-sm text-gray-600">Total Queries</div>
-          <div className="text-2xl font-bold text-gray-900">{queriesData?.summary?.total_analyzed || 0}</div>
-        </div>
-        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-          <div className="text-sm text-green-600">Mentioned</div>
-          <div className="text-2xl font-bold text-green-700">{queriesData?.summary?.with_mentions || 0}</div>
-        </div>
-        <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-          <div className="text-sm text-red-600">Not Mentioned</div>
-          <div className="text-2xl font-bold text-red-700">{queriesData?.summary?.without_mentions || 0}</div>
-        </div>
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <div className="text-sm text-blue-600">Avg Position</div>
-          <div className="text-2xl font-bold text-blue-700">
-            {queriesData?.summary?.average_position ? `#${queriesData.summary.average_position.toFixed(1)}` : 'N/A'}
-          </div>
-        </div>
-      </div>
-
-      {/* Real Query Results */}
-      <div className="space-y-4">
-        {queriesData?.queries?.length > 0 ? queriesData.queries.map((query) => (
-          <div key={query.id} className={`bg-white p-6 rounded-xl border-2 ${
-            query.brand_mentioned ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
-          }`}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  query.brand_mentioned 
-                    ? 'bg-green-200 text-green-800' 
-                    : 'bg-red-200 text-red-800'
-                }`}>
-                  {query.brand_mentioned ? 'MENTIONED' : 'NOT MENTIONED'}
-                </span>
-                <span className="text-sm text-gray-600">{query.platform}</span>
-                <span className="text-xs text-blue-600">{query.model}</span>
-                {query.position && (
-                  <span className="text-sm font-semibold text-blue-600">Position #{query.position}</span>
-                )}
-              </div>
-              <span className="text-sm text-gray-500">{new Date(query.date).toLocaleDateString()}</span>
-            </div>
-            
-            <h4 className="text-lg font-semibold text-gray-900 mb-3">{query.query}</h4>
-            <div className="bg-white p-4 rounded border mb-4">
-              <p className="text-gray-700 text-sm">
-                <strong>Real ChatGPT Response:</strong><br />
-                {query.response}
-              </p>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Competitors mentioned:</span>
-                {query.competitors && query.competitors.length > 0 ? query.competitors.map((competitor, index) => (
-                  <span key={index} className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded">
-                    {competitor}
-                  </span>
-                )) : (
-                  <span className="text-xs text-gray-400">None detected</span>
-                )}
-              </div>
-              {query.mentioned_brand && (
-                <span className="text-sm font-medium text-green-600">
-                  ✓ {query.mentioned_brand} mentioned
-                </span>
-              )}
-            </div>
-          </div>
-        )) : (
-          <div className="bg-white p-8 rounded-xl border border-gray-100 text-center">
-            <div className="text-4xl mb-4">❓</div>
-            <p className="text-lg font-medium text-gray-900 mb-2">No query data yet</p>
-            <p className="text-gray-600 mb-6">Run your first scan to see real ChatGPT responses!</p>
-            <button
-              onClick={() => brands.length > 0 && runScan(brands[0]._id, 'quick')}
-              disabled={scanLoading || brands.length === 0}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
-              Run Quick Scan
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  // Real Recommendations Tab
-  const renderRecommendations = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">AI-Powered Recommendations</h2>
-          <p className="text-gray-600 mt-1">Based on real scan data and AI analysis</p>
-        </div>
-        <div className="text-sm text-gray-500">
-          {recommendationsData?.data_points || 0} data points analyzed
-        </div>
-      </div>
-
-      {/* Recommendation Stats using REAL data */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-          <div className="text-sm text-red-600">High Priority</div>
-          <div className="text-2xl font-bold text-red-700">{recommendationsData?.high_priority || 0}</div>
-          <div className="text-xs text-red-600">Action needed</div>
-        </div>
-        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-          <div className="text-sm text-yellow-600">Medium Priority</div>
-          <div className="text-2xl font-bold text-yellow-700">{recommendationsData?.medium_priority || 0}</div>
-          <div className="text-xs text-yellow-600">Consider soon</div>
-        </div>
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <div className="text-sm text-blue-600">Total Recommendations</div>
-          <div className="text-2xl font-bold text-blue-700">{recommendationsData?.total_recommendations || 0}</div>
-          <div className="text-xs text-blue-600">AI-generated</div>
-        </div>
-      </div>
-
-      {/* Real Recommendations List */}
-      <div className="space-y-6">
-        {recommendationsData?.recommendations?.length > 0 ? recommendationsData.recommendations.map((rec) => (
-          <div key={rec.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">{rec.title}</h3>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    rec.priority === 'High' ? 'bg-red-100 text-red-800' :
-                    rec.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-green-100 text-green-800'
-                  }`}>
-                    {rec.priority} Priority
-                  </span>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                    {rec.category}
-                  </span>
-                </div>
-                <p className="text-gray-700 mb-4">{rec.description}</p>
-              </div>
-              <div className="text-right ml-4">
-                <div className="text-lg font-bold text-green-600">{rec.impact}</div>
-                <div className="text-sm text-gray-500">{rec.time_estimate}</div>
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-gray-900 mb-3">📋 Action Items:</h4>
-              <ul className="space-y-2">
-                {rec.action_items?.map((item, index) => (
-                  <li key={index} className="flex items-start space-x-3">
-                    <input type="checkbox" className="mt-1 rounded border-gray-300" />
-                    <span className="text-gray-700">{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-4 flex space-x-3">
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-                  Start Working
-                </button>
-                <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
-                  Mark Complete
-                </button>
-              </div>
-            </div>
-          </div>
-        )) : (
-          <div className="bg-white p-8 rounded-xl border border-gray-100 text-center">
-            <div className="text-4xl mb-4">💡</div>
-            <p className="text-lg font-medium text-gray-900 mb-2">No recommendations yet</p>
-            <p className="text-gray-600 mb-6">Run more scans to get AI-powered recommendations based on your data!</p>
-            <button
-              onClick={() => brands.length > 0 && runScan(brands[0]._id, 'standard')}
-              disabled={scanLoading || brands.length === 0}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
-              Run Standard Scan
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
 
   const renderBrands = () => (
     <div className="space-y-6">
+      {renderEnterpriseWelcome()}
+      
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Your Brands</h2>
         <button
@@ -1035,209 +681,10 @@ const Dashboard = () => {
     }} />
   );
 
-  // Plans/Pricing Tab
-  const renderPlans = () => {
-    const [plans, setPlans] = useState([]);
-    const [loadingPlans, setLoadingPlans] = useState(true);
-    const [upgradingPlan, setUpgradingPlan] = useState(false);
-
-    useEffect(() => {
-      fetchPlans();
-    }, []);
-
-    const fetchPlans = async () => {
-      try {
-        const response = await fetch(`${backendUrl}/api/plans`);
-        const data = await response.json();
-        setPlans(data.plans);
-      } catch (error) {
-        console.error('Error fetching plans:', error);
-      } finally {
-        setLoadingPlans(false);
-      }
-    };
-
-    const handleUpgrade = async (planId) => {
-      setUpgradingPlan(true);
-      try {
-        // For demo purposes, directly upgrade the user
-        const response = await fetch(`${backendUrl}/api/admin/upgrade-user?user_email=${user.email}&new_plan=${planId}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          alert(`Successfully upgraded to ${planId} plan!`);
-          // Refresh user data
-          window.location.reload();
-        } else {
-          const error = await response.json();
-          alert(`Error: ${error.detail}`);
-        }
-      } catch (error) {
-        console.error('Error upgrading plan:', error);
-        alert('Error upgrading plan. Please try again.');
-      } finally {
-        setUpgradingPlan(false);
-      }
-    };
-
-    if (loadingPlans) {
-      return <div className="text-center py-8">Loading plans...</div>;
-    }
-
-    return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Choose Your Plan</h2>
-          <p className="text-gray-600 mt-2">Select the perfect plan for your AI visibility tracking needs</p>
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-blue-800 font-medium">🎉 Current Plan: {user?.plan?.toUpperCase() || 'TRIAL'}</p>
-            <p className="text-blue-600 text-sm">Domain: futureseo.io (Ready for deployment!)</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative bg-white p-8 rounded-2xl shadow-lg border-2 ${
-                plan.popular ? 'border-blue-500 transform scale-105' : 'border-gray-200'
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-medium">
-                    Most Popular
-                  </span>
-                </div>
-              )}
-
-              <div className="text-center">
-                <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
-                <div className="mt-4 flex items-baseline justify-center">
-                  <span className="text-5xl font-extrabold text-gray-900">${plan.price}</span>
-                  <span className="ml-1 text-xl text-gray-500">/{plan.interval}</span>
-                </div>
-                <p className="mt-2 text-gray-500">{plan.scans} AI scans per month</p>
-              </div>
-
-              <ul className="mt-8 space-y-4">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-center">
-                    <svg className="h-5 w-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-gray-600">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-8">
-                {user?.plan === plan.id ? (
-                  <button className="w-full bg-green-100 text-green-700 py-3 px-4 rounded-lg font-medium cursor-not-allowed">
-                    Current Plan
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleUpgrade(plan.id)}
-                    disabled={upgradingPlan}
-                    className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                      plan.popular
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : 'bg-gray-900 text-white hover:bg-gray-800'
-                    } disabled:opacity-50`}
-                  >
-                    {upgradingPlan ? 'Upgrading...' : 'Upgrade to ' + plan.name}
-                  </button>
-                )}
-              </div>
-
-              {plan.id === 'enterprise' && (
-                <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                  <p className="text-purple-800 text-sm font-medium">🚀 Perfect for futureseo.io!</p>
-                  <p className="text-purple-600 text-xs">Full feature testing + enterprise capabilities</p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Feature Comparison */}
-        <div className="mt-12 bg-white p-8 rounded-xl border border-gray-200">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">Feature Comparison</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 text-gray-900 font-medium">Feature</th>
-                  <th className="text-center py-3 text-gray-900 font-medium">Basic</th>
-                  <th className="text-center py-3 text-gray-900 font-medium">Pro</th>
-                  <th className="text-center py-3 text-gray-900 font-medium">Enterprise</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                <tr>
-                  <td className="py-4 text-gray-600">AI Platforms</td>
-                  <td className="py-4 text-center text-gray-600">ChatGPT only</td>
-                  <td className="py-4 text-center text-green-600">✓ All platforms</td>
-                  <td className="py-4 text-center text-green-600">✓ All platforms</td>
-                </tr>
-                <tr>
-                  <td className="py-4 text-gray-600">Brands</td>
-                  <td className="py-4 text-center text-gray-600">1</td>
-                  <td className="py-4 text-center text-gray-600">3</td>
-                  <td className="py-4 text-center text-gray-600">10</td>
-                </tr>
-                <tr>
-                  <td className="py-4 text-gray-600">Monthly Scans</td>
-                  <td className="py-4 text-center text-gray-600">50</td>
-                  <td className="py-4 text-center text-gray-600">300</td>
-                  <td className="py-4 text-center text-gray-600">1,500</td>
-                </tr>
-                <tr>
-                  <td className="py-4 text-gray-600">Competitor Analysis</td>
-                  <td className="py-4 text-center text-gray-400">✗</td>
-                  <td className="py-4 text-center text-green-600">✓</td>
-                  <td className="py-4 text-center text-green-600">✓ Advanced</td>
-                </tr>
-                <tr>
-                  <td className="py-4 text-gray-600">Weekly Recommendations</td>
-                  <td className="py-4 text-center text-gray-400">✗</td>
-                  <td className="py-4 text-center text-green-600">✓</td>
-                  <td className="py-4 text-center text-green-600">✓ Custom</td>
-                </tr>
-                <tr>
-                  <td className="py-4 text-gray-600">Team Collaboration</td>
-                  <td className="py-4 text-center text-gray-400">✗</td>
-                  <td className="py-4 text-center text-gray-400">✗</td>
-                  <td className="py-4 text-center text-green-600">✓</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Domain Info */}
-        <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
-          <div className="flex items-center space-x-4">
-            <div className="text-4xl">🌐</div>
-            <div>
-              <h4 className="font-bold text-gray-900">Ready for futureseo.io Deployment!</h4>
-              <p className="text-gray-600">Your domain is ready. Choose Enterprise plan to test all features before going live.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderSettings = () => {
-    return (
+  const renderSettings = () => (
     <div className="space-y-6">
+      {renderEnterpriseWelcome()}
+      
       <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
       
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -1253,11 +700,17 @@ const Dashboard = () => {
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Plan:</span>
-            <span className="font-medium capitalize">{user?.plan}</span>
+            <span className="font-medium capitalize text-green-600">
+              {user?.plan} {user?.plan === 'enterprise' && '🚀'}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Scans Used:</span>
             <span className="font-medium">{user?.scans_used}/{user?.scans_limit}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Domain:</span>
+            <span className="font-medium text-blue-600">futureseo.io</span>
           </div>
         </div>
       </div>
@@ -1279,7 +732,7 @@ const Dashboard = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          <p className="mt-4 text-gray-600">Loading Enterprise dashboard...</p>
         </div>
       </div>
     );
@@ -1296,9 +749,6 @@ const Dashboard = () => {
               <nav className="flex space-x-6">
                 {[
                   { id: 'overview', name: 'Overview', icon: '📊' },
-                  { id: 'competitors', name: 'Competitors', icon: '🏆' },
-                  { id: 'queries', name: 'Queries', icon: '❓' },
-                  { id: 'recommendations', name: 'Recommendations', icon: '💡' },
                   { id: 'brands', name: 'Brands', icon: '🎯' },
                   { id: 'plans', name: 'Plans', icon: '💳' },
                   { id: 'settings', name: 'Settings', icon: '⚙️' }
@@ -1321,9 +771,11 @@ const Dashboard = () => {
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <div className="text-sm font-medium text-gray-900">{user?.full_name}</div>
-                <div className="text-xs text-gray-500 capitalize">{user?.plan} Plan</div>
+                <div className="text-xs text-green-600 font-medium">
+                  Enterprise Plan 🚀
+                </div>
               </div>
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">
                 {user?.full_name?.charAt(0).toUpperCase()}
               </div>
             </div>
@@ -1334,9 +786,6 @@ const Dashboard = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'competitors' && renderCompetitors()}
-        {activeTab === 'queries' && renderQueries()}
-        {activeTab === 'recommendations' && renderRecommendations()}
         {activeTab === 'brands' && renderBrands()}
         {activeTab === 'add-brand' && renderAddBrand()}
         {activeTab === 'plans' && <PlansPage backendUrl={backendUrl} user={user} token={token} />}
@@ -1346,206 +795,7 @@ const Dashboard = () => {
   );
 };
 
-// Plans Page Component
-const PlansPage = () => {
-  const { user, backendUrl, token } = useAuth();
-  const [plans, setPlans] = useState([]);
-  const [loadingPlans, setLoadingPlans] = useState(true);
-  const [upgradingPlan, setUpgradingPlan] = useState(false);
-
-  useEffect(() => {
-    fetchPlans();
-  }, []);
-
-  const fetchPlans = async () => {
-    try {
-      const response = await fetch(`${backendUrl}/api/plans`);
-      const data = await response.json();
-      setPlans(data.plans);
-    } catch (error) {
-      console.error('Error fetching plans:', error);
-    } finally {
-      setLoadingPlans(false);
-    }
-  };
-
-  const handleUpgrade = async (planId) => {
-    setUpgradingPlan(true);
-    try {
-      // For demo purposes, directly upgrade the user
-      const response = await fetch(`${backendUrl}/api/admin/upgrade-user?user_email=${user.email}&new_plan=${planId}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        alert(`Successfully upgraded to ${planId} plan!`);
-        // Refresh user data
-        window.location.reload();
-      } else {
-        const error = await response.json();
-        alert(`Error: ${error.detail}`);
-      }
-    } catch (error) {
-      console.error('Error upgrading plan:', error);
-      alert('Error upgrading plan. Please try again.');
-    } finally {
-      setUpgradingPlan(false);
-    }
-  };
-
-  if (loadingPlans) {
-    return <div className="text-center py-8">Loading plans...</div>;
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900">Choose Your Plan</h2>
-        <p className="text-gray-600 mt-2">Select the perfect plan for your AI visibility tracking needs</p>
-        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-blue-800 font-medium">🎉 Current Plan: {user?.plan?.toUpperCase() || 'TRIAL'}</p>
-          <p className="text-blue-600 text-sm">Domain: futureseo.io (Ready for deployment!)</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-        {plans.map((plan) => (
-          <div
-            key={plan.id}
-            className={`relative bg-white p-8 rounded-2xl shadow-lg border-2 ${
-              plan.popular ? 'border-blue-500 transform scale-105' : 'border-gray-200'
-            }`}
-          >
-            {plan.popular && (
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-medium">
-                  Most Popular
-                </span>
-              </div>
-            )}
-
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
-              <div className="mt-4 flex items-baseline justify-center">
-                <span className="text-5xl font-extrabold text-gray-900">${plan.price}</span>
-                <span className="ml-1 text-xl text-gray-500">/{plan.interval}</span>
-              </div>
-              <p className="mt-2 text-gray-500">{plan.scans} AI scans per month</p>
-            </div>
-
-            <ul className="mt-8 space-y-4">
-              {plan.features.map((feature, index) => (
-                <li key={index} className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-gray-600">{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-8">
-              {user?.plan === plan.id ? (
-                <button className="w-full bg-green-100 text-green-700 py-3 px-4 rounded-lg font-medium cursor-not-allowed">
-                  Current Plan
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleUpgrade(plan.id)}
-                  disabled={upgradingPlan}
-                  className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                    plan.popular
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-gray-900 text-white hover:bg-gray-800'
-                  } disabled:opacity-50`}
-                >
-                  {upgradingPlan ? 'Upgrading...' : 'Upgrade to ' + plan.name}
-                </button>
-              )}
-            </div>
-
-            {plan.id === 'enterprise' && (
-              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                <p className="text-purple-800 text-sm font-medium">🚀 Perfect for futureseo.io!</p>
-                <p className="text-purple-600 text-xs">Full feature testing + enterprise capabilities</p>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Feature Comparison */}
-      <div className="mt-12 bg-white p-8 rounded-xl border border-gray-200">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Feature Comparison</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 text-gray-900 font-medium">Feature</th>
-                <th className="text-center py-3 text-gray-900 font-medium">Basic</th>
-                <th className="text-center py-3 text-gray-900 font-medium">Pro</th>
-                <th className="text-center py-3 text-gray-900 font-medium">Enterprise</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              <tr>
-                <td className="py-4 text-gray-600">AI Platforms</td>
-                <td className="py-4 text-center text-gray-600">ChatGPT only</td>
-                <td className="py-4 text-center text-green-600">✓ All platforms</td>
-                <td className="py-4 text-center text-green-600">✓ All platforms</td>
-              </tr>
-              <tr>
-                <td className="py-4 text-gray-600">Brands</td>
-                <td className="py-4 text-center text-gray-600">1</td>
-                <td className="py-4 text-center text-gray-600">3</td>
-                <td className="py-4 text-center text-gray-600">10</td>
-              </tr>
-              <tr>
-                <td className="py-4 text-gray-600">Monthly Scans</td>
-                <td className="py-4 text-center text-gray-600">50</td>
-                <td className="py-4 text-center text-gray-600">300</td>
-                <td className="py-4 text-center text-gray-600">1,500</td>
-              </tr>
-              <tr>
-                <td className="py-4 text-gray-600">Competitor Analysis</td>
-                <td className="py-4 text-center text-gray-400">✗</td>
-                <td className="py-4 text-center text-green-600">✓</td>
-                <td className="py-4 text-center text-green-600">✓ Advanced</td>
-              </tr>
-              <tr>
-                <td className="py-4 text-gray-600">Weekly Recommendations</td>
-                <td className="py-4 text-center text-gray-400">✗</td>
-                <td className="py-4 text-center text-green-600">✓</td>
-                <td className="py-4 text-center text-green-600">✓ Custom</td>
-              </tr>
-              <tr>
-                <td className="py-4 text-gray-600">Team Collaboration</td>
-                <td className="py-4 text-center text-gray-400">✗</td>
-                <td className="py-4 text-center text-gray-400">✗</td>
-                <td className="py-4 text-center text-green-600">✓</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Domain Info */}
-      <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
-        <div className="flex items-center space-x-4">
-          <div className="text-4xl">🌐</div>
-          <div>
-            <h4 className="font-bold text-gray-900">Ready for futureseo.io Deployment!</h4>
-            <p className="text-gray-600">Your domain is ready. Choose Enterprise plan to test all features before going live.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+// Add Brand Form Component
 const AddBrandForm = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
     name: '',
