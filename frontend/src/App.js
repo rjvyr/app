@@ -474,48 +474,39 @@ const Dashboard = () => {
   const { user, logout, backendUrl, token } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [dashboardData, setDashboardData] = useState(null);
+  const [competitorData, setCompetitorData] = useState(null);
+  const [queriesData, setQueriesData] = useState(null);
+  const [recommendationsData, setRecommendationsData] = useState(null);
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [scanLoading, setScanLoading] = useState(false);
 
   useEffect(() => {
-    fetchDashboardData();
-    fetchBrands();
+    fetchAllRealData();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchAllRealData = async () => {
     try {
-      const response = await fetch(`${backendUrl}/api/dashboard`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      setLoading(true);
+      const headers = { 'Authorization': `Bearer ${token}` };
       
-      if (response.ok) {
-        const data = await response.json();
-        setDashboardData(data);
-      }
+      const [dashboard, competitors, queries, recommendations, brandsRes] = await Promise.all([
+        fetch(`${backendUrl}/api/dashboard/real`, { headers }).then(res => res.json()),
+        fetch(`${backendUrl}/api/competitors/real`, { headers }).then(res => res.json()),
+        fetch(`${backendUrl}/api/queries/real`, { headers }).then(res => res.json()),
+        fetch(`${backendUrl}/api/recommendations/real`, { headers }).then(res => res.json()),
+        fetch(`${backendUrl}/api/brands`, { headers }).then(res => res.json())
+      ]);
+
+      setDashboardData(dashboard);
+      setCompetitorData(competitors);
+      setQueriesData(queries);
+      setRecommendationsData(recommendations);
+      setBrands(brandsRes.brands || []);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Error fetching real data:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchBrands = async () => {
-    try {
-      const response = await fetch(`${backendUrl}/api/brands`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setBrands(data.brands);
-      }
-    } catch (error) {
-      console.error('Error fetching brands:', error);
     }
   };
 
@@ -537,8 +528,8 @@ const Dashboard = () => {
       if (response.ok) {
         const data = await response.json();
         alert(`Scan completed! Visibility score: ${data.visibility_score.toFixed(1)}%`);
-        fetchDashboardData();
-        fetchBrands();
+        // Refresh all data after scan
+        fetchAllRealData();
       } else {
         const error = await response.json();
         alert(`Error: ${error.detail}`);
@@ -551,88 +542,74 @@ const Dashboard = () => {
     }
   };
 
-  // Enhanced Overview Dashboard
+  // Enhanced Overview Dashboard using REAL data
   const renderOverview = () => (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">AI Visibility Score</h1>
-          <p className="text-gray-600 mt-1">TestBrand AI visibility tracking</p>
+          <p className="text-gray-600 mt-1">Real-time brand visibility tracking</p>
         </div>
         <div className="flex items-center space-x-4">
           <div className="text-right">
-            <div className="text-sm text-gray-500">Last 7 days</div>
-            <div className="text-xs text-gray-400">Updated 2 hours ago</div>
+            <div className="text-sm text-gray-500">Real Data</div>
+            <div className="text-xs text-gray-400">Live ChatGPT Analysis</div>
           </div>
           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
         </div>
       </div>
 
-      {/* Main Score Card */}
+      {/* Main Score Card using REAL data */}
       <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
         <div className="text-center">
-          <div className="text-6xl font-bold text-blue-600 mb-2">72</div>
-          <div className="text-lg text-gray-600 mb-4">Good Performance</div>
+          <div className="text-6xl font-bold text-blue-600 mb-2">
+            {dashboardData?.overall_visibility ? Math.round(dashboardData.overall_visibility) : 0}
+          </div>
+          <div className="text-lg text-gray-600 mb-4">
+            {dashboardData?.overall_visibility > 70 ? 'Excellent' : 
+             dashboardData?.overall_visibility > 50 ? 'Good' : 
+             dashboardData?.overall_visibility > 30 ? 'Fair' : 'Needs Improvement'}
+          </div>
           <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
-            <span>↗ +5.2% this week</span>
+            <span>{dashboardData?.total_mentions || 0}/{dashboardData?.total_queries || 0} queries mention your brand</span>
             <span>•</span>
-            <span>Rank #3 of 86</span>
+            <span>{dashboardData?.brands_count || 0} brands tracked</span>
           </div>
         </div>
       </div>
 
-      {/* Platform Breakdown */}
+      {/* Platform Breakdown using REAL data */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Breakdown</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Breakdown (Real Data)</h3>
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span className="text-blue-600 font-bold">🤖</span>
+          {dashboardData?.platform_breakdown && Object.entries(dashboardData.platform_breakdown).map(([platform, data]) => (
+            <div key={platform} className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <span className="text-blue-600 font-bold">
+                    {platform === 'ChatGPT' ? '🤖' : platform === 'Gemini' ? '💎' : '🔍'}
+                  </span>
+                </div>
+                <div>
+                  <div className="font-semibold text-gray-900">{platform}</div>
+                  <div className="text-sm text-gray-500">{data.mentions} mentions out of {data.total_questions} queries</div>
+                </div>
               </div>
-              <div>
-                <div className="font-semibold text-gray-900">ChatGPT</div>
-                <div className="text-sm text-gray-500">15 mentions out of 20 queries</div>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-blue-600">75%</div>
-              <div className="text-sm text-green-600">↗ +8%</div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <span className="text-purple-600 font-bold">💎</span>
-              </div>
-              <div>
-                <div className="font-semibold text-gray-900">Gemini</div>
-                <div className="text-sm text-gray-500">8 mentions out of 20 queries</div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-blue-600">{Math.round(data.visibility_rate)}%</div>
+                <div className="text-sm text-gray-500">Real API data</div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-purple-600">40%</div>
-              <div className="text-sm text-red-600">↘ -3%</div>
+          ))}
+          
+          {(!dashboardData?.platform_breakdown || Object.keys(dashboardData.platform_breakdown).length === 0) && (
+            <div className="text-center py-8 text-gray-500">
+              <div className="text-4xl mb-4">📊</div>
+              <p className="text-lg font-medium mb-2">No scan data yet</p>
+              <p className="text-sm">Run your first scan to see real AI visibility data!</p>
             </div>
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <span className="text-green-600 font-bold">🔍</span>
-              </div>
-              <div>
-                <div className="font-semibold text-gray-900">AI Overview</div>
-                <div className="text-sm text-gray-500">12 mentions out of 15 queries</div>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-green-600">80%</div>
-              <div className="text-sm text-green-600">↗ +12%</div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -648,7 +625,7 @@ const Dashboard = () => {
             <div className="text-center">
               <div className="text-2xl mb-2">⚡</div>
               <div className="font-medium text-gray-900">Quick Scan</div>
-              <div className="text-sm text-gray-500">5 scans • 2 min</div>
+              <div className="text-sm text-gray-500">5 real AI queries</div>
             </div>
           </button>
 
@@ -660,7 +637,7 @@ const Dashboard = () => {
             <div className="text-center">
               <div className="text-2xl mb-2">🎯</div>
               <div className="font-medium text-gray-900">Standard Scan</div>
-              <div className="text-sm text-gray-500">25 scans • 5 min</div>
+              <div className="text-sm text-gray-500">25 real AI queries</div>
             </div>
           </button>
 
@@ -672,7 +649,7 @@ const Dashboard = () => {
             <div className="text-center">
               <div className="text-2xl mb-2">🚀</div>
               <div className="font-medium text-gray-900">Deep Scan</div>
-              <div className="text-sm text-gray-500">50 scans • 10 min</div>
+              <div className="text-sm text-gray-500">50 real AI queries</div>
             </div>
           </button>
 
@@ -684,17 +661,31 @@ const Dashboard = () => {
             <div className="text-center">
               <div className="text-2xl mb-2">🏆</div>
               <div className="font-medium text-gray-900">Competitor Scan</div>
-              <div className="text-sm text-gray-500">10 scans • 3 min</div>
+              <div className="text-sm text-gray-500">10 competitor queries</div>
             </div>
           </button>
         </div>
+        
+        {brands.length === 0 && (
+          <div className="mt-4 text-center text-gray-500">
+            <p>Add a brand first to start scanning!</p>
+            <button
+              onClick={() => setActiveTab('add-brand')}
+              className="mt-2 text-blue-600 hover:underline"
+            >
+              Add Your First Brand →
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Usage Stats */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Scan Usage</h3>
-          <span className="text-sm text-gray-500">Resets in 12 days</span>
+          <span className="text-sm text-gray-500">
+            {user?.plan === 'trial' ? 'Free Trial' : `${user?.plan} Plan`}
+          </span>
         </div>
         <div className="space-y-3">
           <div className="flex justify-between text-sm">
@@ -715,28 +706,32 @@ const Dashboard = () => {
     </div>
   );
 
-  // Competitors Tab
+  // Real Competitors Tab
   const renderCompetitors = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Competitors</h2>
-          <p className="text-gray-600 mt-1">Your rank: #3 out of 86</p>
+          <h2 className="text-2xl font-bold text-gray-900">Competitors (Real Data)</h2>
+          <p className="text-gray-600 mt-1">
+            {competitorData?.user_position ? `Your rank: #${competitorData.user_position} out of ${competitorData.total_competitors}` : 'Based on real ChatGPT scan results'}
+          </p>
         </div>
-        <div className="text-sm text-gray-500">Updated 2 hours ago</div>
+        <div className="text-sm text-gray-500">
+          {competitorData?.total_queries_analyzed || 0} total queries analyzed
+        </div>
       </div>
 
-      {/* Competitor Rankings */}
+      {/* Competitor Rankings using REAL data */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900">Visibility Rankings</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Real Visibility Rankings</h3>
         </div>
         <div className="divide-y divide-gray-100">
-          {mockCompetitors.map((competitor, index) => (
+          {competitorData?.competitors?.length > 0 ? competitorData.competitors.map((competitor, index) => (
             <div key={competitor.name} className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors">
               <div className="flex items-center space-x-4">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
-                  competitor.name === 'TestBrand' ? 'bg-blue-600' : 
+                  competitor.is_user_brand ? 'bg-blue-600' : 
                   index === 0 ? 'bg-yellow-500' :
                   index === 1 ? 'bg-gray-400' :
                   index === 2 ? 'bg-orange-500' : 'bg-gray-300'
@@ -744,207 +739,175 @@ const Dashboard = () => {
                   {competitor.rank}
                 </div>
                 <div>
-                  <div className={`font-semibold ${competitor.name === 'TestBrand' ? 'text-blue-600' : 'text-gray-900'}`}>
+                  <div className={`font-semibold ${competitor.is_user_brand ? 'text-blue-600' : 'text-gray-900'}`}>
                     {competitor.name}
-                    {competitor.name === 'TestBrand' && <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">You</span>}
+                    {competitor.is_user_brand && <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">You</span>}
                   </div>
-                  <div className="text-sm text-gray-500">{competitor.mentions} mentions</div>
+                  <div className="text-sm text-gray-500">{competitor.mentions} mentions in {competitor.total_queries} queries</div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-xl font-bold text-gray-900">{competitor.visibilityScore}%</div>
-                <div className={`text-sm ${competitor.trend.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
-                  {competitor.trend}
-                </div>
+                <div className="text-xl font-bold text-gray-900">{competitor.visibility_score.toFixed(1)}%</div>
+                <div className="text-sm text-gray-500">Real data</div>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Competitive Analysis Chart */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Visibility Trends (Last 30 Days)</h3>
-        <div className="h-64 flex items-end justify-between space-x-2">
-          {[65, 68, 70, 69, 72, 71, 75, 74, 76, 72].map((value, index) => (
-            <div key={index} className="flex-1 flex flex-col items-center">
-              <div
-                className="w-full bg-blue-500 rounded-t transition-all duration-300 hover:bg-blue-600"
-                style={{ height: `${(value / 100) * 200}px` }}
-              ></div>
-              <span className="text-xs text-gray-500 mt-1">{value}%</span>
+          )) : (
+            <div className="p-8 text-center text-gray-500">
+              <div className="text-4xl mb-4">🏆</div>
+              <p className="text-lg font-medium mb-2">No competitor data yet</p>
+              <p className="text-sm">Run scans to see how you compare against competitors!</p>
+              <button
+                onClick={() => brands.length > 0 && runScan(brands[0]._id, 'standard')}
+                disabled={scanLoading || brands.length === 0}
+                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                Run Competitor Analysis
+              </button>
             </div>
-          ))}
-        </div>
-        <div className="mt-4 flex justify-center">
-          <div className="flex items-center space-x-6 text-sm">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span className="text-gray-600">TestBrand</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-              <span className="text-gray-600">Industry Average (68%)</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Gap Analysis */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Competitive Gaps</h3>
-        <div className="space-y-4">
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-red-800">Integration Queries</span>
-              <span className="text-sm text-red-600">-17% vs Asana</span>
-            </div>
-            <p className="text-sm text-red-700">Asana dominates integration-related queries. Focus on Zapier, Slack integrations.</p>
-          </div>
-          
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-yellow-800">Pricing Comparisons</span>
-              <span className="text-sm text-yellow-600">-12% vs Monday.com</span>
-            </div>
-            <p className="text-sm text-yellow-700">Monday.com appears more in pricing comparison queries. Optimize pricing content.</p>
-          </div>
-
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-green-800">Remote Work Queries</span>
-              <span className="text-sm text-green-600">+8% vs average</span>
-            </div>
-            <p className="text-sm text-green-700">You're leading in remote work discussions. Continue this momentum.</p>
-          </div>
+          )}
         </div>
       </div>
     </div>
   );
 
-  // Queries Tab
+  // Real Queries Tab
   const renderQueries = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Queries</h2>
-          <p className="text-gray-600 mt-1">See which queries lead to your website being mentioned in AI responses</p>
+          <h2 className="text-2xl font-bold text-gray-900">Queries (Real ChatGPT Data)</h2>
+          <p className="text-gray-600 mt-1">Actual AI responses from GPT-4o-mini</p>
         </div>
-        <div className="flex items-center space-x-4">
-          <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-            <option>All Platforms</option>
-            <option>ChatGPT</option>
-            <option>Gemini</option>
-            <option>AI Overview</option>
-          </select>
-          <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-            <option>All Results</option>
-            <option>Mentioned</option>
-            <option>Not Mentioned</option>
-          </select>
+        <div className="text-sm text-gray-500">
+          {queriesData?.summary?.total_analyzed || 0} real queries analyzed
         </div>
       </div>
 
-      {/* Query Stats */}
+      {/* Query Stats using REAL data */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-lg border border-gray-100">
           <div className="text-sm text-gray-600">Total Queries</div>
-          <div className="text-2xl font-bold text-gray-900">55</div>
+          <div className="text-2xl font-bold text-gray-900">{queriesData?.summary?.total_analyzed || 0}</div>
         </div>
         <div className="bg-green-50 p-4 rounded-lg border border-green-200">
           <div className="text-sm text-green-600">Mentioned</div>
-          <div className="text-2xl font-bold text-green-700">35</div>
+          <div className="text-2xl font-bold text-green-700">{queriesData?.summary?.with_mentions || 0}</div>
         </div>
         <div className="bg-red-50 p-4 rounded-lg border border-red-200">
           <div className="text-sm text-red-600">Not Mentioned</div>
-          <div className="text-2xl font-bold text-red-700">20</div>
+          <div className="text-2xl font-bold text-red-700">{queriesData?.summary?.without_mentions || 0}</div>
         </div>
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
           <div className="text-sm text-blue-600">Avg Position</div>
-          <div className="text-2xl font-bold text-blue-700">#2.1</div>
+          <div className="text-2xl font-bold text-blue-700">
+            {queriesData?.summary?.average_position ? `#${queriesData.summary.average_position.toFixed(1)}` : 'N/A'}
+          </div>
         </div>
       </div>
 
-      {/* Query Results */}
+      {/* Real Query Results */}
       <div className="space-y-4">
-        {mockQueries.map((query) => (
+        {queriesData?.queries?.length > 0 ? queriesData.queries.map((query) => (
           <div key={query.id} className={`bg-white p-6 rounded-xl border-2 ${
-            query.brandMentioned ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+            query.brand_mentioned ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
           }`}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-3">
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  query.brandMentioned 
+                  query.brand_mentioned 
                     ? 'bg-green-200 text-green-800' 
                     : 'bg-red-200 text-red-800'
                 }`}>
-                  {query.brandMentioned ? 'MENTIONED' : 'NOT MENTIONED'}
+                  {query.brand_mentioned ? 'MENTIONED' : 'NOT MENTIONED'}
                 </span>
                 <span className="text-sm text-gray-600">{query.platform}</span>
+                <span className="text-xs text-blue-600">{query.model}</span>
                 {query.position && (
                   <span className="text-sm font-semibold text-blue-600">Position #{query.position}</span>
                 )}
               </div>
-              <span className="text-sm text-gray-500">{query.date}</span>
+              <span className="text-sm text-gray-500">{new Date(query.date).toLocaleDateString()}</span>
             </div>
             
             <h4 className="text-lg font-semibold text-gray-900 mb-3">{query.query}</h4>
-            <p className="text-gray-700 mb-4 bg-white p-3 rounded border">{query.response}</p>
+            <div className="bg-white p-4 rounded border mb-4">
+              <p className="text-gray-700 text-sm">
+                <strong>Real ChatGPT Response:</strong><br />
+                {query.response}
+              </p>
+            </div>
             
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600">Competitors mentioned:</span>
-                {query.competitors.map((competitor, index) => (
+                {query.competitors && query.competitors.length > 0 ? query.competitors.map((competitor, index) => (
                   <span key={index} className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded">
                     {competitor}
                   </span>
-                ))}
+                )) : (
+                  <span className="text-xs text-gray-400">None detected</span>
+                )}
               </div>
-              {!query.brandMentioned && (
-                <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                  Create Content →
-                </button>
+              {query.mentioned_brand && (
+                <span className="text-sm font-medium text-green-600">
+                  ✓ {query.mentioned_brand} mentioned
+                </span>
               )}
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="bg-white p-8 rounded-xl border border-gray-100 text-center">
+            <div className="text-4xl mb-4">❓</div>
+            <p className="text-lg font-medium text-gray-900 mb-2">No query data yet</p>
+            <p className="text-gray-600 mb-6">Run your first scan to see real ChatGPT responses!</p>
+            <button
+              onClick={() => brands.length > 0 && runScan(brands[0]._id, 'quick')}
+              disabled={scanLoading || brands.length === 0}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
+            >
+              Run Quick Scan
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 
-  // Recommendations Tab
+  // Real Recommendations Tab
   const renderRecommendations = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Recommendations</h2>
-          <p className="text-gray-600 mt-1">Weekly AI-powered suggestions to improve your visibility</p>
+          <h2 className="text-2xl font-bold text-gray-900">AI-Powered Recommendations</h2>
+          <p className="text-gray-600 mt-1">Based on real scan data and AI analysis</p>
         </div>
-        <div className="text-sm text-gray-500">Updated weekly</div>
+        <div className="text-sm text-gray-500">
+          {recommendationsData?.data_points || 0} data points analyzed
+        </div>
       </div>
 
-      {/* Recommendation Stats */}
+      {/* Recommendation Stats using REAL data */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-red-50 p-4 rounded-lg border border-red-200">
           <div className="text-sm text-red-600">High Priority</div>
-          <div className="text-2xl font-bold text-red-700">2</div>
-          <div className="text-xs text-red-600">Potential +27% visibility</div>
+          <div className="text-2xl font-bold text-red-700">{recommendationsData?.high_priority || 0}</div>
+          <div className="text-xs text-red-600">Action needed</div>
         </div>
         <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
           <div className="text-sm text-yellow-600">Medium Priority</div>
-          <div className="text-2xl font-bold text-yellow-700">1</div>
-          <div className="text-xs text-yellow-600">Potential +8% visibility</div>
+          <div className="text-2xl font-bold text-yellow-700">{recommendationsData?.medium_priority || 0}</div>
+          <div className="text-xs text-yellow-600">Consider soon</div>
         </div>
-        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-          <div className="text-sm text-green-600">Completed</div>
-          <div className="text-2xl font-bold text-green-700">4</div>
-          <div className="text-xs text-green-600">This month</div>
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <div className="text-sm text-blue-600">Total Recommendations</div>
+          <div className="text-2xl font-bold text-blue-700">{recommendationsData?.total_recommendations || 0}</div>
+          <div className="text-xs text-blue-600">AI-generated</div>
         </div>
       </div>
 
-      {/* Recommendations List */}
+      {/* Real Recommendations List */}
       <div className="space-y-6">
-        {mockRecommendations.map((rec) => (
+        {recommendationsData?.recommendations?.length > 0 ? recommendationsData.recommendations.map((rec) => (
           <div key={rec.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
@@ -965,14 +928,14 @@ const Dashboard = () => {
               </div>
               <div className="text-right ml-4">
                 <div className="text-lg font-bold text-green-600">{rec.impact}</div>
-                <div className="text-sm text-gray-500">{rec.timeEstimate}</div>
+                <div className="text-sm text-gray-500">{rec.time_estimate}</div>
               </div>
             </div>
             
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-semibold text-gray-900 mb-3">📋 Action Items:</h4>
               <ul className="space-y-2">
-                {rec.actionItems.map((item, index) => (
+                {rec.action_items?.map((item, index) => (
                   <li key={index} className="flex items-start space-x-3">
                     <input type="checkbox" className="mt-1 rounded border-gray-300" />
                     <span className="text-gray-700">{item}</span>
@@ -989,7 +952,20 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="bg-white p-8 rounded-xl border border-gray-100 text-center">
+            <div className="text-4xl mb-4">💡</div>
+            <p className="text-lg font-medium text-gray-900 mb-2">No recommendations yet</p>
+            <p className="text-gray-600 mb-6">Run more scans to get AI-powered recommendations based on your data!</p>
+            <button
+              onClick={() => brands.length > 0 && runScan(brands[0]._id, 'standard')}
+              disabled={scanLoading || brands.length === 0}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
+            >
+              Run Standard Scan
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
