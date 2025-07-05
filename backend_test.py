@@ -188,6 +188,45 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         self.assertIn("scans", data)
         self.assertTrue(len(data["scans"]) > 0)
         print("✅ Get scan results test passed")
+        
+    def test_11_verify_openai_integration(self):
+        """Test to verify OpenAI API integration is working properly"""
+        if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id'):
+            self.skipTest("Previous tests failed, skipping this test")
+            
+        # Run a single query to test OpenAI integration
+        test_query = "What are the best project management tools for teams?"
+        brand_name = "TestBrand"
+        
+        # Create a custom endpoint to test a single query
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        response = requests.post(
+            f"{self.base_url}/api/scans", 
+            json={"brand_id": self.__class__.brand_id, "scan_type": "quick"},
+            headers=headers
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        
+        # Verify the results contain real AI responses
+        self.assertIn("results", data)
+        self.assertTrue(len(data["results"]) > 0)
+        
+        # Check the first result
+        result = data["results"][0]
+        self.assertEqual(result["platform"], "ChatGPT")
+        self.assertEqual(result["model"], "gpt-4o-mini")
+        
+        # Verify this is a real response (not a mock)
+        self.assertIn("response", result)
+        self.assertTrue(len(result["response"]) > 100)  # Real responses are typically longer
+        
+        # Check for token usage tracking
+        self.assertIn("tokens_used", result)
+        self.assertTrue(result["tokens_used"] > 0)
+        
+        print("✅ OpenAI API integration verification test passed")
 
     def test_10_get_dashboard(self):
         """Test getting dashboard data"""
