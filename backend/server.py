@@ -830,8 +830,97 @@ async def get_real_recommendations(current_user: dict = Depends(get_current_user
         "data_points": total_queries
     }
 
-# Payment endpoints
-@app.post("/api/payments/checkout")
+# Update user plan endpoint
+@app.post("/api/admin/upgrade-user")
+async def upgrade_user_plan(user_email: str, new_plan: str, current_user: dict = Depends(get_current_user)):
+    # For demo purposes, allow any user to upgrade themselves or others
+    user_to_upgrade = await db.users.find_one({"email": user_email})
+    if not user_to_upgrade:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    plan_info = PLANS.get(new_plan)
+    if not plan_info:
+        raise HTTPException(status_code=400, detail="Invalid plan")
+    
+    # Update user plan
+    await db.users.update_one(
+        {"email": user_email},
+        {
+            "$set": {
+                "plan": new_plan,
+                "scans_limit": plan_info["scans"],
+                "scans_used": 0,  # Reset usage
+                "subscription_active": True,
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+    
+    return {"message": f"User {user_email} upgraded to {new_plan} plan successfully"}
+
+@app.get("/api/plans")
+async def get_available_plans():
+    return {
+        "plans": [
+            {
+                "id": "basic",
+                "name": "Basic",
+                "price": 19.00,
+                "interval": "month",
+                "features": [
+                    "1 brand tracking",
+                    "50 AI scans/month", 
+                    "ChatGPT analysis only",
+                    "Basic dashboard",
+                    "Email support"
+                ],
+                "scans": 50,
+                "brands": 1,
+                "popular": False
+            },
+            {
+                "id": "pro", 
+                "name": "Pro",
+                "price": 49.00,
+                "interval": "month",
+                "features": [
+                    "3 brands tracking",
+                    "300 AI scans/month",
+                    "ChatGPT + Gemini + AI Overview",
+                    "Full competitor analysis",
+                    "Weekly recommendations",
+                    "Priority email support",
+                    "Export reports",
+                    "API access"
+                ],
+                "scans": 300,
+                "brands": 3,
+                "popular": True
+            },
+            {
+                "id": "enterprise",
+                "name": "Enterprise", 
+                "price": 149.00,
+                "interval": "month",
+                "features": [
+                    "10 brands tracking",
+                    "1500 AI scans/month",
+                    "All AI platforms",
+                    "Advanced dashboard",
+                    "Unlimited competitor tracking",
+                    "Custom recommendations", 
+                    "Blog content analysis",
+                    "Slack/Discord alerts",
+                    "Phone support",
+                    "Custom reports",
+                    "Team collaboration"
+                ],
+                "scans": 1500,
+                "brands": 10,
+                "popular": False
+            }
+        ]
+    }
 async def create_checkout(checkout_request: CheckoutRequest, current_user: dict = Depends(get_current_user)):
     if not paddle_checkout or not PaddleCheckout:
         # Mock response for testing
