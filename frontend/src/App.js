@@ -1029,7 +1029,7 @@ const Dashboard = () => {
 
   const renderAddBrand = () => (
     <AddBrandForm onSuccess={() => {
-      fetchBrands();
+      fetchAllRealData();
       setActiveTab('brands');
     }} />
   );
