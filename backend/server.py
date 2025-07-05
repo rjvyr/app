@@ -16,8 +16,21 @@ from passlib.context import CryptContext
 from motor.motor_asyncio import AsyncIOMotorClient
 import json
 import asyncio
-import openai
-from emergentintegrations.payments.paddle.checkout import PaddleCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+
+# Try to import OpenAI, fallback if not available
+try:
+    import openai
+except ImportError:
+    openai = None
+
+# Try to import Paddle, fallback if not available
+try:
+    from emergentintegrations.payments.paddle.checkout import PaddleCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+except ImportError:
+    PaddleCheckout = None
+    CheckoutSessionResponse = None
+    CheckoutStatusResponse = None
+    CheckoutSessionRequest = None
 
 app = FastAPI(title="AI Brand Visibility Scanner API")
 
