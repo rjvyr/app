@@ -55,11 +55,12 @@ client = AsyncIOMotorClient(mongo_url)
 db = client.ai_visibility_db
 
 # OpenAI setup
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+if openai:
+    openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 # Paddle setup
 paddle_api_key = os.environ.get("PADDLE_API_KEY")
-paddle_checkout = PaddleCheckout(api_key=paddle_api_key) if paddle_api_key else None
+paddle_checkout = PaddleCheckout(api_key=paddle_api_key) if paddle_api_key and PaddleCheckout else None
 
 # Email configuration
 SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
