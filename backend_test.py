@@ -244,5 +244,41 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         self.assertIn("platform_breakdown", data)
         print("✅ Get real dashboard test passed")
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_12_get_real_competitors(self):
+        """Test getting real competitors data"""
+        if not hasattr(self.__class__, 'token'):
+            self.skipTest("Login test failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        response = requests.get(f"{self.base_url}/api/competitors/real", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("competitors", data)
+        self.assertIn("total_queries_analyzed", data)
+        print("✅ Get real competitors test passed")
+        
+    def test_13_get_real_queries(self):
+        """Test getting real queries data"""
+        if not hasattr(self.__class__, 'token'):
+            self.skipTest("Login test failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        response = requests.get(f"{self.base_url}/api/queries/real", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("queries", data)
+        self.assertIn("summary", data)
+        print("✅ Get real queries test passed")
+        
+    def test_14_get_real_recommendations(self):
+        """Test getting real recommendations data"""
+        if not hasattr(self.__class__, 'token'):
+            self.skipTest("Login test failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        response = requests.get(f"{self.base_url}/api/recommendations/real", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("recommendations", data)
+        self.assertIn("total_recommendations", data)
+        print("✅ Get real recommendations test passed")
