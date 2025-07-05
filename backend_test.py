@@ -228,20 +228,21 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         
         print("✅ OpenAI API integration verification test passed")
 
-    def test_10_get_dashboard(self):
-        """Test getting dashboard data"""
+    def test_10_get_real_dashboard(self):
+        """Test getting real dashboard data"""
         if not hasattr(self.__class__, 'token'):
             self.skipTest("Login test failed, skipping this test")
             
         headers = {"Authorization": f"Bearer {self.__class__.token}"}
-        response = requests.get(f"{self.base_url}/api/dashboard", headers=headers)
+        response = requests.get(f"{self.base_url}/api/dashboard/real", headers=headers)
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertIn("user", data)
-        self.assertIn("brands", data)
-        self.assertIn("recent_scans", data)
-        self.assertIn("stats", data)
-        print("✅ Get dashboard test passed")
+        self.assertIn("overall_visibility", data)
+        self.assertIn("total_queries", data)
+        self.assertIn("total_mentions", data)
+        self.assertIn("platform_breakdown", data)
+        print("✅ Get real dashboard test passed")
 
 if __name__ == "__main__":
     unittest.main()
