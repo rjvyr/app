@@ -47,9 +47,26 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
 
     def test_03_login_user(self):
         """Test user login"""
+        # Create a new user specifically for login test
+        test_email = f"login_test_{uuid.uuid4().hex[:8]}@example.com"
+        test_password = "Test@123456"
+        
+        # Register the user first
+        user_data = {
+            "email": test_email,
+            "password": test_password,
+            "full_name": "Login Test User",
+            "company": "Test Company",
+            "website": "https://example.com"
+        }
+        
+        reg_response = requests.post(f"{self.base_url}/api/auth/register", json=user_data)
+        self.assertEqual(reg_response.status_code, 200)
+        
+        # Now try to login
         login_data = {
-            "email": self.user_email,
-            "password": self.user_password
+            "email": test_email,
+            "password": test_password
         }
         
         response = requests.post(f"{self.base_url}/api/auth/login", json=login_data)
@@ -57,7 +74,7 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         data = response.json()
         self.assertIn("access_token", data)
         self.assertIn("user", data)
-        self.assertEqual(data["user"]["email"], self.user_email)
+        self.assertEqual(data["user"]["email"], test_email)
         
         # Save token for subsequent tests
         self.__class__.token = data["access_token"]
