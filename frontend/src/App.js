@@ -1336,7 +1336,7 @@ const Dashboard = () => {
         {activeTab === 'recommendations' && renderRecommendations()}
         {activeTab === 'brands' && renderBrands()}
         {activeTab === 'add-brand' && renderAddBrand()}
-        {activeTab === 'plans' && <PlansPage />}
+        {activeTab === 'plans' && <PlansPage backendUrl={backendUrl} user={user} token={token} />}
         {activeTab === 'settings' && renderSettings()}
       </div>
     </div>
