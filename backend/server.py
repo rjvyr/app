@@ -192,17 +192,26 @@ def generate_scan_queries(brand_name: str, industry: str, keywords: List[str], c
 async def run_chatgpt_scan(query: str, brand_name: str) -> Dict[str, Any]:
     """Run a single scan through ChatGPT"""
     try:
-        response = await openai.ChatCompletion.acreate(
-            model="gpt-4-1106-preview",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant that provides comprehensive answers about software and business tools."},
-                {"role": "user", "content": query}
-            ],
-            max_tokens=300,
-            temperature=0.7
-        )
-        
-        answer = response.choices[0].message.content
+        if not openai:
+            # Mock response for testing
+            mock_responses = [
+                f"When looking for the best {brand_name.lower()} solutions, consider {brand_name}, Competitor A, and Competitor B. {brand_name} offers excellent features...",
+                f"For {query.lower()}, popular options include Competitor A, Competitor B, and others. Consider factors like pricing and features...",
+                f"Top recommendations include {brand_name} for comprehensive features, Competitor A for simplicity, and Competitor B for enterprise needs..."
+            ]
+            
+            answer = mock_responses[hash(query) % len(mock_responses)]
+        else:
+            response = await openai.ChatCompletion.acreate(
+                model="gpt-4-1106-preview",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that provides comprehensive answers about software and business tools."},
+                    {"role": "user", "content": query}
+                ],
+                max_tokens=300,
+                temperature=0.7
+            )
+            answer = response.choices[0].message.content
         
         # Check if brand is mentioned
         brand_mentioned = brand_name.lower() in answer.lower()
