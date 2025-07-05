@@ -507,20 +507,47 @@ async def get_scan_results(brand_id: str, current_user: dict = Depends(get_curre
     
     return {"scans": scans}
 
-# Dashboard endpoints
-@app.get("/api/dashboard")
-async def get_dashboard(current_user: dict = Depends(get_current_user)):
+# Enhanced dashboard endpoints that use real data
+@app.get("/api/dashboard/real")
+async def get_real_dashboard(current_user: dict = Depends(get_current_user)):
     # Get user's brands
     brands = await db.brands.find({"user_id": current_user["_id"]}).to_list(length=10)
     
-    # Get recent scans
-    recent_scans = await db.scans.find(
-        {"user_id": current_user["_id"]}
-    ).sort("created_at", -1).limit(5).to_list(length=5)
+    # Get all scan results for this user
+    all_scans = await db.scans.find({"user_id": current_user["_id"]}).to_list(length=1000)
     
-    # Calculate overall stats
-    total_scans = sum(brand.get("total_scans", 0) for brand in brands)
-    avg_visibility = sum(brand.get("visibility_score", 0) for brand in brands) / len(brands) if brands else 0
+    # Calculate real metrics
+    total_queries = 0
+    total_mentions = 0
+    platform_stats = {"ChatGPT": {"mentions": 0, "total": 0}}
+    
+    # Process scan results
+    for scan in all_scans:
+        for result in scan.get("results", []):
+            total_queries += 1
+            platform = result.get("platform", "ChatGPT")
+            
+            if platform not in platform_stats:
+                platform_stats[platform] = {"mentions": 0, "total": 0}
+            
+            platform_stats[platform]["total"] += 1
+            
+            if result.get("brand_mentioned", False):
+                total_mentions += 1
+                platform_stats[platform]["mentions"] += 1
+    
+    # Calculate overall visibility score
+    overall_visibility = (total_mentions / total_queries * 100) if total_queries > 0 else 0
+    
+    # Calculate platform breakdown
+    platform_breakdown = {}
+    for platform, stats in platform_stats.items():
+        if stats["total"] > 0:
+            platform_breakdown[platform] = {
+                "mentions": stats["mentions"],
+                "total_questions": stats["total"],
+                "visibility_rate": (stats["mentions"] / stats["total"]) * 100
+            }
     
     return {
         "user": {
@@ -530,13 +557,277 @@ async def get_dashboard(current_user: dict = Depends(get_current_user)):
             "scans_used": current_user.get("scans_used", 0),
             "scans_limit": current_user.get("scans_limit", 50)
         },
-        "brands": brands,
-        "recent_scans": recent_scans,
-        "stats": {
-            "total_scans": total_scans,
-            "avg_visibility": avg_visibility,
-            "active_brands": len(brands)
+        "overall_visibility": overall_visibility,
+        "total_queries": total_queries,
+        "total_mentions": total_mentions,
+        "brands_count": len(brands),
+        "platform_breakdown": platform_breakdown,
+        "recent_scans": all_scans[-5:] if all_scans else []
+    }
+
+@app.get("/api/competitors/real")
+async def get_real_competitors(current_user: dict = Depends(get_current_user)):
+    # Get all scan results for this user
+    all_scans = await db.scans.find({"user_id": current_user["_id"]}).to_list(length=1000)
+    
+    # Get user's brands to extract their competitors
+    brands = await db.brands.find({"user_id": current_user["_id"]}).to_list(length=10)
+    
+    # Extract all competitors from brands
+    all_competitors = set()
+    user_brand_names = set()
+    
+    for brand in brands:
+        user_brand_names.add(brand["name"])
+        for competitor in brand.get("competitors", []):
+            all_competitors.add(competitor)
+    
+    # Count mentions for each competitor and user brands
+    competitor_mentions = {}
+    total_queries = 0
+    
+    # Initialize counts
+    for competitor in all_competitors:
+        competitor_mentions[competitor] = {"mentions": 0, "total_queries": 0}
+    
+    for brand_name in user_brand_names:
+        competitor_mentions[brand_name] = {"mentions": 0, "total_queries": 0, "is_user_brand": True}
+    
+    # Process scan results
+    for scan in all_scans:
+        for result in scan.get("results", []):
+            total_queries += 1
+            response = result.get("response", "").lower()
+            
+            # Check mentions for each competitor and user brand
+            for name, data in competitor_mentions.items():
+                data["total_queries"] += 1
+                if name.lower() in response:
+                    data["mentions"] += 1
+    
+    # Calculate visibility scores and create rankings
+    competitor_rankings = []
+    for name, data in competitor_mentions.items():
+        if data["total_queries"] > 0:
+            visibility_score = (data["mentions"] / data["total_queries"]) * 100
+            competitor_rankings.append({
+                "name": name,
+                "visibility_score": visibility_score,
+                "mentions": data["mentions"],
+                "total_queries": data["total_queries"],
+                "is_user_brand": data.get("is_user_brand", False)
+            })
+    
+    # Sort by visibility score
+    competitor_rankings.sort(key=lambda x: x["visibility_score"], reverse=True)
+    
+    # Add rank
+    for i, competitor in enumerate(competitor_rankings):
+        competitor["rank"] = i + 1
+    
+    # Find user's position
+    user_position = None
+    for competitor in competitor_rankings:
+        if competitor.get("is_user_brand", False):
+            user_position = competitor["rank"]
+            break
+    
+    return {
+        "competitors": competitor_rankings,
+        "user_position": user_position,
+        "total_competitors": len(competitor_rankings),
+        "total_queries_analyzed": total_queries
+    }
+
+@app.get("/api/queries/real")
+async def get_real_queries(current_user: dict = Depends(get_current_user)):
+    # Get all scan results for this user
+    all_scans = await db.scans.find({"user_id": current_user["_id"]}).sort("created_at", -1).to_list(length=100)
+    
+    # Get user's brands
+    brands = await db.brands.find({"user_id": current_user["_id"]}).to_list(length=10)
+    brand_names = [brand["name"] for brand in brands]
+    
+    # Process all queries
+    all_queries = []
+    total_queries = 0
+    mentioned_queries = 0
+    positions = []
+    
+    for scan in all_scans:
+        for result in scan.get("results", []):
+            total_queries += 1
+            
+            # Check if any user brand is mentioned
+            brand_mentioned = False
+            position = None
+            mentioned_brand = None
+            
+            response = result.get("response", "")
+            for brand_name in brand_names:
+                if brand_name.lower() in response.lower():
+                    brand_mentioned = True
+                    mentioned_brand = brand_name
+                    mentioned_queries += 1
+                    
+                    # Try to determine position (rough estimate)
+                    sentences = response.split('.')
+                    for i, sentence in enumerate(sentences):
+                        if brand_name.lower() in sentence.lower():
+                            position = i + 1
+                            positions.append(position)
+                            break
+                    break
+            
+            # Extract competitors mentioned
+            competitors_found = []
+            for brand in brands:
+                for competitor in brand.get("competitors", []):
+                    if competitor.lower() in response.lower():
+                        competitors_found.append(competitor)
+            
+            # Remove duplicates
+            competitors_found = list(set(competitors_found))
+            
+            query_data = {
+                "id": f"{scan['_id']}_{len(all_queries)}",
+                "query": result.get("query", ""),
+                "platform": result.get("platform", "ChatGPT"),
+                "brand_mentioned": brand_mentioned,
+                "mentioned_brand": mentioned_brand,
+                "position": position,
+                "response": response,
+                "competitors": competitors_found,
+                "date": scan.get("created_at", datetime.utcnow()).isoformat(),
+                "model": result.get("model", "gpt-4o-mini")
+            }
+            
+            all_queries.append(query_data)
+    
+    # Calculate average position
+    avg_position = sum(positions) / len(positions) if positions else None
+    
+    return {
+        "queries": all_queries[:50],  # Return last 50 queries
+        "summary": {
+            "total_analyzed": total_queries,
+            "with_mentions": mentioned_queries,
+            "without_mentions": total_queries - mentioned_queries,
+            "average_position": avg_position
         }
+    }
+
+@app.get("/api/recommendations/real")
+async def get_real_recommendations(current_user: dict = Depends(get_current_user)):
+    # Get all scan results and brands
+    all_scans = await db.scans.find({"user_id": current_user["_id"]}).to_list(length=1000)
+    brands = await db.brands.find({"user_id": current_user["_id"]}).to_list(length=10)
+    
+    # Analyze missed opportunities
+    missed_keywords = {}
+    competitor_advantages = {}
+    total_queries = 0
+    brand_names = [brand["name"] for brand in brands]
+    
+    # Collect all keywords and competitors
+    all_keywords = set()
+    all_competitors = set()
+    for brand in brands:
+        all_keywords.update(brand.get("keywords", []))
+        all_competitors.update(brand.get("competitors", []))
+    
+    # Process scan results to find gaps
+    for scan in all_scans:
+        for result in scan.get("results", []):
+            total_queries += 1
+            query = result.get("query", "").lower()
+            response = result.get("response", "").lower()
+            
+            # Check if user brand is mentioned
+            user_brand_mentioned = any(brand.lower() in response for brand in brand_names)
+            
+            # If user brand not mentioned, analyze why
+            if not user_brand_mentioned:
+                # Check which keywords are in the query
+                for keyword in all_keywords:
+                    if keyword.lower() in query:
+                        if keyword not in missed_keywords:
+                            missed_keywords[keyword] = 0
+                        missed_keywords[keyword] += 1
+                
+                # Check which competitors are mentioned instead
+                for competitor in all_competitors:
+                    if competitor.lower() in response:
+                        if competitor not in competitor_advantages:
+                            competitor_advantages[competitor] = 0
+                        competitor_advantages[competitor] += 1
+    
+    # Generate real recommendations based on data
+    recommendations = []
+    
+    # Top missed keywords
+    if missed_keywords:
+        top_missed = sorted(missed_keywords.items(), key=lambda x: x[1], reverse=True)[:3]
+        for keyword, count in top_missed:
+            recommendations.append({
+                "id": f"keyword_{keyword}",
+                "title": f"Target '{keyword}' queries",
+                "priority": "High" if count > 3 else "Medium",
+                "category": "Content Strategy",
+                "impact": f"+{min(count * 3, 20)}% potential visibility",
+                "description": f"You're missing {count} queries related to '{keyword}'. This is a high-opportunity area.",
+                "action_items": [
+                    f"Create comprehensive guide about {keyword}",
+                    f"Optimize existing content for {keyword}",
+                    f"Write comparison articles featuring {keyword}"
+                ],
+                "time_estimate": f"{count * 2} hours"
+            })
+    
+    # Competitor advantages
+    if competitor_advantages:
+        top_competitors = sorted(competitor_advantages.items(), key=lambda x: x[1], reverse=True)[:2]
+        for competitor, count in top_competitors:
+            recommendations.append({
+                "id": f"competitor_{competitor}",
+                "title": f"Compete with {competitor}",
+                "priority": "High" if count > 5 else "Medium",
+                "category": "Competitive Strategy", 
+                "impact": f"+{min(count * 2, 15)}% potential visibility",
+                "description": f"{competitor} appears in {count} queries where you don't. Focus on direct competition.",
+                "action_items": [
+                    f"Create direct comparison: Your Brand vs {competitor}",
+                    f"Analyze {competitor}'s content strategy",
+                    f"Target {competitor}'s weakness areas"
+                ],
+                "time_estimate": f"{count + 3} hours"
+            })
+    
+    # If no specific data yet, provide generic recommendations
+    if not recommendations:
+        recommendations = [
+            {
+                "id": "generic_1",
+                "title": "Run more scans to get personalized recommendations",
+                "priority": "Medium",
+                "category": "Data Collection",
+                "impact": "Better insights",
+                "description": "Run more scans across different query types to get AI-powered recommendations.",
+                "action_items": [
+                    "Run Standard Scan for comprehensive analysis",
+                    "Try different keyword variations",
+                    "Scan competitor-focused queries"
+                ],
+                "time_estimate": "2 hours"
+            }
+        ]
+    
+    return {
+        "recommendations": recommendations,
+        "total_recommendations": len(recommendations),
+        "high_priority": sum(1 for r in recommendations if r["priority"] == "High"),
+        "medium_priority": sum(1 for r in recommendations if r["priority"] == "Medium"),
+        "data_points": total_queries
     }
 
 # Payment endpoints
