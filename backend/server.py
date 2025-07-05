@@ -190,9 +190,9 @@ def generate_scan_queries(brand_name: str, industry: str, keywords: List[str], c
     return queries[:25]  # Return max 25 queries
 
 async def run_chatgpt_scan(query: str, brand_name: str) -> Dict[str, Any]:
-    """Run a single scan through ChatGPT"""
+    """Run a single scan through ChatGPT using GPT-4o-mini"""
     try:
-        if not openai:
+        if not openai or not os.environ.get("OPENAI_API_KEY"):
             # Mock response for testing
             mock_responses = [
                 f"When looking for the best {brand_name.lower()} solutions, consider {brand_name}, Competitor A, and Competitor B. {brand_name} offers excellent features...",
@@ -201,17 +201,25 @@ async def run_chatgpt_scan(query: str, brand_name: str) -> Dict[str, Any]:
             ]
             
             answer = mock_responses[hash(query) % len(mock_responses)]
+            print(f"Using mock response for query: {query}")
         else:
-            response = await openai.ChatCompletion.acreate(
-                model="gpt-4-1106-preview",
+            print(f"Making real OpenAI API call for query: {query}")
+            
+            # Use the new OpenAI client format
+            from openai import OpenAI
+            client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+            
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",  # Using GPT-4o-mini for cost efficiency
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant that provides comprehensive answers about software and business tools."},
+                    {"role": "system", "content": "You are a helpful assistant that provides comprehensive answers about software and business tools. Provide detailed, informative responses that mention relevant brands and tools."},
                     {"role": "user", "content": query}
                 ],
                 max_tokens=300,
                 temperature=0.7
             )
             answer = response.choices[0].message.content
+            print(f"Real API response received for: {query}")
         
         # Check if brand is mentioned
         brand_mentioned = brand_name.lower() in answer.lower()
@@ -225,31 +233,43 @@ async def run_chatgpt_scan(query: str, brand_name: str) -> Dict[str, Any]:
                     position = i + 1
                     break
         
-        # Extract competitor mentions
+        # Extract competitor mentions (look for capitalized words that could be brand names)
         competitors_mentioned = []
-        for word in answer.split():
-            if word.istitle() and len(word) > 3 and word not in ['Here', 'Some', 'Many', 'Most', 'These', 'Those']:
-                competitors_mentioned.append(word)
+        words = answer.split()
+        for word in words:
+            cleaned_word = word.strip('.,!?":;()[]')
+            if (cleaned_word.istitle() and len(cleaned_word) > 3 and 
+                cleaned_word not in ['Here', 'Some', 'Many', 'Most', 'These', 'Those', 'When', 'While', 'With', 'What', 'Where', 'They', 'This', 'That', 'Than', 'Then'] and
+                not cleaned_word.endswith('ly')):
+                competitors_mentioned.append(cleaned_word)
+        
+        # Remove duplicates and limit
+        competitors_mentioned = list(dict.fromkeys(competitors_mentioned))[:5]
         
         return {
             "query": query,
             "platform": "ChatGPT",
+            "model": "gpt-4o-mini",
             "response": answer,
             "brand_mentioned": brand_mentioned,
             "position": position,
-            "competitors_mentioned": competitors_mentioned[:5],  # Limit to 5
-            "timestamp": datetime.utcnow()
+            "competitors_mentioned": competitors_mentioned,
+            "timestamp": datetime.utcnow(),
+            "tokens_used": len(answer.split()) + len(query.split())  # Rough estimate
         }
         
     except Exception as e:
+        print(f"Error in ChatGPT scan: {str(e)}")
         return {
             "query": query,
             "platform": "ChatGPT",
+            "model": "gpt-4o-mini",
             "error": str(e),
             "brand_mentioned": False,
             "position": None,
             "competitors_mentioned": [],
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.utcnow(),
+            "tokens_used": 0
         }
 
 # Authentication endpoints
