@@ -282,6 +282,69 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         self.assertIn("recommendations", data)
         self.assertIn("total_recommendations", data)
         print("✅ Get real recommendations test passed")
+    
+    def test_15_get_plans(self):
+        """Test getting available plans"""
+        response = requests.get(f"{self.base_url}/api/plans")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("plans", data)
+        self.assertTrue(len(data["plans"]) >= 3)  # Should have at least 3 plans
+        
+        # Verify enterprise plan details
+        enterprise_plan = None
+        for plan in data["plans"]:
+            if plan["id"] == "enterprise":
+                enterprise_plan = plan
+                break
+                
+        self.assertIsNotNone(enterprise_plan, "Enterprise plan not found")
+        self.assertEqual(enterprise_plan["name"], "Enterprise")
+        self.assertEqual(enterprise_plan["price"], 149.00)
+        self.assertEqual(enterprise_plan["scans"], 1500)
+        self.assertEqual(enterprise_plan["brands"], 10)
+        print("✅ Get plans test passed")
+    
+    def test_16_upgrade_to_enterprise(self):
+        """Test upgrading user to Enterprise plan"""
+        if not hasattr(self.__class__, 'token'):
+            self.skipTest("Login test failed, skipping this test")
+            
+        # Get current user email
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        user_response = requests.get(f"{self.base_url}/api/auth/me", headers=headers)
+        self.assertEqual(user_response.status_code, 200)
+        user_data = user_response.json()
+        user_email = user_data["email"]
+        
+        # Upgrade to enterprise plan
+        upgrade_response = requests.post(
+            f"{self.base_url}/api/admin/upgrade-user?user_email={user_email}&new_plan=enterprise",
+            headers=headers
+        )
+        self.assertEqual(upgrade_response.status_code, 200)
+        upgrade_data = upgrade_response.json()
+        self.assertIn("message", upgrade_data)
+        self.assertIn("upgraded to enterprise plan", upgrade_data["message"].lower())
+        print("✅ Upgrade to Enterprise plan test passed")
+        
+    def test_17_verify_enterprise_features(self):
+        """Test verifying Enterprise plan features are active"""
+        if not hasattr(self.__class__, 'token'):
+            self.skipTest("Login test failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        
+        # Check user info to verify plan and limits
+        user_response = requests.get(f"{self.base_url}/api/auth/me", headers=headers)
+        self.assertEqual(user_response.status_code, 200)
+        user_data = user_response.json()
+        
+        # Verify Enterprise plan is active
+        self.assertEqual(user_data["plan"], "enterprise")
+        self.assertEqual(user_data["scans_limit"], 1500)  # Enterprise plan has 1,500 scans
+        self.assertTrue(user_data["subscription_active"])
+        print("✅ Enterprise plan features verification test passed")
         
 if __name__ == "__main__":
     unittest.main()
