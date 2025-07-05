@@ -1296,6 +1296,7 @@ const Dashboard = () => {
                   { id: 'queries', name: 'Queries', icon: '❓' },
                   { id: 'recommendations', name: 'Recommendations', icon: '💡' },
                   { id: 'brands', name: 'Brands', icon: '🎯' },
+                  { id: 'plans', name: 'Plans', icon: '💳' },
                   { id: 'settings', name: 'Settings', icon: '⚙️' }
                 ].map(tab => (
                   <button
