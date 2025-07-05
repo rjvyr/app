@@ -101,9 +101,9 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
             
         brand_data = {
             "name": "TestBrand",
-            "industry": "SaaS",
-            "keywords": ["software", "productivity"],
-            "competitors": ["Asana", "Monday"],
+            "industry": "Project Management Software",
+            "keywords": ["productivity", "team collaboration", "project tracking"],
+            "competitors": ["Asana", "Monday.com", "Trello"],
             "website": "https://testbrand.com"
         }
         
