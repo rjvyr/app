@@ -103,7 +103,7 @@
 #====================================================================================================
 
 user_problem_statement: |
-  User reported that the brand selector dropdown was not working correctly. When selecting a specific brand (Wholesale Helper or Volopay), all sections (Overview, Competitors, Queries, Recommendations) showed the same data instead of filtering for that specific brand.
+  User reported that the Source Domains and Source Articles sections were displaying "fake data" instead of real, extracted insights from ChatGPT responses. The user identified that different brands (Wholesale Helper vs Volopay) were showing identical source domains, which is impossible since they operate in different industries. Additionally, pagination was not working properly (source domains next page broken, source articles missing pagination entirely), non-functional category/export buttons were present, and the header was cluttered and overflowing.
 
 frontend:
   - task: "Brand Selector Dropdown Filtering"
@@ -117,6 +117,21 @@ frontend:
         - working: true
           agent: "main"
           comment: "Successfully implemented brand filtering functionality. Added fetchBrandSpecificData function, updated useEffect to trigger data refresh on brand selection change, and improved brand selector UI with status indicators."
+          
+  - task: "Source Domains and Articles Real Data Display"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "User reported fake data in Source Domains and Articles sections. Same domains appearing for different brands, non-functional pagination, broken category buttons, and cluttered header."
+        - working: true
+          agent: "main"
+          comment: "Backend updated with real source extraction functionality. Frontend needs to be tested to verify real data display and pagination works correctly."
 
 backend:
   - task: "Brand-Specific API Endpoints"
@@ -133,6 +148,55 @@ backend:
         - working: true
           agent: "testing"
           comment: "Verified all brand-specific API endpoints are working correctly. Tests confirmed that each endpoint properly filters data when brand_id parameter is provided. Different brands return different data sets as expected."
+          
+  - task: "Real Source Data Extraction"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py, /app/backend/source_extraction.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "User reported fake data - same source domains for different brands, indicating hardcoded mock data instead of real extraction."
+        - working: true
+          agent: "main"
+          comment: "Completely rewrote source extraction logic. Enhanced ChatGPT prompt to request source domains and articles, implemented regex-based parsing of GPT responses, added brand-specific fallback logic, and removed hardcoded mock data."
+        - working: true
+          agent: "testing"
+          comment: "Verified source domains and articles endpoints work correctly with real data extraction. Pagination, brand filtering, and authentication all working as expected."
+          
+  - task: "Enhanced ChatGPT Integration"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Updated ChatGPT prompt to explicitly request source domains and articles. Increased token limit to 1000 for comprehensive responses. Integrated new source extraction functions."
+        - working: true
+          agent: "testing"
+          comment: "Verified enhanced ChatGPT integration produces real source data. Extraction functions properly parse GPT responses and store brand-specific data."
+          
+  - task: "Source Domains and Articles Pagination"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Pagination was already implemented in backend (5 items per page). Added proper pagination metadata (has_next, has_prev, total_pages)."
+        - working: true
+          agent: "testing"
+          comment: "Verified pagination works correctly for both source domains and articles endpoints. Proper page counting and data segmentation confirmed."
+          
   - task: "Real-time Scan Usage Tracking"
     implemented: true
     working: true
@@ -144,6 +208,7 @@ backend:
         - working: true
           agent: "testing"
           comment: "Verified that scan usage is properly tracked in real-time. When a scan is performed, the user's scan count is immediately updated and correctly reflected in the /api/auth/me endpoint. Tests confirmed scan count increases by the exact number of queries executed."
+          
   - task: "Scan Execution with OpenAI Integration"
     implemented: true
     working: true
@@ -155,6 +220,7 @@ backend:
         - working: true
           agent: "testing"
           comment: "Verified that scans are properly executed with real OpenAI API calls. Tests confirmed that scan results contain valid AI-generated responses with appropriate token usage tracking. The scan execution process correctly updates user scan usage counts."
+          
   - task: "User Data Consistency"
     implemented: true
     working: true
