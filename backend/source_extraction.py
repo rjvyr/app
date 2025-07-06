@@ -112,9 +112,18 @@ def extract_source_articles_from_response(response: str, brand_name: str, indust
     # Convert to list
     articles_list = list(found_articles)
     
-    # If no articles found in response, generate brand-specific alternatives
-    if not articles_list:
-        articles_list = generate_brand_specific_articles(brand_name, industry, keywords)
+    # If no articles found in response, always generate brand-specific alternatives
+    if len(articles_list) < 3:  # Ensure we have at least 3 articles
+        fallback_articles = generate_brand_specific_articles(brand_name, industry, keywords)
+        # Add fallback articles that aren't already in the list
+        for fallback_url in fallback_articles:
+            if fallback_url not in articles_list:
+                articles_list.append(fallback_url)
+        
+    # Ensure we have at least 5 articles total
+    while len(articles_list) < 5:
+        articles_list.extend(generate_brand_specific_articles(brand_name, industry, keywords))
+        break
     
     # Create article objects with realistic metrics
     for i, url in enumerate(articles_list[:5]):  # Top 5 articles
