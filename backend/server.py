@@ -571,12 +571,21 @@ async def get_real_dashboard(brand_id: Optional[str] = None, current_user: dict 
     }
 
 @app.get("/api/competitors/real")
-async def get_real_competitors(current_user: dict = Depends(get_current_user)):
-    # Get all scan results for this user
-    all_scans = await db.scans.find({"user_id": current_user["_id"]}).to_list(length=1000)
+async def get_real_competitors(brand_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    # Filter scans by brand if brand_id is provided
+    scan_filter = {"user_id": current_user["_id"]}
+    if brand_id:
+        scan_filter["brand_id"] = brand_id
+    
+    # Get scan results for this user (and optionally specific brand)
+    all_scans = await db.scans.find(scan_filter).to_list(length=1000)
     
     # Get user's brands to extract their competitors
-    brands = await db.brands.find({"user_id": current_user["_id"]}).to_list(length=10)
+    brand_filter = {"user_id": current_user["_id"]}
+    if brand_id:
+        brand_filter["_id"] = brand_id
+    
+    brands = await db.brands.find(brand_filter).to_list(length=10)
     
     # Extract all competitors from brands
     all_competitors = set()
