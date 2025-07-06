@@ -1708,7 +1708,7 @@ const Dashboard = () => {
                     }`}
                   >
                     <span>{tab.icon}</span>
-                    <span className="hidden lg:inline">{tab.name}</span>
+                    <span className="hidden xl:inline">{tab.name}</span>
                   </button>
                 ))}
               </nav>
