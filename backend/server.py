@@ -471,10 +471,10 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
     
     await db.scans.insert_one(scan_data)
     
-    # Update user scan usage
+    # Update user scan usage with the correct scan cost
     await db.users.update_one(
         {"_id": current_user["_id"]},
-        {"$inc": {"scans_used": len(queries)}}
+        {"$inc": {"scans_used": scans_cost}}  # Use predefined scans_cost instead of len(queries)
     )
     
     # Update brand stats
