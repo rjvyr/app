@@ -29,9 +29,12 @@ from source_extraction import extract_source_domains_from_response, extract_sour
 try:
     import openai
     import httpx
+    from openai import OpenAI, AsyncOpenAI
 except ImportError:
     openai = None
     httpx = None
+    OpenAI = None
+    AsyncOpenAI = None
 
 async def generate_realistic_queries_with_gpt(brand_name: str, industry: str, keywords: List[str], competitors: List[str], website: str = None) -> List[str]:
     """Generate realistic, high-probability queries using GPT-4o-mini"""
