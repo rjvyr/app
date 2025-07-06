@@ -632,54 +632,88 @@ const Dashboard = () => {
       {/* Quick Actions */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <p className="text-gray-600 text-sm mb-4">Choose the right scan type for your needs:</p>
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button
-            onClick={() => brands.length > 0 && runScan(selectedBrandId || brands[0]._id, 'quick')}
-            disabled={scanLoading || brands.length === 0}
-            className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50"
-          >
-            <div className="text-center">
-              <div className="text-2xl mb-2">⚡</div>
-              <div className="font-medium text-gray-900">Quick Scan</div>
-              <div className="text-sm text-gray-500">5 real AI queries</div>
+          {/* Quick Scan */}
+          <div className="relative group">
+            <button
+              onClick={() => brands.length > 0 && runScan(selectedBrandId || brands[0]._id, 'quick')}
+              disabled={scanLoading || brands.length === 0}
+              className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50"
+            >
+              <div className="text-center">
+                <div className="text-2xl mb-2">⚡</div>
+                <div className="font-medium text-gray-900">Quick Scan</div>
+                <div className="text-sm text-gray-500">5 scans • 2 minutes</div>
+                <div className="text-xs text-blue-600 mt-1">Fast overview</div>
+              </div>
+            </button>
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded-lg py-2 px-3 whitespace-nowrap z-10">
+              Quick brand visibility check with 5 targeted AI queries
             </div>
-          </button>
+          </div>
 
-          <button
-            onClick={() => brands.length > 0 && runScan(selectedBrandId || brands[0]._id, 'standard')}
-            disabled={scanLoading || brands.length === 0}
-            className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50"
-          >
-            <div className="text-center">
-              <div className="text-2xl mb-2">🎯</div>
-              <div className="font-medium text-gray-900">Standard Scan</div>
-              <div className="text-sm text-gray-500">25 real AI queries</div>
+          {/* Standard Scan */}
+          <div className="relative group">
+            <button
+              onClick={() => brands.length > 0 && runScan(selectedBrandId || brands[0]._id, 'standard')}
+              disabled={scanLoading || brands.length === 0}
+              className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50"
+            >
+              <div className="text-center">
+                <div className="text-2xl mb-2">🎯</div>
+                <div className="font-medium text-gray-900">Standard Scan</div>
+                <div className="text-sm text-gray-500">25 scans • 5 minutes</div>
+                <div className="text-xs text-green-600 mt-1">Comprehensive analysis</div>
+              </div>
+            </button>
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded-lg py-2 px-3 whitespace-nowrap z-10">
+              Thorough brand analysis with 25 diverse AI queries across topics
             </div>
-          </button>
+          </div>
 
-          <button
-            onClick={() => brands.length > 0 && runScan(selectedBrandId || brands[0]._id, 'deep')}
-            disabled={scanLoading || brands.length === 0}
-            className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors disabled:opacity-50"
-          >
-            <div className="text-center">
-              <div className="text-2xl mb-2">🚀</div>
-              <div className="font-medium text-gray-900">Deep Scan</div>
-              <div className="text-sm text-gray-500">50 real AI queries</div>
+          {/* Deep Scan */}
+          <div className="relative group">
+            <button
+              onClick={() => brands.length > 0 && runScan(selectedBrandId || brands[0]._id, 'deep')}
+              disabled={scanLoading || brands.length === 0}
+              className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors disabled:opacity-50"
+            >
+              <div className="text-center">
+                <div className="text-2xl mb-2">🚀</div>
+                <div className="font-medium text-gray-900">Deep Scan</div>
+                <div className="text-sm text-gray-500">50 scans • 10 minutes</div>
+                <div className="text-xs text-purple-600 mt-1">Complete deep dive</div>
+              </div>
+            </button>
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded-lg py-2 px-3 whitespace-nowrap z-10">
+              Extensive brand research with 50 AI queries covering all angles
             </div>
-          </button>
+          </div>
 
-          <button
-            onClick={() => brands.length > 0 && runScan(selectedBrandId || brands[0]._id, 'competitor')}
-            disabled={scanLoading || brands.length === 0}
-            className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-colors disabled:opacity-50"
-          >
-            <div className="text-center">
-              <div className="text-2xl mb-2">🏆</div>
-              <div className="font-medium text-gray-900">Competitor Scan</div>
-              <div className="text-sm text-gray-500">10 competitor queries</div>
+          {/* Competitor Scan */}
+          <div className="relative group">
+            <button
+              onClick={() => brands.length > 0 && runScan(selectedBrandId || brands[0]._id, 'competitor')}
+              disabled={scanLoading || brands.length === 0}
+              className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-colors disabled:opacity-50"
+            >
+              <div className="text-center">
+                <div className="text-2xl mb-2">🏆</div>
+                <div className="font-medium text-gray-900">Competitor Scan</div>
+                <div className="text-sm text-gray-500">10 scans • 3 minutes</div>
+                <div className="text-xs text-orange-600 mt-1">Competitive focus</div>
+              </div>
+            </button>
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded-lg py-2 px-3 whitespace-nowrap z-10">
+              Focused analysis comparing your brand directly with competitors
             </div>
-          </button>
+          </div>
         </div>
         
         {brands.length === 0 && (
