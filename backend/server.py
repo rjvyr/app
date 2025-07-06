@@ -472,7 +472,8 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
         brand["name"], 
         brand["industry"], 
         brand["keywords"], 
-        brand["competitors"]
+        brand["competitors"],
+        brand.get("website")
     )
     
     # Limit queries based on scan type
