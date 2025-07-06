@@ -846,15 +846,21 @@ const Dashboard = () => {
                 if (targetBrandId) {
                   runScan(targetBrandId, 'quick');
                 } else {
-                  alert('Please add a brand first!');
+                  alert('Please add a brand first from the Brands tab!');
                 }
               }}
               disabled={scanLoading}
-              className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50"
+              className={`w-full p-4 border-2 border-dashed rounded-lg transition-colors ${
+                scanLoading 
+                  ? 'border-blue-300 bg-blue-50 opacity-75 cursor-not-allowed' 
+                  : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+              }`}
             >
               <div className="text-center">
-                <div className="text-2xl mb-2">⚡</div>
-                <div className="font-medium text-gray-900">Quick Scan</div>
+                <div className="text-2xl mb-2">{scanLoading ? '⏳' : '⚡'}</div>
+                <div className="font-medium text-gray-900">
+                  {scanLoading ? 'Running Quick Scan...' : 'Quick Scan'}
+                </div>
                 <div className="text-sm text-gray-500">5 scans • 30 seconds</div>
                 <div className="text-xs text-blue-600 mt-1">Fast overview</div>
               </div>
