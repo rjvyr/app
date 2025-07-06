@@ -118,6 +118,43 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         # Save brand_id for subsequent tests
         self.__class__.brand_id = data["brand_id"]
         print("✅ Create brand test passed")
+        
+    def test_05b_create_second_brand(self):
+        """Test creating a second brand for brand filtering tests"""
+        if not hasattr(self.__class__, 'token'):
+            self.skipTest("Login test failed, skipping this test")
+            
+        # First upgrade to enterprise plan to allow multiple brands
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        user_response = requests.get(f"{self.base_url}/api/auth/me", headers=headers)
+        self.assertEqual(user_response.status_code, 200)
+        user_data = user_response.json()
+        user_email = user_data["email"]
+        
+        # Upgrade to enterprise plan
+        upgrade_response = requests.post(
+            f"{self.base_url}/api/admin/upgrade-user?user_email={user_email}&new_plan=enterprise",
+            headers=headers
+        )
+        self.assertEqual(upgrade_response.status_code, 200)
+        
+        # Create second brand
+        brand_data = {
+            "name": "SecondBrand",
+            "industry": "E-commerce Platform",
+            "keywords": ["online store", "e-commerce", "shopping cart"],
+            "competitors": ["Shopify", "WooCommerce", "BigCommerce"],
+            "website": "https://secondbrand.com"
+        }
+        
+        response = requests.post(f"{self.base_url}/api/brands", json=brand_data, headers=headers)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("brand_id", data)
+        
+        # Save second brand_id for subsequent tests
+        self.__class__.second_brand_id = data["brand_id"]
+        print("✅ Create second brand test passed")
 
     def test_06_get_brands(self):
         """Test getting brands"""
