@@ -1510,12 +1510,9 @@ const Dashboard = () => {
   const renderBrandEditModal = () => {
     if (!editingBrand) return null;
 
-    const [keywords, setKeywords] = useState(editingBrand.keywords?.join(', ') || '');
-    const [competitors, setCompetitors] = useState(editingBrand.competitors?.join(', ') || '');
-
     const handleSave = async () => {
-      const keywordsList = keywords.split(',').map(k => k.trim()).filter(k => k);
-      const competitorsList = competitors.split(',').map(c => c.trim()).filter(c => c);
+      const keywordsList = editingKeywords.split(',').map(k => k.trim()).filter(k => k);
+      const competitorsList = editingCompetitors.split(',').map(c => c.trim()).filter(c => c);
 
       await updateBrand(editingBrand._id, {
         keywords: keywordsList,
@@ -1536,8 +1533,8 @@ const Dashboard = () => {
                 Keywords (comma-separated)
               </label>
               <textarea
-                value={keywords}
-                onChange={(e) => setKeywords(e.target.value)}
+                value={editingKeywords}
+                onChange={(e) => setEditingKeywords(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows="3"
                 placeholder="expense tracking, corporate cards, automation"
@@ -1549,8 +1546,8 @@ const Dashboard = () => {
                 Competitors (comma-separated)
               </label>
               <textarea
-                value={competitors}
-                onChange={(e) => setCompetitors(e.target.value)}
+                value={editingCompetitors}
+                onChange={(e) => setEditingCompetitors(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows="3"
                 placeholder="Brex, Ramp, Expensify"
@@ -1566,7 +1563,11 @@ const Dashboard = () => {
               Save Changes
             </button>
             <button
-              onClick={() => setEditingBrand(null)}
+              onClick={() => {
+                setEditingBrand(null);
+                setEditingKeywords('');
+                setEditingCompetitors('');
+              }}
               className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-400 transition-colors"
             >
               Cancel
