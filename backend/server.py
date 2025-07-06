@@ -509,12 +509,17 @@ async def get_scan_results(brand_id: str, current_user: dict = Depends(get_curre
 
 # Enhanced dashboard endpoints that use real data
 @app.get("/api/dashboard/real")
-async def get_real_dashboard(current_user: dict = Depends(get_current_user)):
+async def get_real_dashboard(brand_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
     # Get user's brands
     brands = await db.brands.find({"user_id": current_user["_id"]}).to_list(length=10)
     
-    # Get all scan results for this user
-    all_scans = await db.scans.find({"user_id": current_user["_id"]}).to_list(length=1000)
+    # Filter scans by brand if brand_id is provided
+    scan_filter = {"user_id": current_user["_id"]}
+    if brand_id:
+        scan_filter["brand_id"] = brand_id
+    
+    # Get scan results for this user (and optionally specific brand)
+    all_scans = await db.scans.find(scan_filter).to_list(length=1000)
     
     # Calculate real metrics
     total_queries = 0
