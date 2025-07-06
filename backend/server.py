@@ -654,12 +654,21 @@ async def get_real_competitors(brand_id: Optional[str] = None, current_user: dic
     }
 
 @app.get("/api/queries/real")
-async def get_real_queries(current_user: dict = Depends(get_current_user)):
-    # Get all scan results for this user
-    all_scans = await db.scans.find({"user_id": current_user["_id"]}).sort("created_at", -1).to_list(length=100)
+async def get_real_queries(brand_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    # Filter scans by brand if brand_id is provided
+    scan_filter = {"user_id": current_user["_id"]}
+    if brand_id:
+        scan_filter["brand_id"] = brand_id
+    
+    # Get scan results for this user (and optionally specific brand)
+    all_scans = await db.scans.find(scan_filter).sort("created_at", -1).to_list(length=100)
     
     # Get user's brands
-    brands = await db.brands.find({"user_id": current_user["_id"]}).to_list(length=10)
+    brand_filter = {"user_id": current_user["_id"]}
+    if brand_id:
+        brand_filter["_id"] = brand_id
+    
+    brands = await db.brands.find(brand_filter).to_list(length=10)
     brand_names = [brand["name"] for brand in brands]
     
     # Process all queries
