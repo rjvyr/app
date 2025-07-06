@@ -356,6 +356,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [scanLoading, setScanLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [weeklyTrackingData, setWeeklyTrackingData] = useState(null);
 
   useEffect(() => {
     fetchAllRealData();
