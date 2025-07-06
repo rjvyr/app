@@ -23,6 +23,134 @@ try:
 except ImportError:
     openai = None
 
+async def generate_realistic_queries_with_gpt(brand_name: str, industry: str, keywords: List[str], competitors: List[str], website: str = None) -> List[str]:
+    """Generate realistic, high-probability queries using GPT-4o-mini"""
+    try:
+        if not openai or not os.environ.get("OPENAI_API_KEY"):
+            # Fallback to realistic mock queries
+            return generate_realistic_fallback_queries(brand_name, industry, keywords, competitors)
+        
+        print(f"Generating realistic queries for {brand_name} using GPT")
+        
+        # Enhanced prompt for realistic query generation
+        system_prompt = f"""You are a search behavior expert who understands how real users search for business software and tools.
+
+Generate 25 realistic, high-probability search queries that actual users would type when looking for {industry} solutions.
+
+Context:
+- Brand: {brand_name}
+- Industry: {industry}
+- Key capabilities: {', '.join(keywords[:5]) if keywords else 'general business tools'}
+- Main competitors: {', '.join(competitors[:3]) if competitors else 'various alternatives'}
+
+Requirements:
+1. Use natural, conversational language that real people type
+2. Include long-tail searches (5-10 words)
+3. Mix different search intents: research, comparison, problem-solving
+4. Include specific pain points and use cases
+5. Vary between beginner and advanced user queries
+6. Include pricing and alternative-seeking queries
+7. Use realistic typos and informal language occasionally
+
+Examples of realistic patterns:
+- "best [solution] for small business under $100/month"
+- "why is [competitor] so expensive alternatives"
+- "[brand] vs [competitor] which one should I choose"
+- "how to [solve problem] without expensive software"
+- "[solution] that integrates with shopify and quickbooks"
+
+Generate queries that someone would ACTUALLY type, not marketing copy."""
+
+        user_prompt = f"Generate 25 realistic search queries for {industry} software, considering someone looking for solutions like {brand_name}."
+        
+        from openai import OpenAI
+        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=800,
+            temperature=0.8  # Higher temperature for more variety
+        )
+        
+        query_text = response.choices[0].message.content
+        
+        # Parse queries from the response
+        queries = []
+        lines = query_text.split('\n')
+        for line in lines:
+            line = line.strip()
+            # Remove numbering and clean up
+            if line and (line[0].isdigit() or line.startswith('-') or line.startswith('•')):
+                query = line.split('.', 1)[-1].split('-', 1)[-1].split('•', 1)[-1].strip()
+                if len(query) > 10 and '?' not in query:  # Add question marks to make them proper queries
+                    query += '?'
+                if query and len(query) > 10:
+                    queries.append(query)
+        
+        # Ensure we have enough queries
+        if len(queries) < 15:
+            print("GPT didn't generate enough queries, using fallback")
+            return generate_realistic_fallback_queries(brand_name, industry, keywords, competitors)
+        
+        return queries[:25]
+        
+    except Exception as e:
+        print(f"Error generating realistic queries: {e}")
+        return generate_realistic_fallback_queries(brand_name, industry, keywords, competitors)
+
+def generate_realistic_fallback_queries(brand_name: str, industry: str, keywords: List[str], competitors: List[str]) -> List[str]:
+    """Generate realistic fallback queries when GPT is not available"""
+    queries = []
+    
+    # Real user search patterns
+    pain_points = [
+        f"best {industry} software for small business under $50 per month",
+        f"why is {competitors[0] if competitors else 'expensive software'} so expensive alternatives",
+        f"free {industry} tools vs paid options which is better",
+        f"{industry} software that actually works for startups",
+        f"simple {industry} solution that doesn't require training",
+        f"affordable {keywords[0] if keywords else industry} tools for growing business",
+        f"best {industry} platform with good customer support",
+        f"{industry} software that integrates with shopify quickbooks",
+        f"modern {industry} tools that aren't complicated to use",
+        f"which {industry} platform has the best mobile app"
+    ]
+    
+    comparison_queries = [
+        f"{brand_name} vs {competitors[0] if competitors else 'popular alternative'} honest comparison",
+        f"is {competitors[0] if competitors else 'expensive tool'} worth the money or better alternatives",
+        f"{competitors[0] if competitors else 'tool'} review pros and cons alternatives",
+        f"better alternative to {competitors[0] if competitors else 'expensive software'} for small business",
+        f"{brand_name} pricing vs {competitors[1] if len(competitors) > 1 else 'competitor'} which is cheaper"
+    ]
+    
+    problem_solving = [
+        f"how to improve {keywords[0] if keywords else 'business efficiency'} without expensive software",
+        f"struggling with {keywords[0] if keywords else 'management'} need simple solution",
+        f"best way to handle {keywords[0] if keywords else 'operations'} for growing team",
+        f"{keywords[0] if keywords else 'business'} tools that actually save time",
+        f"fix {keywords[0] if keywords else 'workflow'} issues with better software"
+    ]
+    
+    specific_use_cases = [
+        f"{industry} solution for team of 10-20 people",
+        f"e-commerce {industry} tools that work with multiple platforms",
+        f"b2b {industry} software with api integration options",
+        f"white label {industry} solution for agencies",
+        f"enterprise {industry} tools vs small business options"
+    ]
+    
+    queries.extend(pain_points)
+    queries.extend(comparison_queries)
+    queries.extend(problem_solving)
+    queries.extend(specific_use_cases)
+    
+    return queries[:25]
+
 # Try to import Paddle, fallback if not available
 try:
     from emergentintegrations.payments.paddle.checkout import PaddleCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
