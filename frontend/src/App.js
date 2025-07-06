@@ -131,8 +131,15 @@ const LoginForm = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">futureseo</h1>
-          <p className="text-gray-600 mt-2">Sign in to your AI Brand Visibility Scanner</p>
+          {/* FutureSEO Logo */}
+          <div className="mb-4 flex justify-center">
+            <img 
+              src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQwIiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDY0MCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xNCAxMTJWNDhIMjQuNzE0M1Y1Ny43MTQzSDQ5LjE0MjlWNjcuNDI4Nkg0NS4xNDI5VjEwMi4yODZIMzQuNDI4NlYxMTJIMTRaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik0xMDcuMTQzIDExMlY0OEgxMTcuODU3VjEwMi4yODZIMTQyLjI4NlY0OEgxNTNWMTEySDEwNy4xNDNaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik0xOTguMjg2IDQ4SDIwOVY1Ny43MTQzSDIzMy40MjlWNjcuNDI4Nkg0OS4xNDI5VjQ4WiIgZmlsbD0iIzI1NjNFQiIvPgo8cGF0aCBkPSJNMjU2IDExMlY0OEgyNjYuNzE0VjEwMi4yODZIMjkxLjE0M1Y0OEgzMDEuODU3VjExMkgyNTZaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik0zNDkuMTQzIDExMlY0OEgzNTkuODU3VjEwMi4yODZIMzg0LjI4NlY0OEgzOTVWMTEySDM0OS4xNDNaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik00NDIuMjg2IDExMlY0OEg0NzYuNTcxQzQ4Mi44NTcgNDggNDg4IDUzLjE0MjkgNDg4IDU5LjQyODZWNjkuMTQyOUM0ODggNzUuNDI4NiA0ODIuODU3IDgwLjU3MTQgNDc2LjU3MSA4MC41NzE0SDQ1M1Y5MEg0ODhWMTAwLjU3MUg0NTNWMTEySDQ0Mi4yODZaTTQ3Ni41NzEgNTcuNzE0M0g0NTNWNzAuODU3MUg0NzYuNTcxQzQ3OC4yODYgNzAuODU3MSA0NzkuNzE0IDY5LjQyODYgNDc5LjcxNCA2Ny43MTQzVjYwLjg1NzFDNDc5LjcxNCA1OS4xNDI5IDQ3OC4yODYgNTcuNzE0MyA0NzYuNTcxIDU3LjcxNDNaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik01MzUuMTQzIDExMlY0OEg1ODEuNDI5VjU3LjcxNDNINTQ1Ljg1N1Y3NS40Mjg2SDU3OC41NzFWODUuMTQyOUg1NDUuODU3VjEwMi4yODZINTgxLjQyOVYxMTJINTM1LjE0M1oiIGZpbGw9IiMyNTYzRUIiLz4+IDxjaXJjbGUgY3g9IjU4NCIgY3k9IjgwIiByPSI0NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjU2M0VCIiBzdHJva2Utd2lkdGg9IjYiLz4KPGxpbmUgeDE9IjU2NCIgeTE9IjYwIiB4Mj0iNjA0IiB5Mj0iMTAwIiBzdHJva2U9IiMyNTYzRUIiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxsaW5lIHgxPSI1NjQiIHkxPSIxMDAiIHgyPSI2MDQiIHkyPSI2MCIgc3Ryb2tlPSIjMjU2M0VCIiBzdHJva2Utd2lkdGg9IjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8bGluZSB4MT0iNTU2IiB5MT0iMTA4IiB4Mj0iNTU2IiB5Mj0iMTQ0IiBzdHJva2U9IiMyNTYzRUIiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxsaW5lIHgxPSI1NjQiIHkxPSIxMTYiIHgyPSI1NzYiIHkyPSIxMzYiIHN0cm9rZT0iIzI1NjNFQiIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+"
+              alt="FutureSEO Logo"
+              className="h-12 w-auto"
+            />
+          </div>
+          <p className="text-gray-600 mt-2 text-lg font-medium">AIO is the new SEO</p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
