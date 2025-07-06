@@ -82,10 +82,11 @@ def extract_source_articles_from_response(response: str, brand_name: str, indust
     # Look for article patterns in the response
     article_patterns = [
         r'ARTICLE:\s*(https?://[^\s]+)\s*-\s*([^\n]+)',
-        r'(https?://[^\s]+)',
-        r'([a-zA-Z0-9.-]+\.com/[^\s]+)',
-        r'([a-zA-Z0-9.-]+\.org/[^\s]+)',
-        r'([a-zA-Z0-9.-]+\.net/[^\s]+)',
+        r'(https?://[^\s\)]+)',  # URLs without closing parenthesis
+        r'([a-zA-Z0-9.-]+\.com/[^\s\)]+)',  # .com URLs
+        r'([a-zA-Z0-9.-]+\.org/[^\s\)]+)',  # .org URLs  
+        r'([a-zA-Z0-9.-]+\.net/[^\s\)]+)',  # .net URLs
+        r'(?:https?://)?(?:www\.)?([a-zA-Z0-9.-]+\.(?:com|org|net|io)/[^\s\)]*)',  # More flexible URL pattern
     ]
     
     # Extract articles from the response
