@@ -705,7 +705,7 @@ const Dashboard = () => {
               <div className="text-center">
                 <div className="text-2xl mb-2">🏆</div>
                 <div className="font-medium text-gray-900">Competitor Scan</div>
-                <div className="text-sm text-gray-500">10 scans • 3 minutes</div>
+                <div className="text-sm text-gray-500">10 scans • 1 minute</div>
                 <div className="text-xs text-orange-600 mt-1">Competitive focus</div>
               </div>
             </button>
