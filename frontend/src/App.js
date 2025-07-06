@@ -1135,6 +1135,25 @@ const Dashboard = () => {
 
   const renderSourceArticles = () => {
     const articles = sourceArticlesData?.articles || [];
+    const currentPage = sourceArticlesData?.page || 1;
+    const totalPages = sourceArticlesData?.total_pages || 1;
+    const hasNext = sourceArticlesData?.has_next || false;
+    const hasPrev = sourceArticlesData?.has_prev || false;
+    
+    const loadPage = async (page) => {
+      try {
+        const headers = { 'Authorization': `Bearer ${token}` };
+        const brandParam = selectedBrandId ? `?brand_id=${selectedBrandId}&page=${page}&limit=5` : `?page=${page}&limit=5`;
+        
+        const response = await fetch(`${backendUrl}/api/source-articles${brandParam}`, { headers });
+        if (response.ok) {
+          const data = await response.json();
+          setSourceArticlesData(data);
+        }
+      } catch (error) {
+        console.error('Error loading page:', error);
+      }
+    };
     
     return (
       <div className="space-y-6">
@@ -1144,72 +1163,63 @@ const Dashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Source Articles</h2>
-            <p className="text-gray-600 mt-1">Explore the specific articles and pages that contribute to your AI visibility</p>
+            <p className="text-gray-600 mt-1">Specific articles that influence your brand visibility in AI responses</p>
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search by URL..."
-            className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <div className="absolute left-3 top-3.5 text-gray-400">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Articles Table */}
+        {/* Articles Table - Simplified */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">URL</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Impact</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Queries</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Article</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Influence Score</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AI Mentions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {articles.map((article, index) => (
-                  <tr key={article.url} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">{index + 1}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-start space-x-3">
-                        <img 
-                          src={`https://www.google.com/s2/favicons?domain=${new URL(article.url).hostname}&sz=32`} 
-                          alt="" 
-                          className="w-6 h-6 rounded mt-1"
-                          onError={(e) => {e.target.style.display = 'none'}}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm text-blue-600 hover:text-blue-800 truncate">
-                            <a href={article.url} target="_blank" rel="noopener noreferrer">
-                              {article.url}
-                            </a>
+                {articles.map((article, index) => {
+                  // Fix the impact calculation
+                  const influenceScore = Math.min(100, Math.max(0, article.impact || 0));
+                  
+                  return (
+                    <tr key={article.url} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-900">{((currentPage - 1) * 5) + index + 1}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-start space-x-3">
+                          <img 
+                            src={`https://www.google.com/s2/favicons?domain=${new URL(article.url).hostname}&sz=32`} 
+                            alt="" 
+                            className="w-6 h-6 rounded mt-1"
+                            onError={(e) => {e.target.style.display = 'none'}}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm text-blue-600 hover:text-blue-800 truncate">
+                              <a href={article.url} target="_blank" rel="noopener noreferrer">
+                                {article.title || 'Article Title'}
+                              </a>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1 truncate">{article.url}</div>
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">{article.title || 'No title available'}</div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium text-gray-900">{article.impact}%</span>
-                        <div className="w-16 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full" 
-                            style={{width: `${article.impact}%`}}
-                          ></div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-gray-900">{influenceScore}/100</span>
+                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full" 
+                              style={{width: `${influenceScore}%`}}
+                            ></div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{article.queries}</td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{article.queries || 0}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -1218,10 +1228,36 @@ const Dashboard = () => {
             <div className="text-center py-12 text-gray-500">
               <div className="text-4xl mb-4">📄</div>
               <p className="text-lg font-medium mb-2">No source article data yet</p>
-              <p className="text-sm">Run scans to see which specific articles mention your brand!</p>
+              <p className="text-sm">Run scans to see which articles influence your brand visibility!</p>
             </div>
           )}
         </div>
+
+        {/* Real Pagination */}
+        {articles.length > 0 && totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-700">
+              Page {currentPage} of {totalPages} • {sourceArticlesData?.total || 0} total articles
+            </div>
+            <div className="flex space-x-1">
+              <button 
+                onClick={() => loadPage(currentPage - 1)}
+                disabled={!hasPrev}
+                className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ← Previous
+              </button>
+              <span className="px-3 py-2 text-sm bg-blue-600 text-white rounded">{currentPage}</span>
+              <button 
+                onClick={() => loadPage(currentPage + 1)}
+                disabled={!hasNext}
+                className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
