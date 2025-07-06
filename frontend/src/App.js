@@ -1482,6 +1482,12 @@ const Dashboard = () => {
               >
                 Standard Scan (25 scans)
               </button>
+              <button
+                onClick={() => setEditingBrand(brand)}
+                className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
+              >
+                Edit Keywords & Competitors
+              </button>
             </div>
           </div>
         ))}
