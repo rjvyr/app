@@ -1790,6 +1790,9 @@ const Dashboard = () => {
         {activeTab === 'plans' && <PlansPage backendUrl={backendUrl} user={user} token={token} />}
         {activeTab === 'settings' && renderSettings()}
       </div>
+      
+      {/* Brand Edit Modal */}
+      {renderBrandEditModal()}
     </div>
   );
 };
