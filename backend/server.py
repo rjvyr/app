@@ -338,7 +338,17 @@ SOURCE ARTICLES (format as "ARTICLE: Full URL - Article Title"):
 Answer the query naturally and objectively, then provide the source information."""
 
         try:
-            client = openai.AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+            # Create a custom HTTP client to avoid proxy issues in Kubernetes
+            http_client = httpx.AsyncClient(
+                timeout=30.0,
+                limits=httpx.Limits(max_keepalive_connections=20, max_connections=100)
+            )
+            
+            client = openai.AsyncOpenAI(
+                api_key=os.environ.get("OPENAI_API_KEY"),
+                http_client=http_client
+            )
+            
             response = await client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -348,6 +358,10 @@ Answer the query naturally and objectively, then provide the source information.
                 max_tokens=1000,
                 temperature=0.7
             )
+            
+            # Clean up HTTP client
+            await http_client.aclose()
+            
         except Exception as api_error:
             print(f"OpenAI API Error: {api_error}")
             # Fallback to mock data if API fails
