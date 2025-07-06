@@ -451,18 +451,36 @@ When answering software recommendation questions:
 Key industry context: {industry}
 Relevant capabilities to consider: {', '.join(keywords[:3]) if keywords else 'core functionality'}"""
 
-            from openai import OpenAI
-            client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-            
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": query}
-                ],
-                max_tokens=400,  # Increased for more detailed responses
-                temperature=0.3   # Lower temperature for more consistent recommendations
-            )
+            try:
+                # Create a custom HTTP client to avoid proxy issues
+                http_client_sync = httpx.Client(
+                    timeout=30.0,
+                    limits=httpx.Limits(max_keepalive_connections=20, max_connections=100)
+                )
+                
+                from openai import OpenAI
+                client = OpenAI(
+                    api_key=os.environ.get("OPENAI_API_KEY"),
+                    http_client=http_client_sync
+                )
+                
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": query}
+                    ],
+                    max_tokens=400,  # Increased for more detailed responses
+                    temperature=0.3   # Lower temperature for more consistent recommendations
+                )
+                
+                # Clean up HTTP client
+                http_client_sync.close()
+                
+            except Exception as api_error:
+                print(f"OpenAI API Error: {api_error}")
+                # Fallback to mock data if API fails
+                return generate_mock_scan_result(query, brand_name, keywords, competitors)
             answer = response.choices[0].message.content
             print(f"Enhanced API response received for: {query}")
         
