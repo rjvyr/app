@@ -18,6 +18,10 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import json
 import asyncio
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from mock_data import generate_mock_scan_result
 from source_extraction import extract_source_domains_from_response, extract_source_articles_from_response
 
