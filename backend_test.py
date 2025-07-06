@@ -3,6 +3,7 @@ import unittest
 import json
 import uuid
 from datetime import datetime
+import time
 
 class AIBrandVisibilityAPITest(unittest.TestCase):
     def setUp(self):
@@ -18,6 +19,7 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         self.user_email = f"test_user_{uuid.uuid4().hex[:8]}@example.com"
         self.user_password = "Test@123456"
         self.brand_id = None
+        self.second_brand_id = None
         
     def test_01_health_endpoint(self):
         """Test the health check endpoint"""
