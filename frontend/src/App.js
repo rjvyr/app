@@ -1,50 +1,41 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect, useContext, createContext } from 'react';
 import PlansPage from './PlansPage';
-import './App.css';
 
-// Context for user authentication
+// Auth Context
 const AuthContext = createContext();
-
-const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
-
+  const [loading, setLoading] = useState(true);
+  
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
   useEffect(() => {
     if (token) {
-      fetchUserInfo();
+      validateToken();
     } else {
       setLoading(false);
     }
   }, [token]);
 
-  const fetchUserInfo = async () => {
+  const validateToken = async () => {
     try {
       const response = await fetch(`${backendUrl}/api/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
       
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
       } else {
-        logout();
+        localStorage.removeItem('token');
+        setToken(null);
       }
     } catch (error) {
-      console.error('Error fetching user info:', error);
-      logout();
+      console.error('Token validation error:', error);
+      localStorage.removeItem('token');
+      setToken(null);
     } finally {
       setLoading(false);
     }
@@ -54,21 +45,19 @@ const AuthProvider = ({ children }) => {
     try {
       const response = await fetch(`${backendUrl}/api/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
       });
 
       if (response.ok) {
         const data = await response.json();
         setToken(data.access_token);
-        localStorage.setItem('token', data.access_token);
         setUser(data.user);
+        localStorage.setItem('token', data.access_token);
         return { success: true };
       } else {
-        const errorData = await response.json();
-        return { success: false, error: errorData.detail };
+        const error = await response.json();
+        return { success: false, error: error.detail };
       }
     } catch (error) {
       return { success: false, error: 'Network error' };
@@ -79,48 +68,47 @@ const AuthProvider = ({ children }) => {
     try {
       const response = await fetch(`${backendUrl}/api/auth/register`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
       });
 
-      const data = await response.json();
-      return { success: response.ok, message: data.message, error: data.detail };
+      if (response.ok) {
+        return { success: true };
+      } else {
+        const error = await response.json();
+        return { success: false, error: error.detail };
+      }
     } catch (error) {
       return { success: false, error: 'Network error' };
     }
   };
 
   const logout = () => {
+    localStorage.removeItem('token');
     setToken(null);
     setUser(null);
-    localStorage.removeItem('token');
-  };
-
-  const value = {
-    user,
-    login,
-    register,
-    logout,
-    loading,
-    token,
-    backendUrl
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading, backendUrl, token }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Login Component
+const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+// Login Form Component
 const LoginForm = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -128,20 +116,22 @@ const LoginForm = () => {
     setLoading(true);
     setError('');
 
-    const result = await login(email, password);
-    
+    const result = await login(formData.email, formData.password);
     if (!result.success) {
       setError(result.error);
     }
-    
     setLoading(false);
   };
 
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
+          <h1 className="text-3xl font-bold text-gray-900">futureseo</h1>
           <p className="text-gray-600 mt-2">Sign in to your AI Brand Visibility Scanner</p>
         </div>
         
@@ -153,26 +143,24 @@ const LoginForm = () => {
           )}
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
@@ -186,21 +174,12 @@ const LoginForm = () => {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-        
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
-            Don't have an account?{' '}
-            <button className="text-blue-600 hover:underline font-medium">
-              Sign up
-            </button>
-          </p>
-        </div>
       </div>
     </div>
   );
 };
 
-// Registration Component
+// Register Form Component
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
     email: '',
@@ -209,9 +188,9 @@ const RegisterForm = () => {
     company: '',
     website: ''
   });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
   const { register } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -220,49 +199,37 @@ const RegisterForm = () => {
     setError('');
 
     const result = await register(formData);
-    
     if (result.success) {
       setSuccess(true);
     } else {
       setError(result.error);
     }
-    
     setLoading(false);
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg text-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
           <div className="text-green-600 text-6xl mb-4">✓</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h2>
-          <p className="text-gray-600 mb-6">
-            Please check your email to verify your account and start your free trial.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-          >
-            Continue to Login
-          </button>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Account Created!</h2>
+          <p className="text-gray-600 mb-6">Please check your email to verify your account.</p>
+          <p className="text-sm text-gray-500">Your 7-day free trial has started with 50 free scans!</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12">
-      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Get Started</h2>
-          <p className="text-gray-600 mt-2">Start your 7-day free trial today</p>
+          <h1 className="text-3xl font-bold text-gray-900">futureseo</h1>
+          <p className="text-gray-600 mt-2">Start your 7-day free trial</p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -272,10 +239,34 @@ const RegisterForm = () => {
             </div>
           )}
           
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+              <input
+                type="text"
+                name="full_name"
+                value={formData.full_name}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Company</label>
+              <input
+                type="text"
+                name="company"
+                value={formData.company}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+          </div>
+          
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
             <input
               type="email"
               name="email"
@@ -287,50 +278,7 @@ const RegisterForm = () => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name
-            </label>
-            <input
-              type="text"
-              name="full_name"
-              value={formData.full_name}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Company
-            </label>
-            <input
-              type="text"
-              name="company"
-              value={formData.company}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Website (Optional)
-            </label>
-            <input
-              type="url"
-              name="website"
-              value={formData.website}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
             <input
               type="password"
               name="password"
@@ -338,6 +286,18 @@ const RegisterForm = () => {
               onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Website (Optional)</label>
+            <input
+              type="url"
+              name="website"
+              value={formData.website}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="https://yourwebsite.com"
             />
           </div>
           
@@ -381,26 +341,39 @@ const Dashboard = () => {
     fetchAllRealData();
   }, []);
 
+  useEffect(() => {
+    if (brands.length > 0 && !selectedBrandId) {
+      setSelectedBrandId(brands[0]._id);
+    }
+  }, [brands, selectedBrandId]);
+
   const fetchAllRealData = async () => {
     try {
-      setLoading(true);
       const headers = { 'Authorization': `Bearer ${token}` };
       
-      const [dashboard, competitors, queries, recommendations, brandsRes] = await Promise.all([
-        fetch(`${backendUrl}/api/dashboard/real`, { headers }).then(res => res.json()),
-        fetch(`${backendUrl}/api/competitors/real`, { headers }).then(res => res.json()),
-        fetch(`${backendUrl}/api/queries/real`, { headers }).then(res => res.json()),
-        fetch(`${backendUrl}/api/recommendations/real`, { headers }).then(res => res.json()),
-        fetch(`${backendUrl}/api/brands`, { headers }).then(res => res.json())
+      const [dashResponse, compResponse, queryResponse, recResponse, brandsResponse] = await Promise.all([
+        fetch(`${backendUrl}/api/dashboard/real`, { headers }),
+        fetch(`${backendUrl}/api/competitors/real`, { headers }),
+        fetch(`${backendUrl}/api/queries/real`, { headers }),
+        fetch(`${backendUrl}/api/recommendations/real`, { headers }),
+        fetch(`${backendUrl}/api/brands`, { headers })
       ]);
 
-      setDashboardData(dashboard);
-      setCompetitorData(competitors);
-      setQueriesData(queries);
-      setRecommendationsData(recommendations);
-      setBrands(brandsRes.brands || []);
+      const [dashData, compData, queryData, recData, brandsData] = await Promise.all([
+        dashResponse.json(),
+        compResponse.json(),
+        queryResponse.json(),
+        recResponse.json(),
+        brandsResponse.json()
+      ]);
+
+      setDashboardData(dashData);
+      setCompetitorData(compData);
+      setQueriesData(queryData);
+      setRecommendationsData(recData);
+      setBrands(brandsData.brands);
     } catch (error) {
-      console.error('Error fetching real data:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
@@ -415,37 +388,30 @@ const Dashboard = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          brand_id: brandId,
-          scan_type: scanType
-        })
+        body: JSON.stringify({ brand_id: brandId, scan_type: scanType })
       });
-      
+
       if (response.ok) {
-        const data = await response.json();
-        alert(`Scan completed! Visibility score: ${data.visibility_score.toFixed(1)}%`);
-        // Refresh all data after scan
-        fetchAllRealData();
+        await fetchAllRealData(); // Refresh data
+        alert(`${scanType} scan completed successfully!`);
       } else {
         const error = await response.json();
         alert(`Error: ${error.detail}`);
       }
     } catch (error) {
-      console.error('Error running scan:', error);
-      alert('Error running scan. Please try again.');
+      alert('Network error occurred');
     } finally {
       setScanLoading(false);
     }
   };
 
-  // Enterprise Welcome Message
   const renderEnterpriseWelcome = () => (
-    <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl">
-      <div className="flex items-center space-x-3">
-        <div className="text-2xl">🎉</div>
+    <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-6 mb-6">
+      <div className="flex items-center space-x-4">
+        <div className="text-4xl">🚀</div>
         <div>
-          <h3 className="font-bold text-gray-900">Welcome to Enterprise!</h3>
-          <p className="text-gray-600 text-sm">
+          <h3 className="text-lg font-bold text-gray-900">Welcome to Enterprise!</h3>
+          <p className="text-gray-600">
             You now have full access: <strong>1,500 scans/month</strong> • <strong>10 brands</strong> • <strong>All features</strong> • Ready for <strong>futureseo.io</strong>
           </p>
         </div>
@@ -453,10 +419,32 @@ const Dashboard = () => {
     </div>
   );
 
-  // Enhanced Overview Dashboard using REAL data
+  const renderBrandSelector = () => {
+    if (brands.length <= 1) return null;
+
+    return (
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Select Brand</label>
+        <select
+          value={selectedBrandId || ''}
+          onChange={(e) => setSelectedBrandId(e.target.value)}
+          className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="">All Brands</option>
+          {brands.map((brand) => (
+            <option key={brand._id} value={brand._id}>
+              {brand.name} ({brand.industry})
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  };
+
   const renderOverview = () => (
     <div className="space-y-6">
       {renderEnterpriseWelcome()}
+      {renderBrandSelector()}
       
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -467,7 +455,7 @@ const Dashboard = () => {
         <div className="flex items-center space-x-4">
           <div className="text-right">
             <div className="text-sm text-gray-500">Enterprise Plan</div>
-            <div className="text-xs text-gray-400">Live ChatGPT Analysis</div>
+            <div className="text-xs text-gray-400">Live AI Analysis</div>
           </div>
           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
         </div>
@@ -477,7 +465,7 @@ const Dashboard = () => {
       <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
         <div className="text-center">
           <div className="text-6xl font-bold text-blue-600 mb-2">
-            {dashboardData?.overall_visibility ? Math.round(dashboardData.overall_visibility) : 0}
+            {dashboardData?.overall_visibility ? Math.round(dashboardData.overall_visibility) : 0}%
           </div>
           <div className="text-lg text-gray-600 mb-4">
             {dashboardData?.overall_visibility > 70 ? 'Excellent' : 
@@ -494,27 +482,62 @@ const Dashboard = () => {
 
       {/* Platform Breakdown using REAL data */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Breakdown (Real Data)</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Platform Breakdown</h3>
         <div className="space-y-4">
-          {dashboardData?.platform_breakdown && Object.entries(dashboardData.platform_breakdown).map(([platform, data]) => (
-            <div key={platform} className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <span className="text-blue-600 font-bold">
-                    {platform === 'ChatGPT' ? '🤖' : platform === 'Gemini' ? '💎' : '🔍'}
-                  </span>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-900">{platform}</div>
-                  <div className="text-sm text-gray-500">{data.mentions} mentions out of {data.total_questions} queries</div>
-                </div>
+          {/* ChatGPT */}
+          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <span className="text-blue-600 font-bold">🤖</span>
               </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-blue-600">{Math.round(data.visibility_rate)}%</div>
-                <div className="text-sm text-gray-500">Real API data</div>
+              <div>
+                <div className="font-semibold text-gray-900">ChatGPT (GPT-4o-mini)</div>
+                <div className="text-sm text-gray-500">
+                  {dashboardData?.platform_breakdown?.ChatGPT?.mentions || 0} mentions out of {dashboardData?.platform_breakdown?.ChatGPT?.total_questions || 0} queries
+                </div>
               </div>
             </div>
-          ))}
+            <div className="text-right">
+              <div className="text-2xl font-bold text-blue-600">
+                {dashboardData?.platform_breakdown?.ChatGPT ? Math.round(dashboardData.platform_breakdown.ChatGPT.visibility_rate) : 0}%
+              </div>
+              <div className="text-sm text-gray-500">Real API data</div>
+            </div>
+          </div>
+
+          {/* Gemini */}
+          <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <span className="text-purple-600 font-bold">💎</span>
+              </div>
+              <div>
+                <div className="font-semibold text-gray-900">Google Gemini</div>
+                <div className="text-sm text-gray-500">Coming soon - Integration in progress</div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-purple-600">-</div>
+              <div className="text-sm text-gray-500">Pro/Enterprise</div>
+            </div>
+          </div>
+
+          {/* AI Overview */}
+          <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <span className="text-green-600 font-bold">🔍</span>
+              </div>
+              <div>
+                <div className="font-semibold text-gray-900">Google AI Overview</div>
+                <div className="text-sm text-gray-500">Coming soon - Integration in progress</div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-green-600">-</div>
+              <div className="text-sm text-gray-500">Pro/Enterprise</div>
+            </div>
+          </div>
           
           {(!dashboardData?.platform_breakdown || Object.keys(dashboardData.platform_breakdown).length === 0) && (
             <div className="text-center py-8 text-gray-500">
@@ -529,9 +552,9 @@ const Dashboard = () => {
       {/* Quick Actions */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <button
-            onClick={() => brands.length > 0 && runScan(brands[0]._id, 'quick')}
+            onClick={() => brands.length > 0 && runScan(selectedBrandId || brands[0]._id, 'quick')}
             disabled={scanLoading || brands.length === 0}
             className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50"
           >
@@ -543,7 +566,7 @@ const Dashboard = () => {
           </button>
 
           <button
-            onClick={() => brands.length > 0 && runScan(brands[0]._id, 'standard')}
+            onClick={() => brands.length > 0 && runScan(selectedBrandId || brands[0]._id, 'standard')}
             disabled={scanLoading || brands.length === 0}
             className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50"
           >
@@ -555,7 +578,7 @@ const Dashboard = () => {
           </button>
 
           <button
-            onClick={() => brands.length > 0 && runScan(brands[0]._id, 'deep')}
+            onClick={() => brands.length > 0 && runScan(selectedBrandId || brands[0]._id, 'deep')}
             disabled={scanLoading || brands.length === 0}
             className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors disabled:opacity-50"
           >
@@ -567,7 +590,7 @@ const Dashboard = () => {
           </button>
 
           <button
-            onClick={() => brands.length > 0 && runScan(brands[0]._id, 'competitor')}
+            onClick={() => brands.length > 0 && runScan(selectedBrandId || brands[0]._id, 'competitor')}
             disabled={scanLoading || brands.length === 0}
             className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-colors disabled:opacity-50"
           >
@@ -613,6 +636,196 @@ const Dashboard = () => {
             {(user?.scans_limit || 1500) - (user?.scans_used || 0)} scans remaining
           </div>
         </div>
+      </div>
+    </div>
+  );
+
+  const renderCompetitors = () => (
+    <div className="space-y-6">
+      {renderEnterpriseWelcome()}
+      {renderBrandSelector()}
+      
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">Competitor Analysis</h2>
+        <div className="text-sm text-gray-500">Real AI data • Live results</div>
+      </div>
+
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Brand Rankings</h3>
+        <div className="space-y-4">
+          {competitorData?.competitors?.map((competitor, index) => (
+            <div key={competitor.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-4">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
+                  competitor.is_user_brand ? 'bg-blue-600' : 'bg-gray-600'
+                }`}>
+                  {competitor.rank}
+                </div>
+                <div>
+                  <div className="font-semibold text-gray-900">
+                    {competitor.name} {competitor.is_user_brand && '(Your Brand)'}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {competitor.mentions} mentions in {competitor.total_queries} queries
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-bold text-gray-900">{competitor.visibility_score.toFixed(1)}%</div>
+                <div className="text-sm text-gray-500">Visibility</div>
+              </div>
+            </div>
+          ))}
+          
+          {(!competitorData?.competitors || competitorData.competitors.length === 0) && (
+            <div className="text-center py-8 text-gray-500">
+              <div className="text-4xl mb-4">🏆</div>
+              <p className="text-lg font-medium mb-2">No competitor data yet</p>
+              <p className="text-sm">Run scans to see how you rank against competitors!</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderQueries = () => (
+    <div className="space-y-6">
+      {renderEnterpriseWelcome()}
+      {renderBrandSelector()}
+      
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">Query Analysis</h2>
+        <div className="text-sm text-gray-500">
+          {queriesData?.summary?.total_analyzed || 0} queries analyzed
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+          <div className="text-3xl font-bold text-green-600">{queriesData?.summary?.with_mentions || 0}</div>
+          <div className="text-gray-600">With Mentions</div>
+        </div>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+          <div className="text-3xl font-bold text-red-600">{queriesData?.summary?.without_mentions || 0}</div>
+          <div className="text-gray-600">Without Mentions</div>
+        </div>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+          <div className="text-3xl font-bold text-blue-600">
+            {queriesData?.summary?.average_position ? queriesData.summary.average_position.toFixed(1) : '-'}
+          </div>
+          <div className="text-gray-600">Avg Position</div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Recent Queries</h3>
+        </div>
+        <div className="divide-y divide-gray-200">
+          {queriesData?.queries?.slice(0, 10).map((query, index) => (
+            <div key={query.id} className="p-6">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-900">{query.query}</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {query.platform} • {new Date(query.date).toLocaleDateString()}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {query.brand_mentioned ? (
+                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                      ✓ Mentioned
+                    </span>
+                  ) : (
+                    <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
+                      ✗ Not Mentioned
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                {query.response.substring(0, 200)}...
+              </div>
+              {query.competitors?.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {query.competitors.map((comp, idx) => (
+                    <span key={idx} className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
+                      {comp}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+          
+          {(!queriesData?.queries || queriesData.queries.length === 0) && (
+            <div className="p-12 text-center text-gray-500">
+              <div className="text-4xl mb-4">🔍</div>
+              <p className="text-lg font-medium mb-2">No queries yet</p>
+              <p className="text-sm">Run your first scan to see detailed query analysis!</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderRecommendations = () => (
+    <div className="space-y-6">
+      {renderEnterpriseWelcome()}
+      {renderBrandSelector()}
+      
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">AI Recommendations</h2>
+        <div className="text-sm text-gray-500">
+          {recommendationsData?.total_recommendations || 0} recommendations
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {recommendationsData?.recommendations?.map((rec) => (
+          <div key={rec.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">{rec.title}</h3>
+              <span className={`px-2 py-1 text-xs rounded-full ${
+                rec.priority === 'High' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {rec.priority}
+              </span>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="text-sm text-gray-600">{rec.description}</div>
+              
+              <div className="flex items-center space-x-4 text-sm">
+                <span className="text-green-600 font-medium">{rec.impact}</span>
+                <span className="text-gray-500">•</span>
+                <span className="text-gray-500">{rec.time_estimate}</span>
+              </div>
+              
+              <div>
+                <div className="text-sm font-medium text-gray-900 mb-2">Action Items:</div>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  {rec.action_items.map((item, idx) => (
+                    <li key={idx} className="flex items-start">
+                      <span className="text-blue-600 mr-2">•</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        ))}
+        
+        {(!recommendationsData?.recommendations || recommendationsData.recommendations.length === 0) && (
+          <div className="col-span-2 text-center py-12 text-gray-500">
+            <div className="text-4xl mb-4">💡</div>
+            <p className="text-lg font-medium mb-2">No recommendations yet</p>
+            <p className="text-sm">Run more scans to get AI-powered recommendations!</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -746,9 +959,11 @@ const Dashboard = () => {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <h1 className="text-xl font-bold text-gray-900">AI Brand Visibility</h1>
-              <nav className="hidden md:flex space-x-6">
+            <div className="flex items-center space-x-4 md:space-x-8">
+              <h1 className="text-xl font-bold text-gray-900">futureseo</h1>
+              
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex space-x-4 lg:space-x-6">
                 {[
                   { id: 'overview', name: 'Overview', icon: '📊' },
                   { id: 'competitors', name: 'Competitors', icon: '🏆' },
@@ -773,7 +988,7 @@ const Dashboard = () => {
                 ))}
               </nav>
               
-              {/* Mobile Navigation */}
+              {/* Mobile Menu Button */}
               <div className="md:hidden">
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -786,8 +1001,9 @@ const Dashboard = () => {
                 </button>
               </div>
             </div>
+            
             <div className="flex items-center space-x-4">
-              <div className="text-right">
+              <div className="text-right hidden sm:block">
                 <div className="text-sm font-medium text-gray-900">{user?.full_name}</div>
                 <div className="text-xs text-green-600 font-medium">
                   Enterprise Plan 🚀
@@ -832,77 +1048,14 @@ const Dashboard = () => {
             </div>
           </div>
         )}
-        {mobileMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200">
-              {[
-                { id: 'overview', name: 'Overview', icon: '📊' },
-                { id: 'competitors', name: 'Competitors', icon: '🏆' },
-                { id: 'queries', name: 'Queries', icon: '🔍' },
-                { id: 'recommendations', name: 'Recommendations', icon: '💡' },
-                { id: 'brands', name: 'Brands', icon: '🎯' },
-                { id: 'plans', name: 'Plans', icon: '💳' },
-                { id: 'settings', name: 'Settings', icon: '⚙️' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <span>{tab.icon}</span>
-                  <span>{tab.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        </div>
-        
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200">
-              {[
-                { id: 'overview', name: 'Overview', icon: '📊' },
-                { id: 'competitors', name: 'Competitors', icon: '🏆' },
-                { id: 'queries', name: 'Queries', icon: '🔍' },
-                { id: 'recommendations', name: 'Recommendations', icon: '💡' },
-                { id: 'brands', name: 'Brands', icon: '🎯' },
-                { id: 'plans', name: 'Plans', icon: '💳' },
-                { id: 'settings', name: 'Settings', icon: '⚙️' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <span>{tab.icon}</span>
-                  <span>{tab.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
         {activeTab === 'overview' && renderOverview()}
+        {activeTab === 'competitors' && renderCompetitors()}
+        {activeTab === 'queries' && renderQueries()}
+        {activeTab === 'recommendations' && renderRecommendations()}
         {activeTab === 'brands' && renderBrands()}
         {activeTab === 'add-brand' && renderAddBrand()}
         {activeTab === 'plans' && <PlansPage backendUrl={backendUrl} user={user} token={token} />}
@@ -1016,7 +1169,7 @@ const AddBrandForm = ({ onSuccess }) => {
               name="keywords"
               value={formData.keywords}
               onChange={handleChange}
-              placeholder="e.g., project management, team collaboration, productivity"
+              placeholder="e.g., productivity, team collaboration, project tracking"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
@@ -1050,7 +1203,7 @@ const AddBrandForm = ({ onSuccess }) => {
             />
           </div>
           
-          <div className="flex space-x-4">
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
             <button
               type="submit"
               disabled={loading}
