@@ -665,7 +665,7 @@ const Dashboard = () => {
               <div className="text-center">
                 <div className="text-2xl mb-2">🎯</div>
                 <div className="font-medium text-gray-900">Standard Scan</div>
-                <div className="text-sm text-gray-500">25 scans • 5 minutes</div>
+                <div className="text-sm text-gray-500">25 scans • 2 minutes</div>
                 <div className="text-xs text-green-600 mt-1">Comprehensive analysis</div>
               </div>
             </button>
