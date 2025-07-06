@@ -285,6 +285,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Brand Update Endpoint"
     - "Source Domains and Articles Real Data Display"
     - "Real Source Data Extraction"
     - "Enhanced ChatGPT Integration"
