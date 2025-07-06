@@ -432,8 +432,15 @@ const Dashboard = () => {
       });
 
       if (response.ok) {
-        await fetchAllRealData(); // Refresh data
-        alert(`${scanType} scan completed successfully!`);
+        const scanResult = await response.json();
+        
+        // Refresh all data including user info to update scan usage
+        await Promise.all([
+          fetchAllRealData(),
+          refreshUserData() // This will update the scan usage bar
+        ]);
+        
+        alert(`${scanType} scan completed successfully! Used ${scanResult.scans_used} scans.`);
       } else {
         const error = await response.json();
         alert(`Error: ${error.detail}`);
@@ -442,6 +449,22 @@ const Dashboard = () => {
       alert('Network error occurred');
     } finally {
       setScanLoading(false);
+    }
+  };
+
+  const refreshUserData = async () => {
+    try {
+      const response = await fetch(`${backendUrl}/api/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const updatedUser = await response.json();
+        // Update user data in AuthContext
+        setUser(updatedUser);
+      }
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
     }
   };
 
