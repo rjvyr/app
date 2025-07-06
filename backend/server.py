@@ -19,7 +19,7 @@ import json
 import asyncio
 
 from backend.mock_data import generate_mock_scan_result
-from source_extraction import extract_source_domains_from_response, extract_source_articles_from_response
+from backend.source_extraction import extract_source_domains_from_response, extract_source_articles_from_response
 
 # Try to import OpenAI, fallback if not available
 try:
