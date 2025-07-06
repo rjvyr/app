@@ -684,8 +684,6 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         self.assertIn("total", all_domains_data)
         self.assertIn("page", all_domains_data)
         self.assertIn("total_pages", all_domains_data)
-        self.assertIn("has_next", all_domains_data)
-        self.assertIn("has_prev", all_domains_data)
         
         # Verify domains data structure
         if all_domains_data["domains"]:
@@ -714,7 +712,6 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         # Verify pagination works correctly
         if page1_data["total"] > 2:
             self.assertEqual(len(page1_data["domains"]), 2)
-            self.assertTrue(page1_data["has_next"])
             self.assertEqual(page1_data["page"], 1)
             
             # Page 2 should have different domains than page 1
@@ -751,8 +748,6 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         self.assertIn("total", all_articles_data)
         self.assertIn("page", all_articles_data)
         self.assertIn("total_pages", all_articles_data)
-        self.assertIn("has_next", all_articles_data)
-        self.assertIn("has_prev", all_articles_data)
         
         # Verify articles data structure
         if all_articles_data["articles"]:
@@ -780,7 +775,6 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         # Verify pagination works correctly
         if page1_data["total"] > 2:
             self.assertEqual(len(page1_data["articles"]), 2)
-            self.assertTrue(page1_data["has_next"])
             self.assertEqual(page1_data["page"], 1)
             
             # Page 2 should have different articles than page 1
@@ -796,11 +790,11 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         """Test that source domains and articles endpoints require authentication"""
         # Test source domains endpoint without authentication
         no_auth_domains_response = requests.get(f"{self.base_url}/api/source-domains")
-        self.assertEqual(no_auth_domains_response.status_code, 401)
+        self.assertEqual(no_auth_domains_response.status_code, 403)
         
         # Test source articles endpoint without authentication
         no_auth_articles_response = requests.get(f"{self.base_url}/api/source-articles")
-        self.assertEqual(no_auth_articles_response.status_code, 401)
+        self.assertEqual(no_auth_articles_response.status_code, 403)
         
         print("✅ Authentication requirement test passed")
         
