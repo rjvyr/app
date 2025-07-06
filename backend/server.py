@@ -282,75 +282,7 @@ async def send_email(to_email: str, subject: str, body: str):
     except Exception as e:
         print(f"Error sending email: {e}")
 
-def generate_scan_queries(brand_name: str, industry: str, keywords: List[str], competitors: List[str], website: str = None) -> List[str]:
-    """Generate smart, realistic queries that users actually ask AI tools"""
-    queries = []
-    
-    # Real user search patterns for brand discovery
-    discovery_patterns = [
-        f"What's the best {industry} software for small businesses?",
-        f"Top {industry} platforms in 2024 - comprehensive comparison",
-        f"Best {industry} tools for startups vs enterprise companies",
-        f"{industry} software comparison: features, pricing, and reviews",
-        f"Alternative to [top competitor] for {industry} management"
-    ]
-    
-    # Replace [top competitor] with actual competitor
-    if competitors:
-        discovery_patterns = [q.replace("[top competitor]", competitors[0]) for q in discovery_patterns]
-    
-    queries.extend(discovery_patterns)
-    
-    # Keyword-driven user intent queries
-    for keyword in keywords[:4]:  # Use top 4 keywords
-        queries.extend([
-            f"Best {keyword} tools for {industry} businesses",
-            f"How to improve {keyword} in {industry}",
-            f"{keyword} software comparison 2024",
-            f"Top {keyword} platforms - which one to choose?",
-            f"Free vs paid {keyword} tools for {industry}"
-        ])
-    
-    # Competitor comparison and alternative queries
-    for competitor in competitors[:3]:  # Top 3 competitors
-        queries.extend([
-            f"{brand_name} vs {competitor} - detailed comparison",
-            f"Is {competitor} worth it? Better alternatives",
-            f"{competitor} review: pros, cons, and alternatives",
-            f"Best alternative to {competitor} for {industry}"
-        ])
-    
-    # Problem-solving and specific use case queries
-    use_case_queries = [
-        f"How to choose the right {industry} platform for my business",
-        f"Best {industry} solution for growing companies",
-        f"{industry} software that integrates with popular tools",
-        f"Most cost-effective {industry} platform in 2024",
-        f"Enterprise {industry} solutions vs small business tools",
-        f"{industry} automation tools - which is best?",
-        f"Modern {industry} platforms with good customer support"
-    ]
-    
-    queries.extend(use_case_queries)
-    
-    # Feature-specific queries based on industry patterns
-    if "ecommerce" in industry.lower() or "shopify" in industry.lower():
-        queries.extend([
-            f"Shopify apps for {keywords[0] if keywords else industry}",
-            f"E-commerce {keywords[0] if keywords else 'management'} tools comparison",
-            f"Best inventory management for online stores"
-        ])
-    
-    if "saas" in industry.lower() or "software" in industry.lower():
-        queries.extend([
-            f"B2B {keywords[0] if keywords else industry} platforms",
-            f"API-first {industry} solutions",
-            f"White-label {industry} software options"
-        ])
-    
-    # Remove duplicates and return optimized set
-    unique_queries = list(dict.fromkeys(queries))
-    return unique_queries[:30]  # Return max 30 smart queries
+
 
 async def run_chatgpt_scan(query: str, brand_name: str, industry: str = "", keywords: List[str] = None, competitors: List[str] = None) -> Dict[str, Any]:
     """Run a single scan through ChatGPT using GPT-4o-mini"""
