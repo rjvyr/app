@@ -459,19 +459,36 @@ const Dashboard = () => {
 
     return (
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Select Brand</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Select Brand to View Data ({brands.length} brands available)
+        </label>
         <select
           value={selectedBrandId || ''}
-          onChange={(e) => setSelectedBrandId(e.target.value)}
-          className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          onChange={(e) => {
+            const newBrandId = e.target.value;
+            setSelectedBrandId(newBrandId);
+            // Show loading state
+            setLoading(true);
+          }}
+          className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
         >
-          <option value="">All Brands</option>
+          <option value="">All Brands (Combined Data)</option>
           {brands.map((brand) => (
             <option key={brand._id} value={brand._id}>
               {brand.name} ({brand.industry})
             </option>
           ))}
         </select>
+        {selectedBrandId && (
+          <div className="mt-2 text-sm text-blue-600">
+            🎯 Showing data for: <strong>{brands.find(b => b._id === selectedBrandId)?.name}</strong>
+          </div>
+        )}
+        {!selectedBrandId && (
+          <div className="mt-2 text-sm text-gray-600">
+            📊 Showing combined data for all brands
+          </div>
+        )}
       </div>
     );
   };
