@@ -361,6 +361,23 @@ const Dashboard = () => {
     }
   }, [selectedBrandId, brands]);
 
+  const fetchBrands = async () => {
+    try {
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      const response = await fetch(`${backendUrl}/api/brands`, { headers });
+      if (response.ok) {
+        const data = await response.json();
+        setBrands(data.brands || []);
+      }
+    } catch (error) {
+      console.error('Error fetching brands:', error);
+    }
+  };
+
   const updateBrand = async (brandId, updateData) => {
     try {
       const headers = {
