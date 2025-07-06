@@ -232,8 +232,12 @@ const RegisterForm = () => {
               />
             </div>
             <p className="text-gray-600 mt-2 text-lg font-medium">AIO is the new SEO</p>
+            <div className="text-green-600 text-6xl mb-4">✓</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Account Created!</h2>
+            <p className="text-gray-600 mb-6">Please check your email to verify your account.</p>
+            <p className="text-sm text-gray-500">Your 7-day free trial has started with 50 free scans!</p>
           </div>
-      </div>
+        </div>
     );
   }
 
