@@ -496,7 +496,7 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
         "scan_id": scan_id,
         "results": scan_results,
         "visibility_score": visibility_score,
-        "scans_used": len(queries)
+        "scans_used": scans_cost  # Use correct scan cost
     }
 
 @app.get("/api/scans/{brand_id}")
