@@ -605,6 +605,23 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
         }
     )
     
+    # Generate content opportunities and actionable insights
+    content_opportunities = await generate_content_opportunities(
+        brand["name"],
+        brand["industry"], 
+        brand["keywords"],
+        brand["competitors"],
+        scan_results
+    )
+    
+    return {
+        "scan_id": scan_id,
+        "results": scan_results,
+        "visibility_score": visibility_score,
+        "scans_used": scans_cost,
+        "content_opportunities": content_opportunities
+    }
+
 async def generate_content_opportunities(brand_name: str, industry: str, keywords: List[str], competitors: List[str], scan_results: List[Dict]) -> Dict[str, Any]:
     """Generate content opportunities and backlink suggestions based on scan analysis"""
     
