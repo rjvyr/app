@@ -999,6 +999,25 @@ const Dashboard = () => {
 
   const renderSourceDomains = () => {
     const domains = sourceDomainsData?.domains || [];
+    const currentPage = sourceDomainsData?.page || 1;
+    const totalPages = sourceDomainsData?.total_pages || 1;
+    const hasNext = sourceDomainsData?.has_next || false;
+    const hasPrev = sourceDomainsData?.has_prev || false;
+    
+    const loadPage = async (page) => {
+      try {
+        const headers = { 'Authorization': `Bearer ${token}` };
+        const brandParam = selectedBrandId ? `?brand_id=${selectedBrandId}&page=${page}&limit=5` : `?page=${page}&limit=5`;
+        
+        const response = await fetch(`${backendUrl}/api/source-domains${brandParam}`, { headers });
+        if (response.ok) {
+          const data = await response.json();
+          setSourceDomainsData(data);
+        }
+      } catch (error) {
+        console.error('Error loading page:', error);
+      }
+    };
     
     return (
       <div className="space-y-6">
@@ -1008,108 +1027,70 @@ const Dashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Source Domains</h2>
-            <p className="text-gray-600 mt-1">Which domains hold the most influence for your relevant queries</p>
-          </div>
-          <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">
-            <span>📊</span>
-            <span>Export Data</span>
-          </button>
-        </div>
-
-        {/* Category Filters */}
-        <div className="flex space-x-2 overflow-x-auto pb-2">
-          {['All Categories', 'Business', 'Social media', 'Other', 'Publisher'].map((category) => (
-            <button
-              key={category}
-              className={`px-4 py-2 rounded-full text-sm whitespace-nowrap ${
-                category === 'All Categories'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-
-        {/* Search */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search by domain..."
-            className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <div className="absolute left-3 top-3.5 text-gray-400">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <p className="text-gray-600 mt-1">Domains that influence your brand visibility in AI responses</p>
           </div>
         </div>
 
-        {/* Domains Table */}
+        {/* Domains Table - Simplified */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Root Domain</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Impact</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trend</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pages</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Influence Score</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mentions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {domains.map((domain, index) => (
-                  <tr key={domain.domain} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">{index + 1}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-3">
-                        <img 
-                          src={`https://www.google.com/s2/favicons?domain=${domain.domain}&sz=32`} 
-                          alt="" 
-                          className="w-6 h-6 rounded"
-                          onError={(e) => {e.target.style.display = 'none'}}
-                        />
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{domain.domain}</div>
-                          <div className="text-xs text-gray-500">Root domain</div>
+                {domains.map((domain, index) => {
+                  // Fix the impact calculation - ensure it's between 0-100
+                  const influenceScore = Math.min(100, Math.max(0, domain.impact || 0));
+                  
+                  return (
+                    <tr key={domain.domain} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-900">{((currentPage - 1) * 5) + index + 1}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-3">
+                          <img 
+                            src={`https://www.google.com/s2/favicons?domain=${domain.domain}&sz=32`} 
+                            alt="" 
+                            className="w-6 h-6 rounded"
+                            onError={(e) => {e.target.style.display = 'none'}}
+                          />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{domain.domain}</div>
+                            <div className="text-xs text-gray-500">AI mentions this domain</div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        domain.category === 'Business' ? 'bg-blue-100 text-blue-800' :
-                        domain.category === 'Social media' ? 'bg-green-100 text-green-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {domain.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium text-gray-900">{domain.impact}%</span>
-                        <div className="w-20 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full" 
-                            style={{width: `${domain.impact}%`}}
-                          ></div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          domain.category === 'Business' ? 'bg-blue-100 text-blue-800' :
+                          domain.category === 'Reviews' ? 'bg-green-100 text-green-800' :
+                          domain.category === 'Social Media' ? 'bg-purple-100 text-purple-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {domain.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-gray-900">{influenceScore}/100</span>
+                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full" 
+                              style={{width: `${influenceScore}%`}}
+                            ></div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600">{domain.trend}</span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{domain.pages}</td>
-                    <td className="px-6 py-4">
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <span className="text-sm">Actions ▼</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{domain.mentions || 0}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -1118,23 +1099,33 @@ const Dashboard = () => {
             <div className="text-center py-12 text-gray-500">
               <div className="text-4xl mb-4">🌐</div>
               <p className="text-lg font-medium mb-2">No source domain data yet</p>
-              <p className="text-sm">Run scans to see which domains mention your brand!</p>
+              <p className="text-sm">Run scans to see which domains influence your brand visibility!</p>
             </div>
           )}
         </div>
 
-        {/* Pagination */}
-        {domains.length > 0 && (
+        {/* Real Pagination */}
+        {domains.length > 0 && totalPages > 1 && (
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700">
-              Showing 1 to {Math.min(10, domains.length)} of {sourceDomainsData?.total || domains.length} results
+              Page {currentPage} of {totalPages} • {sourceDomainsData?.total || 0} total domains
             </div>
             <div className="flex space-x-1">
-              <button className="px-3 py-2 text-sm bg-blue-600 text-white rounded">1</button>
-              <button className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">2</button>
-              <button className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">...</button>
-              <button className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">15</button>
-              <button className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">&gt;</button>
+              <button 
+                onClick={() => loadPage(currentPage - 1)}
+                disabled={!hasPrev}
+                className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ← Previous
+              </button>
+              <span className="px-3 py-2 text-sm bg-blue-600 text-white rounded">{currentPage}</span>
+              <button 
+                onClick={() => loadPage(currentPage + 1)}
+                disabled={!hasNext}
+                className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next →
+              </button>
             </div>
           </div>
         )}
