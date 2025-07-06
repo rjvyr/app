@@ -347,6 +347,13 @@ const Dashboard = () => {
     }
   }, [brands, selectedBrandId]);
 
+  // Refetch data when brand selection changes
+  useEffect(() => {
+    if (selectedBrandId) {
+      fetchBrandSpecificData(selectedBrandId);
+    }
+  }, [selectedBrandId]);
+
   const fetchAllRealData = async () => {
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
