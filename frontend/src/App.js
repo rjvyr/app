@@ -746,9 +746,12 @@ const Dashboard = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-8">
               <h1 className="text-xl font-bold text-gray-900">AI Brand Visibility</h1>
-              <nav className="flex space-x-6">
+              <nav className="hidden md:flex space-x-6">
                 {[
                   { id: 'overview', name: 'Overview', icon: '📊' },
+                  { id: 'competitors', name: 'Competitors', icon: '🏆' },
+                  { id: 'queries', name: 'Queries', icon: '🔍' },
+                  { id: 'recommendations', name: 'Recommendations', icon: '💡' },
                   { id: 'brands', name: 'Brands', icon: '🎯' },
                   { id: 'plans', name: 'Plans', icon: '💳' },
                   { id: 'settings', name: 'Settings', icon: '⚙️' }
@@ -763,10 +766,23 @@ const Dashboard = () => {
                     }`}
                   >
                     <span>{tab.icon}</span>
-                    <span>{tab.name}</span>
+                    <span className="hidden lg:inline">{tab.name}</span>
                   </button>
                 ))}
               </nav>
+              
+              {/* Mobile Navigation */}
+              <div className="md:hidden">
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+                >
+                  <span className="sr-only">Open main menu</span>
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
