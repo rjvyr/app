@@ -722,9 +722,37 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
         {"$inc": {"scans_used": scans_cost}}  # Use predefined scans_cost instead of len(queries)
     )
     
-    # Update brand stats
+    # Calculate metrics
     mentions = sum(1 for result in scan_results if result.get("brand_mentioned", False))
     visibility_score = (mentions / len(scan_results)) * 100 if scan_results else 0
+    
+    # Store historical tracking data for week-over-week analysis
+    historical_data = {
+        "brand_id": scan_request.brand_id,
+        "user_id": current_user["_id"],
+        "date": datetime.utcnow(),
+        "week": datetime.utcnow().strftime("%Y-W%U"),  # Year-Week format
+        "visibility_score": visibility_score,
+        "total_queries": len(scan_results),
+        "mentioned_queries": mentions,
+        "average_position": sum(result.get("ranking_position", 5) for result in scan_results if result.get("ranking_position")) / max(mentions, 1),
+        "sentiment_breakdown": {
+            "positive": sum(1 for result in scan_results if result.get("sentiment") == "positive"),
+            "neutral": sum(1 for result in scan_results if result.get("sentiment") == "neutral"),
+            "negative": sum(1 for result in scan_results if result.get("sentiment") == "negative")
+        },
+        "platform_breakdown": {
+            "ChatGPT": {
+                "queries": len(scan_results),
+                "mentions": mentions,
+                "visibility_rate": visibility_score
+            }
+        }
+    }
+    
+    await db.weekly_tracking.insert_one(historical_data)
+    
+    # Update brand stats
     
     await db.brands.update_one(
         {"_id": scan_request.brand_id},
