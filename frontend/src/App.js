@@ -361,6 +361,36 @@ const Dashboard = () => {
     }
   }, [selectedBrandId, brands]);
 
+  const updateBrand = async (brandId, updateData) => {
+    try {
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      const response = await fetch(`${backendUrl}/api/brands/${brandId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(updateData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        // Refresh brands data
+        await fetchBrands();
+        setEditingBrand(null);
+        alert('Brand updated successfully!');
+        return result;
+      } else {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to update brand');
+      }
+    } catch (error) {
+      console.error('Error updating brand:', error);
+      alert(`Error updating brand: ${error.message}`);
+    }
+  };
+
   const fetchAllRealData = async () => {
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
