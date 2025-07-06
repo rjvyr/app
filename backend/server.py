@@ -371,77 +371,148 @@ Relevant capabilities to consider: {', '.join(keywords[:3]) if keywords else 'co
         }
 
 def extract_enhanced_insights(response: str, brand_name: str, competitors: List[str], keywords: List[str]) -> Dict[str, Any]:
-    """Extract comprehensive insights from ChatGPT response"""
+    """Extract comprehensive insights from ChatGPT response with realistic scoring"""
     response_lower = response.lower()
     brand_lower = brand_name.lower()
     
     # Check if brand is mentioned
     brand_mentioned = brand_lower in response_lower
     
-    # Extract ranking position with better logic
+    # Extract ranking position with realistic logic
     ranking_position = None
     sentiment = "neutral"
     
     if brand_mentioned:
         # Look for numbered lists and rankings
         lines = response.split('\n')
+        position_found = False
+        
         for i, line in enumerate(lines):
-            if brand_lower in line.lower():
-                # Check for numbered patterns
-                if line.strip().startswith(('1.', '2.', '3.', '4.', '5.')):
-                    ranking_position = int(line.strip()[0])
-                # Check for ordinal indicators
-                elif any(word in line.lower() for word in ['first', 'top choice', 'best option', 'leading']):
+            if brand_lower in line.lower() and not position_found:
+                # Check for numbered patterns (1., 2., 3., etc.)
+                if line.strip().startswith(('1.', '1)', '#1')):
                     ranking_position = 1
-                elif any(word in line.lower() for word in ['second', 'runner-up', 'alternative']):
+                    position_found = True
+                elif line.strip().startswith(('2.', '2)', '#2')):
                     ranking_position = 2
+                    position_found = True
+                elif line.strip().startswith(('3.', '3)', '#3')):
+                    ranking_position = 3
+                    position_found = True
+                elif line.strip().startswith(('4.', '4)', '#4')):
+                    ranking_position = 4
+                    position_found = True
+                elif line.strip().startswith(('5.', '5)', '#5')):
+                    ranking_position = 5
+                    position_found = True
                 
-                # Sentiment analysis
-                if any(word in line.lower() for word in ['excellent', 'outstanding', 'best', 'top', 'leading', 'superior']):
+                # Check for ordinal indicators if no numbered list found
+                if not position_found:
+                    if any(word in line.lower() for word in ['first choice', 'top choice', 'best option', 'leading solution', 'number one']):
+                        ranking_position = 1
+                    elif any(word in line.lower() for word in ['second choice', 'runner-up', 'good alternative']):
+                        ranking_position = 2
+                    elif any(word in line.lower() for word in ['third option', 'also consider', 'another option']):
+                        ranking_position = 3
+                    elif any(word in line.lower() for word in ['worth mentioning', 'also available', 'other options']):
+                        ranking_position = 4
+                
+                # If brand is mentioned but no clear position, analyze context
+                if not position_found:
+                    # Count how many other brands/competitors are mentioned before this brand
+                    preceding_text = response_lower[:response_lower.find(brand_lower)]
+                    competitor_mentions_before = 0
+                    for competitor in competitors:
+                        if competitor.lower() in preceding_text:
+                            competitor_mentions_before += 1
+                    
+                    # Estimate position based on order of mention
+                    if competitor_mentions_before == 0:
+                        ranking_position = 1
+                    elif competitor_mentions_before == 1:
+                        ranking_position = 2
+                    elif competitor_mentions_before == 2:
+                        ranking_position = 3
+                    else:
+                        ranking_position = min(competitor_mentions_before + 1, 5)
+                
+                # Sentiment analysis based on context around brand mention
+                brand_context = line.lower()
+                positive_words = ['excellent', 'outstanding', 'best', 'top', 'leading', 'superior', 'great', 'fantastic', 'perfect', 'ideal', 'recommended']
+                negative_words = ['limited', 'lacking', 'poor', 'expensive', 'difficult', 'complicated', 'overpriced', 'outdated', 'slow']
+                
+                positive_score = sum(1 for word in positive_words if word in brand_context)
+                negative_score = sum(1 for word in negative_words if word in brand_context)
+                
+                if positive_score > negative_score:
                     sentiment = "positive"
-                elif any(word in line.lower() for word in ['limited', 'lacking', 'poor', 'expensive', 'difficult']):
+                elif negative_score > positive_score:
                     sentiment = "negative"
+                else:
+                    sentiment = "neutral"
+                
                 break
     
-    # Find mentioned competitors
+    # Find mentioned competitors with more accurate detection
     competitors_mentioned = []
     for competitor in competitors:
         if competitor.lower() in response_lower:
             competitors_mentioned.append(competitor)
     
-    # Extract key features mentioned
+    # Extract key features mentioned with better context
     key_features = []
-    feature_indicators = ['feature', 'capability', 'function', 'integration', 'automation', 'analytics', 'reporting']
-    for keyword in keywords:
-        if keyword.lower() in response_lower:
-            # Find context around the keyword
-            for indicator in feature_indicators:
-                if indicator in response_lower and keyword.lower() in response_lower:
-                    key_features.append(f"{keyword} {indicator}")
+    feature_indicators = ['feature', 'capability', 'function', 'integration', 'automation', 'analytics', 'reporting', 'dashboard', 'api', 'mobile']
     
-    # Extract target audience mentions
-    target_audience = []
-    audience_terms = ['small business', 'enterprise', 'startup', 'mid-market', 'large company', 'team', 'freelancer']
-    for term in audience_terms:
-        if term in response_lower:
-            target_audience.append(term)
-    
-    # Extract use cases
-    use_cases = []
     if brand_mentioned:
+        # Look for sentences containing both the brand and feature words
         sentences = response.split('.')
         for sentence in sentences:
             if brand_lower in sentence.lower():
-                if any(word in sentence.lower() for word in ['for', 'ideal', 'perfect', 'suited', 'designed']):
-                    use_cases.append(sentence.strip())
+                for keyword in keywords[:3]:  # Top 3 keywords
+                    if keyword.lower() in sentence.lower():
+                        for indicator in feature_indicators:
+                            if indicator in sentence.lower():
+                                key_features.append(f"{keyword} {indicator}")
+                                break
+    
+    # Extract target audience mentions
+    target_audience = []
+    audience_terms = ['small business', 'enterprise', 'startup', 'mid-market', 'large company', 'teams', 'freelancer', 'agencies', 'corporations']
+    for term in audience_terms:
+        if term in response_lower and brand_lower in response_lower:
+            # Check if the audience term appears near the brand mention
+            brand_positions = [m.start() for m in re.finditer(brand_lower, response_lower)]
+            term_positions = [m.start() for m in re.finditer(term, response_lower)]
+            
+            for brand_pos in brand_positions:
+                for term_pos in term_positions:
+                    if abs(brand_pos - term_pos) < 200:  # Within 200 characters
+                        target_audience.append(term)
+                        break
+    
+    # Extract use cases with better context
+    use_cases = []
+    if brand_mentioned:
+        use_case_patterns = ['ideal for', 'perfect for', 'great for', 'best for', 'designed for', 'suited for']
+        sentences = response.split('.')
+        for sentence in sentences:
+            if brand_lower in sentence.lower():
+                for pattern in use_case_patterns:
+                    if pattern in sentence.lower():
+                        # Extract the use case after the pattern
+                        use_case_start = sentence.lower().find(pattern) + len(pattern)
+                        use_case = sentence[use_case_start:].strip()
+                        if use_case and len(use_case) < 100:  # Reasonable length
+                            use_cases.append(use_case)
+                        break
     
     return {
         "brand_mentioned": brand_mentioned,
         "ranking_position": ranking_position,
         "sentiment": sentiment,
-        "competitors_mentioned": competitors_mentioned,
-        "key_features": key_features[:3],  # Top 3 features
-        "target_audience": target_audience[:2],  # Top 2 audience types
+        "competitors_mentioned": competitors_mentioned[:3],  # Top 3 competitors
+        "key_features": list(set(key_features))[:3],  # Remove duplicates, top 3
+        "target_audience": list(set(target_audience))[:2],  # Remove duplicates, top 2
         "use_cases": use_cases[:2]  # Top 2 use cases
     }
 
