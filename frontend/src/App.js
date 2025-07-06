@@ -866,8 +866,15 @@ const Dashboard = () => {
           {/* Standard Scan */}
           <div className="relative group">
             <button
-              onClick={() => brands.length > 0 && runScan(selectedBrandId || brands[0]._id, 'standard')}
-              disabled={scanLoading || brands.length === 0}
+              onClick={() => {
+                const targetBrandId = selectedBrandId || (brands.length > 0 ? brands[0]._id : null);
+                if (targetBrandId) {
+                  runScan(targetBrandId, 'standard');
+                } else {
+                  alert('Please add a brand first!');
+                }
+              }}
+              disabled={scanLoading}
               className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50"
             >
               <div className="text-center">
