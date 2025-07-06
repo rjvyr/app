@@ -673,7 +673,7 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
         raise HTTPException(status_code=404, detail="Brand not found")
     
     # Generate queries
-    queries = generate_scan_queries(
+    queries = await generate_realistic_queries_with_gpt(
         brand["name"], 
         brand["industry"], 
         brand["keywords"], 
