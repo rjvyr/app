@@ -335,6 +335,7 @@ const Dashboard = () => {
   const [recommendationsData, setRecommendationsData] = useState(null);
   const [brands, setBrands] = useState([]);
   const [selectedBrandId, setSelectedBrandId] = useState(null);
+  const [editingBrand, setEditingBrand] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scanLoading, setScanLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
