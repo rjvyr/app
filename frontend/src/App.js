@@ -372,8 +372,10 @@ const Dashboard = () => {
   const [queriesData, setQueriesData] = useState(null);
   const [recommendationsData, setRecommendationsData] = useState(null);
   const [brands, setBrands] = useState([]);
+  const [selectedBrandId, setSelectedBrandId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scanLoading, setScanLoading] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     fetchAllRealData();
