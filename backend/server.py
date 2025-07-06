@@ -894,11 +894,50 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
     elif scan_request.scan_type == "competitor":
         queries = [q for q in queries if any(comp in q for comp in brand["competitors"])][:10]
     
-    # Run scans
+    # Run enhanced scans with comprehensive data
     scan_results = []
+    all_source_domains = []
+    all_source_articles = []
+    
     for query in queries:
-        result = await run_chatgpt_scan(query, brand["name"], brand["industry"], brand["keywords"], brand["competitors"])
+        result = await run_enhanced_chatgpt_scan(
+            query, 
+            brand["name"], 
+            brand["industry"], 
+            brand["keywords"], 
+            brand["competitors"]
+        )
         scan_results.append(result)
+        
+        # Collect source data
+        if result.get("source_domains"):
+            all_source_domains.extend(result["source_domains"])
+        if result.get("source_articles"):
+            all_source_articles.extend(result["source_articles"])
+    
+    # Store source domains in database
+    if all_source_domains:
+        domain_data = {
+            "brand_id": scan_request.brand_id,
+            "user_id": current_user["_id"],
+            "domains": all_source_domains,
+            "scan_date": datetime.utcnow(),
+            "industry": brand["industry"],
+            "keywords": brand["keywords"]
+        }
+        await db.source_domains.insert_one(domain_data)
+    
+    # Store source articles in database  
+    if all_source_articles:
+        article_data = {
+            "brand_id": scan_request.brand_id,
+            "user_id": current_user["_id"],
+            "articles": all_source_articles,
+            "scan_date": datetime.utcnow(),
+            "industry": brand["industry"],
+            "keywords": brand["keywords"]
+        }
+        await db.source_articles.insert_one(article_data)
     
     # Save scan results
     scan_id = str(uuid.uuid4())
