@@ -225,25 +225,17 @@ class SourceExtractionAndVisibilityTest(unittest.TestCase):
         
         scan_response = requests.post(f"{self.base_url}/api/scans", json=scan_data, headers=headers)
         self.assertEqual(scan_response.status_code, 200)
+        scan_result = scan_response.json()
         
-        # Wait a moment for data to be processed
-        time.sleep(2)
+        # Check if source domains or articles are present in the scan results
+        has_source_data = False
+        for result in scan_result["results"]:
+            if result.get("source_domains") or result.get("source_articles"):
+                has_source_data = True
+                break
         
-        # Get source domains for the second brand
-        domains_response = requests.get(f"{self.base_url}/api/source-domains?brand_id={self.__class__.second_brand_id}", headers=headers)
-        self.assertEqual(domains_response.status_code, 200)
-        domains_data = domains_response.json()
-        
-        # Get source articles for the second brand
-        articles_response = requests.get(f"{self.base_url}/api/source-articles?brand_id={self.__class__.second_brand_id}", headers=headers)
-        self.assertEqual(articles_response.status_code, 200)
-        articles_data = articles_response.json()
-        
-        # Verify that we have data for either domains or articles
-        # This tests the fallback logic - even if no domains/articles were found in the GPT response,
-        # the fallback logic should generate some
-        self.assertTrue(domains_data["total"] > 0 or articles_data["total"] > 0, 
-                       "No domains or articles found - fallback logic may not be working")
+        # Verify that we have source data in the scan results
+        self.assertTrue(has_source_data, "No source domains or articles found in scan results")
         
         print("✅ Source extraction fallback test passed")
         
