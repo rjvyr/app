@@ -274,11 +274,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Brand Selector Dropdown Filtering"
-    - "Brand-Specific API Endpoints"
-    - "Source Domains Endpoint"
-    - "Source Articles Endpoint"
-    - "Source Extraction Logic"
+    - "Source Domains and Articles Real Data Display"
+    - "Real Source Data Extraction"
+    - "Enhanced ChatGPT Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -290,5 +288,7 @@ agent_communication:
     message: "Completed comprehensive testing of all backend functionality. All tests passed successfully. The brand filtering functionality works correctly across all API endpoints. Real-time scan usage tracking is properly implemented and user data remains consistent after scanning operations. OpenAI integration is working as expected with proper token usage tracking. No issues were found in any of the tested backend functionality."
   - agent: "testing"
     message: "Unable to test the frontend application due to authentication issues. Multiple login attempts with various credentials (admin@futureseo.io, user@example.com, demo@futureseo.io) were unsuccessful. The login page is working correctly and shows appropriate error messages for invalid credentials. The registration form is also accessible and appears to be working correctly. To proceed with testing, valid credentials are required from the development team."
+  - agent: "main"
+    message: "Implemented real source data extraction functionality. Replaced hardcoded mock data with actual ChatGPT response parsing. Enhanced prompts to request source domains and articles, implemented regex-based extraction, and added brand-specific fallback logic. Backend testing confirmed all endpoints work correctly with proper pagination and brand filtering."
   - agent: "testing"
-    message: "Completed testing of the source domains and articles endpoints. Both endpoints are working correctly with proper authentication, pagination, and brand filtering. The source extraction logic successfully parses domains and articles from ChatGPT responses using regex patterns, with fallback logic for when no sources are found. All tests passed successfully."
+    message: "Completed comprehensive testing of source domains and articles endpoints. All tests passed successfully. Authentication, pagination, and brand filtering are working correctly. The new source extraction logic properly parses domains and articles from ChatGPT responses with appropriate fallback mechanisms. No issues found in the backend implementation."
