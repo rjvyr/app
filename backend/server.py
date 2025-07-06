@@ -22,6 +22,10 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
+
 from mock_data import generate_mock_scan_result
 from source_extraction import extract_source_domains_from_response, extract_source_articles_from_response
 
