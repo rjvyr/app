@@ -267,7 +267,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         if user is None:
             raise HTTPException(status_code=401, detail="User not found")
         return user
-    except jwt.JWTError:
+    except (jwt.InvalidTokenError, jwt.ExpiredSignatureError, jwt.InvalidSignatureError) as e:
         raise HTTPException(status_code=401, detail="Could not validate credentials")
 
 async def send_email(to_email: str, subject: str, body: str):
