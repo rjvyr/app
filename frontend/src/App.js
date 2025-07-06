@@ -346,19 +346,19 @@ const Dashboard = () => {
     fetchAllRealData();
   }, []);
 
+  // Auto-select first brand when brands are loaded
   useEffect(() => {
-    // Don't auto-select first brand, let user choose
-  }, [brands]);
-
-  // Refetch data when brand selection changes
-  useEffect(() => {
-    if (selectedBrandId) {
-      fetchBrandSpecificData(selectedBrandId);
-    } else if (selectedBrandId === '') {
-      // When "All Brands" is selected, fetch all data
-      fetchAllRealData();
+    if (brands.length > 0 && !selectedBrandId) {
+      setSelectedBrandId(brands[0]._id);
     }
-  }, [selectedBrandId]);
+  }, [brands, selectedBrandId]);
+
+  // Fetch brand-specific data when selected brand changes
+  useEffect(() => {
+    if (selectedBrandId && brands.length > 0) {
+      fetchBrandSpecificData(selectedBrandId);
+    }
+  }, [selectedBrandId, brands]);
 
   const fetchAllRealData = async () => {
     try {
