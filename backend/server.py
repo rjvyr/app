@@ -741,10 +741,21 @@ async def get_real_queries(brand_id: Optional[str] = None, current_user: dict = 
     }
 
 @app.get("/api/recommendations/real")
-async def get_real_recommendations(current_user: dict = Depends(get_current_user)):
-    # Get all scan results and brands
-    all_scans = await db.scans.find({"user_id": current_user["_id"]}).to_list(length=1000)
-    brands = await db.brands.find({"user_id": current_user["_id"]}).to_list(length=10)
+async def get_real_recommendations(brand_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    # Filter scans by brand if brand_id is provided
+    scan_filter = {"user_id": current_user["_id"]}
+    if brand_id:
+        scan_filter["brand_id"] = brand_id
+    
+    # Get scan results for this user (and optionally specific brand)
+    all_scans = await db.scans.find(scan_filter).to_list(length=1000)
+    
+    # Get user's brands
+    brand_filter = {"user_id": current_user["_id"]}
+    if brand_id:
+        brand_filter["_id"] = brand_id
+    
+    brands = await db.brands.find(brand_filter).to_list(length=10)
     
     # Analyze missed opportunities
     missed_keywords = {}
