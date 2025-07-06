@@ -386,6 +386,34 @@ const Dashboard = () => {
     }
   };
 
+  const fetchBrandSpecificData = async (brandId) => {
+    try {
+      const headers = { 'Authorization': `Bearer ${token}` };
+      
+      // Add brand_id parameter to API calls for brand-specific data
+      const [dashResponse, compResponse, queryResponse, recResponse] = await Promise.all([
+        fetch(`${backendUrl}/api/dashboard/real?brand_id=${brandId}`, { headers }),
+        fetch(`${backendUrl}/api/competitors/real?brand_id=${brandId}`, { headers }),
+        fetch(`${backendUrl}/api/queries/real?brand_id=${brandId}`, { headers }),
+        fetch(`${backendUrl}/api/recommendations/real?brand_id=${brandId}`, { headers })
+      ]);
+
+      const [dashData, compData, queryData, recData] = await Promise.all([
+        dashResponse.json(),
+        compResponse.json(),
+        queryResponse.json(),
+        recResponse.json()
+      ]);
+
+      setDashboardData(dashData);
+      setCompetitorData(compData);
+      setQueriesData(queryData);
+      setRecommendationsData(recData);
+    } catch (error) {
+      console.error('Error fetching brand-specific data:', error);
+    }
+  };
+
   const runScan = async (brandId, scanType) => {
     setScanLoading(true);
     try {
