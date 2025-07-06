@@ -1137,17 +1137,29 @@ async def get_real_dashboard(brand_id: Optional[str] = None, current_user: dict 
                 total_mentions += 1
                 platform_stats[platform]["mentions"] += 1
     
-    # Calculate overall visibility score
-    overall_visibility = (total_mentions / total_queries * 100) if total_queries > 0 else 0
+    # Calculate overall visibility score with realistic logic
+    if total_queries == 0:
+        # No scans yet - return 0% visibility
+        overall_visibility = 0
+    else:
+        overall_visibility = (total_mentions / total_queries * 100)
     
-    # Calculate platform breakdown
+    # Calculate platform breakdown with realistic data
     platform_breakdown = {}
     for platform, stats in platform_stats.items():
         if stats["total"] > 0:
+            visibility_rate = (stats["mentions"] / stats["total"]) * 100
             platform_breakdown[platform] = {
                 "mentions": stats["mentions"],
                 "total_questions": stats["total"],
-                "visibility_rate": (stats["mentions"] / stats["total"]) * 100
+                "visibility_rate": round(visibility_rate, 1)  # Round to 1 decimal
+            }
+        else:
+            # No data for this platform yet
+            platform_breakdown[platform] = {
+                "mentions": 0,
+                "total_questions": 0,
+                "visibility_rate": 0
             }
     
     return {
