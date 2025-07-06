@@ -1238,104 +1238,117 @@ async def get_scan_results(brand_id: str, current_user: dict = Depends(get_curre
     return {"scans": scans}
 
 @app.get("/api/source-domains")
-async def get_source_domains(brand_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+async def get_source_domains(brand_id: Optional[str] = None, page: int = 1, limit: int = 5, current_user: dict = Depends(get_current_user)):
     """Get source domains analysis - which domains mention your brand most"""
     try:
-        # Filter scans by brand if brand_id is provided
-        scan_filter = {"user_id": current_user["_id"]}
+        # Filter for user's data
+        filter_query = {"user_id": current_user["_id"]}
         if brand_id:
-            scan_filter["brand_id"] = brand_id
+            filter_query["brand_id"] = brand_id
         
-        # Get scan results
-        all_scans = await db.scans.find(scan_filter).to_list(length=1000)
+        # Get source domain data from database
+        domain_records = await db.source_domains.find(filter_query).sort("scan_date", -1).to_list(length=100)
         
-        # Mock source domains data for now (will enhance with real analysis later)
-        mock_domains = [
-            {"domain": "shopify.com", "category": "Business", "impact": 92, "trend": "Compiling", "pages": 92},
-            {"domain": "reddit.com", "category": "Social media", "impact": 52, "trend": "Compiling", "pages": 15},
-            {"domain": "wholesalehelpe...", "category": "Business", "impact": 24, "trend": "Compiling", "pages": 5},
-            {"domain": "wizzcommerce...", "category": "Business", "impact": 24, "trend": "Compiling", "pages": 4},
-            {"domain": "sparklayer.io", "category": "Business", "impact": 20, "trend": "Compiling", "pages": 2},
-            {"domain": "heyamplify.com", "category": "Business", "impact": 16, "trend": "Compiling", "pages": 1},
-            {"domain": "bsscommerce....", "category": "Business", "impact": 16, "trend": "Compiling", "pages": 2},
-            {"domain": "novochat.co", "category": "Business", "impact": 16, "trend": "Compiling", "pages": 1},
-            {"domain": "bogos.io", "category": "Other", "impact": 16, "trend": "Compiling", "pages": 3},
-            {"domain": "gempages.net", "category": "Business", "impact": 16, "trend": "Compiling", "pages": 2}
-        ]
+        if not domain_records:
+            return {"domains": [], "total": 0, "page": page, "total_pages": 0}
         
-        # Filter based on brand_id if provided (for demo, reduce some results)
-        if brand_id:
-            # Filter to show realistic brand-specific data
-            mock_domains = mock_domains[:6]  # Fewer results for specific brand
+        # Aggregate domains across all scans
+        domain_aggregation = {}
+        for record in domain_records:
+            for domain_data in record.get("domains", []):
+                domain_name = domain_data["domain"]
+                if domain_name not in domain_aggregation:
+                    domain_aggregation[domain_name] = {
+                        "domain": domain_name,
+                        "category": domain_data.get("category", "Business"),
+                        "impact": 0,
+                        "mentions": 0,
+                        "pages": 0,
+                        "trend": "Stable"
+                    }
+                
+                # Aggregate metrics
+                domain_aggregation[domain_name]["impact"] += domain_data.get("impact", 0)
+                domain_aggregation[domain_name]["mentions"] += domain_data.get("mentions", 1)
+                domain_aggregation[domain_name]["pages"] += 1
+        
+        # Sort by impact and convert to list
+        all_domains = sorted(domain_aggregation.values(), key=lambda x: x["impact"], reverse=True)
+        
+        # Apply pagination
+        total_domains = len(all_domains)
+        total_pages = (total_domains + limit - 1) // limit
+        start_idx = (page - 1) * limit
+        end_idx = start_idx + limit
+        paginated_domains = all_domains[start_idx:end_idx]
         
         return {
-            "domains": mock_domains,
-            "total": len(mock_domains)
+            "domains": paginated_domains,
+            "total": total_domains,
+            "page": page,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1
         }
         
     except Exception as e:
         print(f"Error fetching source domains: {e}")
-        return {"domains": [], "total": 0}
+        return {"domains": [], "total": 0, "page": page, "total_pages": 0}
 
 @app.get("/api/source-articles")
-async def get_source_articles(brand_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+async def get_source_articles(brand_id: Optional[str] = None, page: int = 1, limit: int = 5, current_user: dict = Depends(get_current_user)):
     """Get source articles analysis - which specific articles mention your brand"""
     try:
-        # Filter scans by brand if brand_id is provided
-        scan_filter = {"user_id": current_user["_id"]}
+        # Filter for user's data
+        filter_query = {"user_id": current_user["_id"]}
         if brand_id:
-            scan_filter["brand_id"] = brand_id
+            filter_query["brand_id"] = brand_id
         
-        # Get scan results
-        all_scans = await db.scans.find(scan_filter).to_list(length=1000)
+        # Get source article data from database
+        article_records = await db.source_articles.find(filter_query).sort("scan_date", -1).to_list(length=100)
         
-        # Mock source articles data for now (will enhance with real analysis later)
-        mock_articles = [
-            {
-                "url": "https://apps.shopify.com/categories/finding-products-sourcing-options-wholesale/all",
-                "title": "Wholesale Solutions for Shopify - Product Sourcing Options",
-                "impact": 20.0,
-                "queries": 5
-            },
-            {
-                "url": "https://apps.shopify.com/b2b-solution-custom-pricing",
-                "title": "B2B Solution - Custom Pricing for Wholesale",
-                "impact": 16.0,
-                "queries": 4
-            },
-            {
-                "url": "https://heyamplify.com/blog/top-shopify-apps-for-b2b-stores-boosting",
-                "title": "Top Shopify Apps for B2B Stores - Business Growth",
-                "impact": 14.0,
-                "queries": 3
-            },
-            {
-                "url": "https://www.reddit.com/r/shopify/comments/wholesale-pricing-apps",
-                "title": "Best Wholesale Pricing Apps for Shopify Discussion",
-                "impact": 12.0,
-                "queries": 3
-            },
-            {
-                "url": "https://sparklayer.io/blog/wholesale-vs-retail-pricing-strategies",
-                "title": "Wholesale vs Retail Pricing Strategies Guide",
-                "impact": 10.0,
-                "queries": 2
-            }
-        ]
+        if not article_records:
+            return {"articles": [], "total": 0, "page": page, "total_pages": 0}
         
-        # Filter based on brand_id if provided
-        if brand_id:
-            # Filter to show realistic brand-specific data
-            mock_articles = mock_articles[:4]  # Fewer results for specific brand
+        # Aggregate articles across all scans
+        article_aggregation = {}
+        for record in article_records:
+            for article_data in record.get("articles", []):
+                article_url = article_data["url"]
+                if article_url not in article_aggregation:
+                    article_aggregation[article_url] = {
+                        "url": article_url,
+                        "title": article_data.get("title", "Article Title"),
+                        "impact": 0,
+                        "queries": 0
+                    }
+                
+                # Aggregate metrics
+                article_aggregation[article_url]["impact"] += article_data.get("impact", 0)
+                article_aggregation[article_url]["queries"] += article_data.get("queries", 1)
+        
+        # Sort by impact and convert to list
+        all_articles = sorted(article_aggregation.values(), key=lambda x: x["impact"], reverse=True)
+        
+        # Apply pagination
+        total_articles = len(all_articles)
+        total_pages = (total_articles + limit - 1) // limit
+        start_idx = (page - 1) * limit
+        end_idx = start_idx + limit
+        paginated_articles = all_articles[start_idx:end_idx]
         
         return {
-            "articles": mock_articles,
-            "total": len(mock_articles)
+            "articles": paginated_articles,
+            "total": total_articles,
+            "page": page,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1
         }
         
     except Exception as e:
         print(f"Error fetching source articles: {e}")
-        return {"articles": [], "total": 0}
+        return {"articles": [], "total": 0, "page": page, "total_pages": 0}
 
 @app.get("/api/tracking/weekly")
 async def get_weekly_tracking(brand_id: Optional[str] = None, weeks: int = 8, current_user: dict = Depends(get_current_user)):
