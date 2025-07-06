@@ -440,7 +440,23 @@ const Dashboard = () => {
           refreshUserData() // This will update the scan usage bar
         ]);
         
-        alert(`${scanType} scan completed successfully! Used ${scanResult.scans_used} scans.`);
+        // Show enhanced success message with opportunities
+        const opportunities = scanResult.content_opportunities?.content_opportunities?.length || 0;
+        const gapAnalysis = scanResult.content_opportunities?.visibility_gap_analysis;
+        
+        let message = `${scanType} scan completed successfully! Used ${scanResult.scans_used} scans.\n\n`;
+        message += `📊 Visibility Score: ${Math.round(scanResult.visibility_score)}%\n`;
+        
+        if (gapAnalysis && gapAnalysis.total_opportunities > 0) {
+          message += `🎯 Found ${gapAnalysis.total_opportunities} content opportunities\n`;
+          message += `📈 Potential improvement: ${Math.round(gapAnalysis.gap_percentage)}%\n`;
+        }
+        
+        if (opportunities > 0) {
+          message += `💡 Generated ${opportunities} actionable content ideas`;
+        }
+        
+        alert(message);
       } else {
         const error = await response.json();
         alert(`Error: ${error.detail}`);
