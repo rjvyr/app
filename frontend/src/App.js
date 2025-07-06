@@ -238,6 +238,7 @@ const RegisterForm = () => {
             <p className="text-sm text-gray-500">Your 7-day free trial has started with 50 free scans!</p>
           </div>
         </div>
+      </div>
     );
   }
 
