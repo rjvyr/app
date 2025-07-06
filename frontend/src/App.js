@@ -342,10 +342,9 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (brands.length > 0 && !selectedBrandId) {
-      setSelectedBrandId(brands[0]._id);
-    }
-  }, [brands, selectedBrandId]);
+    // Don't auto-select first brand, let user choose
+    // This allows "All Brands" to be the default view
+  }, [brands]);
 
   // Refetch data when brand selection changes
   useEffect(() => {
