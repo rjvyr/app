@@ -227,6 +227,10 @@ class BrandCreate(BaseModel):
     competitors: List[str]
     website: Optional[str] = None
 
+class BrandUpdate(BaseModel):
+    keywords: List[str]
+    competitors: List[str]
+
 class ScanRequest(BaseModel):
     brand_id: str
     scan_type: str  # "quick", "standard", "deep", "competitor"
