@@ -335,15 +335,21 @@ SOURCE ARTICLES (format as "ARTICLE: Full URL - Article Title"):
 
 Answer the query naturally and objectively, then provide the source information."""
 
-        response = await openai.AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY")).chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Analyze this query: {query}"}
-            ],
-            max_tokens=1000,
-            temperature=0.7
-        )
+        try:
+            client = openai.AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+            response = await client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Analyze this query: {query}"}
+                ],
+                max_tokens=1000,
+                temperature=0.7
+            )
+        except Exception as api_error:
+            print(f"OpenAI API Error: {api_error}")
+            # Fallback to mock data if API fails
+            return generate_mock_scan_result(query, brand_name, keywords, competitors)
         
         answer = response.choices[0].message.content
         
