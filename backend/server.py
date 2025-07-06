@@ -999,6 +999,110 @@ async def get_scan_results(brand_id: str, current_user: dict = Depends(get_curre
     
     return {"scans": scans}
 
+@app.get("/api/tracking/weekly")
+async def get_weekly_tracking(brand_id: Optional[str] = None, weeks: int = 8, current_user: dict = Depends(get_current_user)):
+    """Get week-over-week performance tracking data"""
+    try:
+        # Build filter for user's data
+        filter_query = {"user_id": current_user["_id"]}
+        if brand_id:
+            filter_query["brand_id"] = brand_id
+        
+        # Get recent weeks of data
+        tracking_data = await db.weekly_tracking.find(filter_query).sort("date", -1).to_list(length=weeks * 10)
+        
+        # Group by week and brand
+        weekly_summary = {}
+        for record in tracking_data:
+            week_key = record["week"]
+            brand_id_key = record["brand_id"]
+            
+            if week_key not in weekly_summary:
+                weekly_summary[week_key] = {}
+            
+            if brand_id_key not in weekly_summary[week_key]:
+                weekly_summary[week_key][brand_id_key] = {
+                    "visibility_score": [],
+                    "average_position": [],
+                    "total_queries": 0,
+                    "mentioned_queries": 0,
+                    "sentiment_positive": 0,
+                    "sentiment_neutral": 0,
+                    "sentiment_negative": 0
+                }
+            
+            # Aggregate data for the week
+            week_data = weekly_summary[week_key][brand_id_key]
+            week_data["visibility_score"].append(record.get("visibility_score", 0))
+            week_data["average_position"].append(record.get("average_position", 5))
+            week_data["total_queries"] += record.get("total_queries", 0)
+            week_data["mentioned_queries"] += record.get("mentioned_queries", 0)
+            week_data["sentiment_positive"] += record.get("sentiment_breakdown", {}).get("positive", 0)
+            week_data["sentiment_neutral"] += record.get("sentiment_breakdown", {}).get("neutral", 0)
+            week_data["sentiment_negative"] += record.get("sentiment_breakdown", {}).get("negative", 0)
+        
+        # Calculate averages and trends
+        final_summary = []
+        sorted_weeks = sorted(weekly_summary.keys(), reverse=True)[:weeks]
+        
+        for week in sorted_weeks:
+            week_stats = {}
+            for brand_id_key, data in weekly_summary[week].items():
+                avg_visibility = sum(data["visibility_score"]) / len(data["visibility_score"]) if data["visibility_score"] else 0
+                avg_position = sum(data["average_position"]) / len(data["average_position"]) if data["average_position"] else 5
+                
+                week_stats[brand_id_key] = {
+                    "week": week,
+                    "visibility_score": round(avg_visibility, 1),
+                    "average_position": round(avg_position, 1),
+                    "total_queries": data["total_queries"],
+                    "mentioned_queries": data["mentioned_queries"],
+                    "sentiment_score": round((data["sentiment_positive"] - data["sentiment_negative"]) / max(data["total_queries"], 1) * 100, 1)
+                }
+            
+            final_summary.append({
+                "week": week,
+                "brands": week_stats
+            })
+        
+        # Calculate week-over-week changes
+        if len(final_summary) >= 2:
+            current_week = final_summary[0]
+            previous_week = final_summary[1]
+            
+            changes = {}
+            for brand_id_key in current_week["brands"]:
+                if brand_id_key in previous_week["brands"]:
+                    current_data = current_week["brands"][brand_id_key]
+                    previous_data = previous_week["brands"][brand_id_key]
+                    
+                    changes[brand_id_key] = {
+                        "visibility_change": round(current_data["visibility_score"] - previous_data["visibility_score"], 1),
+                        "position_change": round(previous_data["average_position"] - current_data["average_position"], 1),  # Lower position is better
+                        "query_change": current_data["total_queries"] - previous_data["total_queries"],
+                        "sentiment_change": round(current_data["sentiment_score"] - previous_data["sentiment_score"], 1)
+                    }
+            
+            return {
+                "weekly_data": final_summary,
+                "week_over_week_changes": changes,
+                "total_weeks": len(final_summary)
+            }
+        
+        return {
+            "weekly_data": final_summary,
+            "week_over_week_changes": {},
+            "total_weeks": len(final_summary)
+        }
+        
+    except Exception as e:
+        print(f"Error fetching weekly tracking: {e}")
+        return {
+            "weekly_data": [],
+            "week_over_week_changes": {},
+            "total_weeks": 0
+        }
+
 # Enhanced dashboard endpoints that use real data
 @app.get("/api/dashboard/real")
 async def get_real_dashboard(brand_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
