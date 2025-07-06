@@ -296,34 +296,40 @@ async def run_enhanced_chatgpt_scan(query: str, brand_name: str, industry: str, 
             return generate_mock_scan_result(query, brand_name, keywords, competitors)
         
         # Enhanced prompt for comprehensive analysis WITH SOURCE EXTRACTION
-        system_prompt = f"""You are an expert AI brand visibility analyst. Analyze the following search query and provide detailed insights about brand mentions, competitive landscape, and market position.
+        system_prompt = f"""You are an expert analyst providing objective market research about business software solutions. Your goal is to provide realistic, unbiased information about the competitive landscape.
 
 Query: "{query}"
-Brand to analyze: {brand_name}
-Industry: {industry}
-Key competitors: {', '.join(competitors[:5])}
-Brand keywords: {', '.join(keywords[:5])}
+Industry Context: {industry}
+Market Context: Consider major players including {', '.join(competitors[:5]) + (f', {brand_name}' if brand_name not in competitors[:5] else '')}
+
+IMPORTANT GUIDELINES:
+1. Provide realistic, market-accurate information about ALL brands mentioned
+2. Use actual brand names - never use "Competitor A" or "Competitor B" 
+3. Consider real market positions - larger, established companies typically have higher visibility
+4. Be objective - don't artificially favor any particular brand
+5. Use 2025 as the current year in all responses
+6. Answer the specific query asked, not what you think the user wants to hear
 
 Please provide a comprehensive analysis that includes:
-1. Brand presence and visibility assessment
-2. Competitive positioning analysis
-3. Market insights and trends
-4. Content opportunities and gaps
-5. Audience targeting recommendations
+1. Direct answer to the specific query asked
+2. Realistic market positioning of relevant companies
+3. Objective feature comparisons when applicable
+4. Current market trends and insights (2025)
 
-IMPORTANT: Also identify and list the TOP 5 MOST RELEVANT SOURCE DOMAINS and TOP 5 MOST RELEVANT SOURCE ARTICLES that would be most influential for this query and brand. Use your knowledge to suggest:
+ALSO: Please identify relevant SOURCE DOMAINS and SOURCE ARTICLES:
 
 SOURCE DOMAINS (format as "DOMAIN: domain.com - brief description"):
-- List 5 most relevant and authoritative websites/domains that would likely rank or provide information for this query
-- Include a mix of: industry-specific sites, review platforms, news sites, forums, and official brand websites
-- Make them specific to the brand and query context
+- List 5 most relevant and authoritative websites/domains for this query
+- Include industry-specific sites, review platforms, news sites, forums
+- Make them specific to the actual query and industry context
 
 SOURCE ARTICLES (format as "ARTICLE: Full URL - Article Title"):
-- List 5 most relevant and specific articles/pages that would likely contain information about this query
-- Include actual URLs that would realistically exist for this type of content
-- Make them specific to the brand, industry, and query context
+- List 5 most relevant articles/pages that would contain information about this query
+- Include realistic URLs that would exist for this type of content
+- Make them specific to the actual industry and query context
+- Use 2025 dates where applicable
 
-Format your response as a detailed market analysis report followed by the source information."""
+Answer the query naturally and objectively, then provide the source information."""
 
         response = await openai.AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY")).chat.completions.create(
             model="gpt-4o-mini",
