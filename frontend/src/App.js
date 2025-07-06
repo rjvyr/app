@@ -1460,6 +1460,76 @@ const Dashboard = () => {
     </div>
   );
 
+  const renderBrandEditModal = () => {
+    if (!editingBrand) return null;
+
+    const [keywords, setKeywords] = useState(editingBrand.keywords?.join(', ') || '');
+    const [competitors, setCompetitors] = useState(editingBrand.competitors?.join(', ') || '');
+
+    const handleSave = async () => {
+      const keywordsList = keywords.split(',').map(k => k.trim()).filter(k => k);
+      const competitorsList = competitors.split(',').map(c => c.trim()).filter(c => c);
+
+      await updateBrand(editingBrand._id, {
+        keywords: keywordsList,
+        competitors: competitorsList
+      });
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-xl max-w-md w-full mx-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Edit {editingBrand.name}
+          </h3>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Keywords (comma-separated)
+              </label>
+              <textarea
+                value={keywords}
+                onChange={(e) => setKeywords(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows="3"
+                placeholder="expense tracking, corporate cards, automation"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Competitors (comma-separated)
+              </label>
+              <textarea
+                value={competitors}
+                onChange={(e) => setCompetitors(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows="3"
+                placeholder="Brex, Ramp, Expensify"
+              />
+            </div>
+          </div>
+
+          <div className="flex space-x-3 mt-6">
+            <button
+              onClick={handleSave}
+              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Save Changes
+            </button>
+            <button
+              onClick={() => setEditingBrand(null)}
+              className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-400 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderBrands = () => (
     <div className="space-y-6">
       {renderEnterpriseWelcome()}
