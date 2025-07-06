@@ -77,7 +77,17 @@ Generate queries that someone would ACTUALLY type, not marketing copy."""
         user_prompt = f"Generate 25 realistic search queries for {industry} software, considering someone looking for solutions like {brand_name}."
         
         from openai import OpenAI
-        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        
+        # Create a custom HTTP client to avoid proxy issues
+        http_client_sync = httpx.Client(
+            timeout=30.0,
+            limits=httpx.Limits(max_keepalive_connections=20, max_connections=100)
+        )
+        
+        client = OpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY"),
+            http_client=http_client_sync
+        )
         
         response = client.chat.completions.create(
             model="gpt-4o-mini",
