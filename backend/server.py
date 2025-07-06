@@ -605,12 +605,214 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
         }
     )
     
+async def generate_content_opportunities(brand_name: str, industry: str, keywords: List[str], competitors: List[str], scan_results: List[Dict]) -> Dict[str, Any]:
+    """Generate content opportunities and backlink suggestions based on scan analysis"""
+    
+    # Analyze visibility gaps
+    total_scans = len(scan_results)
+    mentioned_scans = sum(1 for result in scan_results if result.get("brand_mentioned", False))
+    visibility_gap = total_scans - mentioned_scans
+    
+    # Extract topics where competitors are mentioned but brand is not
+    gap_topics = []
+    competitor_opportunities = {}
+    
+    for result in scan_results:
+        if not result.get("brand_mentioned", False) and result.get("competitors_mentioned"):
+            query = result.get("query", "")
+            mentioned_competitors = result.get("competitors_mentioned", [])
+            
+            # Extract topic from query
+            topic = extract_topic_from_query(query, keywords)
+            if topic:
+                gap_topics.append({
+                    "topic": topic,
+                    "query": query,
+                    "competitors_winning": mentioned_competitors,
+                    "ranking_context": result.get("response", "")[:200]
+                })
+                
+                # Track competitor performance
+                for competitor in mentioned_competitors:
+                    if competitor not in competitor_opportunities:
+                        competitor_opportunities[competitor] = 0
+                    competitor_opportunities[competitor] += 1
+    
+    # Generate content suggestions
+    content_suggestions = await generate_content_suggestions(
+        brand_name, industry, keywords, gap_topics[:5]  # Top 5 gaps
+    )
+    
+    # Generate backlink opportunities (simulate URL extraction)
+    backlink_opportunities = generate_backlink_opportunities(
+        industry, keywords, gap_topics[:3]  # Top 3 gap topics
+    )
+    
     return {
-        "scan_id": scan_id,
-        "results": scan_results,
-        "visibility_score": visibility_score,
-        "scans_used": scans_cost  # Use correct scan cost
+        "visibility_gap_analysis": {
+            "total_opportunities": visibility_gap,
+            "gap_percentage": (visibility_gap / total_scans * 100) if total_scans > 0 else 0,
+            "top_competitor_advantages": dict(sorted(competitor_opportunities.items(), key=lambda x: x[1], reverse=True)[:3])
+        },
+        "content_opportunities": gap_topics[:5],
+        "content_suggestions": content_suggestions,
+        "backlink_opportunities": backlink_opportunities,
+        "priority_actions": generate_priority_actions(gap_topics, competitor_opportunities)
     }
+
+def extract_topic_from_query(query: str, keywords: List[str]) -> str:
+    """Extract the main topic from a query"""
+    query_lower = query.lower()
+    
+    # Check if any brand keywords are in the query
+    for keyword in keywords:
+        if keyword.lower() in query_lower:
+            return keyword
+    
+    # Extract topic from common patterns
+    if "best" in query_lower and "for" in query_lower:
+        # Extract between "best" and "for"
+        start = query_lower.find("best") + 5
+        end = query_lower.find("for") if query_lower.find("for") > start else len(query_lower)
+        topic = query[start:end].strip()
+        return topic.replace("?", "").replace(",", "")
+    
+    # Extract from "how to" queries
+    if "how to" in query_lower:
+        topic = query_lower.replace("how to", "").strip()
+        return topic.replace("?", "").replace(",", "")
+    
+    return "general topic"
+
+async def generate_content_suggestions(brand_name: str, industry: str, keywords: List[str], gap_topics: List[Dict]) -> List[Dict]:
+    """Generate specific content suggestions based on visibility gaps"""
+    
+    suggestions = []
+    
+    for gap in gap_topics[:3]:  # Top 3 gaps
+        topic = gap["topic"]
+        competitors = gap["competitors_winning"]
+        
+        # Generate content ideas
+        content_ideas = [
+            {
+                "title": f"The Complete Guide to {topic.title()} for {industry} Businesses",
+                "type": "Blog Post",
+                "target_keywords": [topic] + keywords[:2],
+                "competitive_angle": f"Position against {competitors[0] if competitors else 'competitors'}",
+                "content_outline": [
+                    f"What is {topic} and why it matters",
+                    f"Common {topic} challenges in {industry}",
+                    f"How {brand_name} solves {topic} problems",
+                    f"Case studies and success stories",
+                    f"Getting started with {topic}"
+                ]
+            },
+            {
+                "title": f"{brand_name} vs {competitors[0] if competitors else 'Alternatives'}: {topic.title()} Comparison",
+                "type": "Comparison Post",
+                "target_keywords": [f"{brand_name} vs {competitors[0] if competitors else 'alternative'}", topic],
+                "competitive_angle": "Direct comparison highlighting unique value",
+                "content_outline": [
+                    f"Feature comparison for {topic}",
+                    f"Pricing and value analysis",
+                    f"Use case scenarios",
+                    f"Customer testimonials",
+                    f"Migration guide"
+                ]
+            },
+            {
+                "title": f"Free {topic.title()} Templates and Resources",
+                "type": "Resource Page",
+                "target_keywords": [f"free {topic}", f"{topic} templates"],
+                "competitive_angle": "Lead magnet with practical value",
+                "content_outline": [
+                    f"Downloadable {topic} templates",
+                    f"Best practices checklist",
+                    f"Implementation guide",
+                    f"Expert tips and tricks"
+                ]
+            }
+        ]
+        
+        suggestions.extend(content_ideas)
+    
+    return suggestions[:5]  # Return top 5 suggestions
+
+def generate_backlink_opportunities(industry: str, keywords: List[str], gap_topics: List[Dict]) -> List[Dict]:
+    """Generate backlink opportunities based on content gaps"""
+    
+    opportunities = []
+    
+    # Industry publications and blogs
+    industry_sites = [
+        f"{industry.lower().replace(' ', '')}-today.com",
+        f"{industry.lower().replace(' ', '')}-insider.com", 
+        f"the{industry.lower().replace(' ', '')}blog.com"
+    ]
+    
+    for i, topic in enumerate(gap_topics):
+        topic_name = topic["topic"]
+        
+        opportunities.append({
+            "opportunity_type": "Guest Post",
+            "target_site": industry_sites[i % len(industry_sites)],
+            "suggested_title": f"How to Optimize {topic_name.title()} in {industry}",
+            "pitch_angle": f"Expert insights on {topic_name} trends",
+            "value_proposition": "Actionable tips and case studies",
+            "estimated_authority": "High" if i < 2 else "Medium",
+            "content_type": "2000+ word comprehensive guide"
+        })
+        
+        opportunities.append({
+            "opportunity_type": "Resource Mention",
+            "target_site": f"{topic_name.lower().replace(' ', '')}-resources.com",
+            "suggested_approach": f"Suggest inclusion in {topic_name} tool lists",
+            "pitch_angle": "Comprehensive tool with unique features",
+            "value_proposition": "Adds value to existing resource pages",
+            "estimated_authority": "Medium",
+            "content_type": "Tool directory listing"
+        })
+    
+    return opportunities[:6]  # Return top 6 opportunities
+
+def generate_priority_actions(gap_topics: List[Dict], competitor_advantages: Dict[str, int]) -> List[Dict]:
+    """Generate prioritized action items based on analysis"""
+    
+    actions = []
+    
+    if gap_topics:
+        top_gap = gap_topics[0]
+        actions.append({
+            "priority": "High",
+            "action": f"Create comprehensive content about {top_gap['topic']}",
+            "reason": f"Missing from {len(gap_topics)} high-value queries",
+            "estimated_impact": "20-30% visibility improvement",
+            "timeframe": "2-3 weeks",
+            "resources_needed": "Content writer, SEO specialist"
+        })
+    
+    if competitor_advantages:
+        top_competitor = list(competitor_advantages.keys())[0]
+        actions.append({
+            "priority": "High", 
+            "action": f"Develop comparison content targeting {top_competitor}",
+            "reason": f"{top_competitor} mentioned {competitor_advantages[top_competitor]} times vs your brand",
+            "estimated_impact": "15-25% competitive improvement",
+            "timeframe": "1-2 weeks",
+            "resources_needed": "Competitive analyst, content creator"
+        })
+    
+    actions.append({
+        "priority": "Medium",
+        "action": "Launch targeted backlink outreach campaign",
+        "reason": "Increase domain authority for key topics",
+        "estimated_impact": "10-15% long-term visibility boost", 
+        "timeframe": "4-6 weeks",
+        "resources_needed": "Outreach specialist, content assets"
+    })
+    
+    return actions
 
 @app.get("/api/scans/{brand_id}")
 async def get_scan_results(brand_id: str, current_user: dict = Depends(get_current_user)):
