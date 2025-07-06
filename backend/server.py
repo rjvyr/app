@@ -566,7 +566,7 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
     # Run scans
     scan_results = []
     for query in queries:
-        result = await run_chatgpt_scan(query, brand["name"])
+        result = await run_chatgpt_scan(query, brand["name"], brand["industry"], brand["keywords"], brand["competitors"])
         scan_results.append(result)
     
     # Save scan results
