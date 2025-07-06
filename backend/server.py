@@ -351,7 +351,7 @@ Answer the query naturally and objectively, then provide the source information.
                 limits=httpx.Limits(max_keepalive_connections=20, max_connections=100)
             )
             
-            client = openai.AsyncOpenAI(
+            client = AsyncOpenAI(
                 api_key=os.environ.get("OPENAI_API_KEY"),
                 http_client=http_client
             )
