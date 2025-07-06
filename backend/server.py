@@ -208,6 +208,7 @@ db = client.ai_visibility_db
 # OpenAI setup
 if openai:
     openai.api_key = os.environ.get("OPENAI_API_KEY")
+    print(f"OpenAI API key loaded: {openai.api_key[:10]}...{openai.api_key[-5:]}")
 
 # Paddle setup
 paddle_api_key = os.environ.get("PADDLE_API_KEY")
