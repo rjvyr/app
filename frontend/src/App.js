@@ -391,6 +391,7 @@ const Dashboard = () => {
 
   const fetchBrandSpecificData = async (brandId) => {
     try {
+      setLoading(true);
       const headers = { 'Authorization': `Bearer ${token}` };
       
       // Add brand_id parameter to API calls for brand-specific data
@@ -414,6 +415,8 @@ const Dashboard = () => {
       setRecommendationsData(recData);
     } catch (error) {
       console.error('Error fetching brand-specific data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
