@@ -879,15 +879,21 @@ const Dashboard = () => {
                 if (targetBrandId) {
                   runScan(targetBrandId, 'standard');
                 } else {
-                  alert('Please add a brand first!');
+                  alert('Please add a brand first from the Brands tab!');
                 }
               }}
               disabled={scanLoading}
-              className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50"
+              className={`w-full p-4 border-2 border-dashed rounded-lg transition-colors ${
+                scanLoading 
+                  ? 'border-green-300 bg-green-50 opacity-75 cursor-not-allowed' 
+                  : 'border-gray-300 hover:border-green-500 hover:bg-green-50'
+              }`}
             >
               <div className="text-center">
-                <div className="text-2xl mb-2">🎯</div>
-                <div className="font-medium text-gray-900">Standard Scan</div>
+                <div className="text-2xl mb-2">{scanLoading ? '⏳' : '🎯'}</div>
+                <div className="font-medium text-gray-900">
+                  {scanLoading ? 'Running Standard Scan...' : 'Standard Scan'}
+                </div>
                 <div className="text-sm text-gray-500">25 scans • 2 minutes</div>
                 <div className="text-xs text-green-600 mt-1">Comprehensive analysis</div>
               </div>
