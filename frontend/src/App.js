@@ -351,6 +351,9 @@ const Dashboard = () => {
   useEffect(() => {
     if (selectedBrandId) {
       fetchBrandSpecificData(selectedBrandId);
+    } else if (selectedBrandId === '') {
+      // When "All Brands" is selected, fetch all data
+      fetchAllRealData();
     }
   }, [selectedBrandId]);
 
