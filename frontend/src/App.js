@@ -1075,7 +1075,7 @@ const Dashboard = () => {
               <button className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">2</button>
               <button className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">...</button>
               <button className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">15</button>
-              <button className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">></button>
+              <button className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">&gt;</button>
             </div>
           </div>
         )}
