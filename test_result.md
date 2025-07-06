@@ -166,6 +166,39 @@ backend:
         - working: true
           agent: "testing"
           comment: "Verified that user data remains consistent after scanning operations. Tests confirmed that scan count updates are properly reflected in both the /api/auth/me endpoint and the dashboard data. All user metrics are accurately maintained across the application."
+  - task: "Source Domains Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Verified that the /api/source-domains endpoint is working correctly. Tests confirmed that the endpoint returns properly structured data with pagination support. Brand filtering works correctly, returning different data for different brands. Authentication is properly enforced, returning 403 for unauthorized requests."
+  - task: "Source Articles Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Verified that the /api/source-articles endpoint is working correctly. Tests confirmed that the endpoint returns properly structured data with pagination support. Brand filtering works correctly, returning different data for different brands. Authentication is properly enforced, returning 403 for unauthorized requests."
+  - task: "Source Extraction Logic"
+    implemented: true
+    working: true
+    file: "/app/backend/source_extraction.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Verified that the source extraction logic is working correctly. The extract_source_domains_from_response and extract_source_articles_from_response functions properly parse domains and articles from ChatGPT responses using regex patterns. Fallback logic is implemented for when no sources are found in responses."
 
 metadata:
   created_by: "main_agent"
@@ -177,6 +210,9 @@ test_plan:
   current_focus:
     - "Brand Selector Dropdown Filtering"
     - "Brand-Specific API Endpoints"
+    - "Source Domains Endpoint"
+    - "Source Articles Endpoint"
+    - "Source Extraction Logic"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -188,3 +224,5 @@ agent_communication:
     message: "Completed comprehensive testing of all backend functionality. All tests passed successfully. The brand filtering functionality works correctly across all API endpoints. Real-time scan usage tracking is properly implemented and user data remains consistent after scanning operations. OpenAI integration is working as expected with proper token usage tracking. No issues were found in any of the tested backend functionality."
   - agent: "testing"
     message: "Unable to test the frontend application due to authentication issues. Multiple login attempts with various credentials (admin@futureseo.io, user@example.com, demo@futureseo.io) were unsuccessful. The login page is working correctly and shows appropriate error messages for invalid credentials. The registration form is also accessible and appears to be working correctly. To proceed with testing, valid credentials are required from the development team."
+  - agent: "testing"
+    message: "Completed testing of the source domains and articles endpoints. Both endpoints are working correctly with proper authentication, pagination, and brand filtering. The source extraction logic successfully parses domains and articles from ChatGPT responses using regex patterns, with fallback logic for when no sources are found. All tests passed successfully."
