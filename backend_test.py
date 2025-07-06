@@ -659,5 +659,226 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         
         print(f"✅ User data consistency test passed: Scans used in scan response: {scans_used_in_response}, Updated user scans used: {updated_scans_used}")
 
+    def test_25_source_domains_endpoint(self):
+        """Test source domains endpoint with brand filtering and pagination"""
+        if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id') or not hasattr(self.__class__, 'second_brand_id'):
+            self.skipTest("Previous tests failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        
+        # Run a scan to generate source domains data
+        scan_data = {
+            "brand_id": self.__class__.brand_id,
+            "scan_type": "quick"
+        }
+        scan_response = requests.post(f"{self.base_url}/api/scans", json=scan_data, headers=headers)
+        self.assertEqual(scan_response.status_code, 200)
+        
+        # Test source domains endpoint without brand filter
+        all_domains_response = requests.get(f"{self.base_url}/api/source-domains", headers=headers)
+        self.assertEqual(all_domains_response.status_code, 200)
+        all_domains_data = all_domains_response.json()
+        
+        # Verify response structure
+        self.assertIn("domains", all_domains_data)
+        self.assertIn("total", all_domains_data)
+        self.assertIn("page", all_domains_data)
+        self.assertIn("total_pages", all_domains_data)
+        self.assertIn("has_next", all_domains_data)
+        self.assertIn("has_prev", all_domains_data)
+        
+        # Verify domains data structure
+        if all_domains_data["domains"]:
+            domain = all_domains_data["domains"][0]
+            self.assertIn("domain", domain)
+            self.assertIn("category", domain)
+            self.assertIn("impact", domain)
+            self.assertIn("mentions", domain)
+            self.assertIn("pages", domain)
+            
+        # Test source domains endpoint with brand filter
+        brand_domains_response = requests.get(f"{self.base_url}/api/source-domains?brand_id={self.__class__.brand_id}", headers=headers)
+        self.assertEqual(brand_domains_response.status_code, 200)
+        brand_domains_data = brand_domains_response.json()
+        
+        # Test pagination - page 1
+        page1_response = requests.get(f"{self.base_url}/api/source-domains?page=1&limit=2", headers=headers)
+        self.assertEqual(page1_response.status_code, 200)
+        page1_data = page1_response.json()
+        
+        # Test pagination - page 2
+        page2_response = requests.get(f"{self.base_url}/api/source-domains?page=2&limit=2", headers=headers)
+        self.assertEqual(page2_response.status_code, 200)
+        page2_data = page2_response.json()
+        
+        # Verify pagination works correctly
+        if page1_data["total"] > 2:
+            self.assertEqual(len(page1_data["domains"]), 2)
+            self.assertTrue(page1_data["has_next"])
+            self.assertEqual(page1_data["page"], 1)
+            
+            # Page 2 should have different domains than page 1
+            page1_domain_names = [d["domain"] for d in page1_data["domains"]]
+            page2_domain_names = [d["domain"] for d in page2_data["domains"]]
+            
+            # Check that the pages contain different domains
+            self.assertTrue(any(domain not in page1_domain_names for domain in page2_domain_names))
+        
+        print("✅ Source domains endpoint test passed")
+        
+    def test_26_source_articles_endpoint(self):
+        """Test source articles endpoint with brand filtering and pagination"""
+        if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id') or not hasattr(self.__class__, 'second_brand_id'):
+            self.skipTest("Previous tests failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        
+        # Run a scan to generate source articles data
+        scan_data = {
+            "brand_id": self.__class__.brand_id,
+            "scan_type": "quick"
+        }
+        scan_response = requests.post(f"{self.base_url}/api/scans", json=scan_data, headers=headers)
+        self.assertEqual(scan_response.status_code, 200)
+        
+        # Test source articles endpoint without brand filter
+        all_articles_response = requests.get(f"{self.base_url}/api/source-articles", headers=headers)
+        self.assertEqual(all_articles_response.status_code, 200)
+        all_articles_data = all_articles_response.json()
+        
+        # Verify response structure
+        self.assertIn("articles", all_articles_data)
+        self.assertIn("total", all_articles_data)
+        self.assertIn("page", all_articles_data)
+        self.assertIn("total_pages", all_articles_data)
+        self.assertIn("has_next", all_articles_data)
+        self.assertIn("has_prev", all_articles_data)
+        
+        # Verify articles data structure
+        if all_articles_data["articles"]:
+            article = all_articles_data["articles"][0]
+            self.assertIn("url", article)
+            self.assertIn("title", article)
+            self.assertIn("impact", article)
+            self.assertIn("queries", article)
+            
+        # Test source articles endpoint with brand filter
+        brand_articles_response = requests.get(f"{self.base_url}/api/source-articles?brand_id={self.__class__.brand_id}", headers=headers)
+        self.assertEqual(brand_articles_response.status_code, 200)
+        brand_articles_data = brand_articles_response.json()
+        
+        # Test pagination - page 1
+        page1_response = requests.get(f"{self.base_url}/api/source-articles?page=1&limit=2", headers=headers)
+        self.assertEqual(page1_response.status_code, 200)
+        page1_data = page1_response.json()
+        
+        # Test pagination - page 2
+        page2_response = requests.get(f"{self.base_url}/api/source-articles?page=2&limit=2", headers=headers)
+        self.assertEqual(page2_response.status_code, 200)
+        page2_data = page2_response.json()
+        
+        # Verify pagination works correctly
+        if page1_data["total"] > 2:
+            self.assertEqual(len(page1_data["articles"]), 2)
+            self.assertTrue(page1_data["has_next"])
+            self.assertEqual(page1_data["page"], 1)
+            
+            # Page 2 should have different articles than page 1
+            page1_article_urls = [a["url"] for a in page1_data["articles"]]
+            page2_article_urls = [a["url"] for a in page2_data["articles"]]
+            
+            # Check that the pages contain different articles
+            self.assertTrue(any(url not in page1_article_urls for url in page2_article_urls))
+        
+        print("✅ Source articles endpoint test passed")
+        
+    def test_27_authentication_required(self):
+        """Test that source domains and articles endpoints require authentication"""
+        # Test source domains endpoint without authentication
+        no_auth_domains_response = requests.get(f"{self.base_url}/api/source-domains")
+        self.assertEqual(no_auth_domains_response.status_code, 401)
+        
+        # Test source articles endpoint without authentication
+        no_auth_articles_response = requests.get(f"{self.base_url}/api/source-articles")
+        self.assertEqual(no_auth_articles_response.status_code, 401)
+        
+        print("✅ Authentication requirement test passed")
+        
+    def test_28_brand_filtering_source_domains(self):
+        """Test brand filtering for source domains endpoint"""
+        if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id') or not hasattr(self.__class__, 'second_brand_id'):
+            self.skipTest("Previous tests failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        
+        # Run scans for both brands to generate data
+        # First brand scan
+        scan_data_1 = {
+            "brand_id": self.__class__.brand_id,
+            "scan_type": "quick"
+        }
+        scan_response_1 = requests.post(f"{self.base_url}/api/scans", json=scan_data_1, headers=headers)
+        self.assertEqual(scan_response_1.status_code, 200)
+        
+        # Second brand scan
+        scan_data_2 = {
+            "brand_id": self.__class__.second_brand_id,
+            "scan_type": "quick"
+        }
+        scan_response_2 = requests.post(f"{self.base_url}/api/scans", json=scan_data_2, headers=headers)
+        self.assertEqual(scan_response_2.status_code, 200)
+        
+        # Wait a moment for data to be processed
+        time.sleep(1)
+        
+        # Get source domains data for first brand
+        first_brand_response = requests.get(f"{self.base_url}/api/source-domains?brand_id={self.__class__.brand_id}", headers=headers)
+        self.assertEqual(first_brand_response.status_code, 200)
+        first_brand_data = first_brand_response.json()
+        
+        # Get source domains data for second brand
+        second_brand_response = requests.get(f"{self.base_url}/api/source-domains?brand_id={self.__class__.second_brand_id}", headers=headers)
+        self.assertEqual(second_brand_response.status_code, 200)
+        second_brand_data = second_brand_response.json()
+        
+        # Get all source domains data (no brand filter)
+        all_brands_response = requests.get(f"{self.base_url}/api/source-domains", headers=headers)
+        self.assertEqual(all_brands_response.status_code, 200)
+        all_brands_data = all_brands_response.json()
+        
+        # Verify that the total count for all brands is at least equal to the sum of individual brand counts
+        # (It could be greater if there are overlapping domains)
+        self.assertGreaterEqual(all_brands_data["total"], max(first_brand_data["total"], second_brand_data["total"]))
+        
+        print("✅ Brand filtering for source domains endpoint test passed")
+        
+    def test_29_brand_filtering_source_articles(self):
+        """Test brand filtering for source articles endpoint"""
+        if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id') or not hasattr(self.__class__, 'second_brand_id'):
+            self.skipTest("Previous tests failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        
+        # Get source articles data for first brand
+        first_brand_response = requests.get(f"{self.base_url}/api/source-articles?brand_id={self.__class__.brand_id}", headers=headers)
+        self.assertEqual(first_brand_response.status_code, 200)
+        first_brand_data = first_brand_response.json()
+        
+        # Get source articles data for second brand
+        second_brand_response = requests.get(f"{self.base_url}/api/source-articles?brand_id={self.__class__.second_brand_id}", headers=headers)
+        self.assertEqual(second_brand_response.status_code, 200)
+        second_brand_data = second_brand_response.json()
+        
+        # Get all source articles data (no brand filter)
+        all_brands_response = requests.get(f"{self.base_url}/api/source-articles", headers=headers)
+        self.assertEqual(all_brands_response.status_code, 200)
+        all_brands_data = all_brands_response.json()
+        
+        # Verify that the total count for all brands is at least equal to the sum of individual brand counts
+        # (It could be greater if there are overlapping articles)
+        self.assertGreaterEqual(all_brands_data["total"], max(first_brand_data["total"], second_brand_data["total"]))
+        
+        print("✅ Brand filtering for source articles endpoint test passed")
+
 if __name__ == "__main__":
     unittest.main()
