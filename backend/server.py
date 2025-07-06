@@ -465,7 +465,7 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
         "scan_type": scan_request.scan_type,
         "queries": queries,
         "results": scan_results,
-        "scans_used": len(queries),
+        "scans_used": scans_cost,  # Use correct scan cost
         "created_at": datetime.utcnow()
     }
     
