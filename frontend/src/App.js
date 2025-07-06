@@ -1727,8 +1727,8 @@ const Dashboard = () => {
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <div className="text-right hidden sm:block">
+            <div className="flex items-center space-x-2 lg:space-x-4">
+              <div className="text-right hidden lg:block">
                 <div className="text-sm font-medium text-gray-900">{user?.full_name}</div>
                 <div className="text-xs text-green-600 font-medium">
                   Enterprise Plan 🚀
