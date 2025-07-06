@@ -224,88 +224,165 @@ def generate_scan_queries(brand_name: str, industry: str, keywords: List[str], c
     unique_queries = list(dict.fromkeys(queries))
     return unique_queries[:30]  # Return max 30 smart queries
 
-async def run_chatgpt_scan(query: str, brand_name: str) -> Dict[str, Any]:
+async def run_chatgpt_scan(query: str, brand_name: str, industry: str = "", keywords: List[str] = None, competitors: List[str] = None) -> Dict[str, Any]:
     """Run a single scan through ChatGPT using GPT-4o-mini"""
+    keywords = keywords or []
+    competitors = competitors or []
     try:
         if not openai or not os.environ.get("OPENAI_API_KEY"):
-            # Mock response for testing
+            # Enhanced mock response for testing
             mock_responses = [
-                f"When looking for the best {brand_name.lower()} solutions, consider {brand_name}, Competitor A, and Competitor B. {brand_name} offers excellent features...",
-                f"For {query.lower()}, popular options include Competitor A, Competitor B, and others. Consider factors like pricing and features...",
-                f"Top recommendations include {brand_name} for comprehensive features, Competitor A for simplicity, and Competitor B for enterprise needs..."
+                f"For {industry} businesses, here are the top recommended solutions:\n\n1. {brand_name} - Excellent for comprehensive {keywords[0] if keywords else 'management'} with advanced features\n2. {competitors[0] if competitors else 'CompetitorA'} - Good for basic needs but limited scalability\n3. {competitors[1] if competitors else 'CompetitorB'} - Enterprise-focused with higher pricing\n\nKey considerations: {brand_name} stands out for its user-friendly interface and robust integration capabilities.",
+                f"When comparing {industry} platforms, {brand_name} ranks highly for mid-market companies due to its balance of features and affordability. Popular alternatives include {', '.join(competitors[:2]) if competitors else 'various competitors'}, though they lack some key features that {brand_name} provides.",
             ]
             
             answer = mock_responses[hash(query) % len(mock_responses)]
-            print(f"Using mock response for query: {query}")
+            print(f"Using enhanced mock response for query: {query}")
         else:
-            print(f"Making real OpenAI API call for query: {query}")
+            print(f"Making enhanced OpenAI API call for query: {query}")
             
-            # Use the new OpenAI client format
+            # Enhanced system prompt for better results
+            system_prompt = f"""You are a business software expert who helps companies choose the right tools. 
+
+Your expertise covers {industry} solutions and you understand the competitive landscape including tools like {', '.join(competitors[:3]) if competitors else 'various solutions'}.
+
+When answering software recommendation questions:
+1. Provide a ranked list of 3-5 specific tools with brief explanations
+2. Mention key differentiators (pricing, features, target audience)
+3. Include real brand names and be specific about capabilities
+4. Consider the context: small business vs enterprise needs
+5. Be objective but highlight what makes each tool unique
+6. Focus on practical business value and use cases
+
+Key industry context: {industry}
+Relevant capabilities to consider: {', '.join(keywords[:3]) if keywords else 'core functionality'}"""
+
             from openai import OpenAI
             client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
             
             response = client.chat.completions.create(
-                model="gpt-4o-mini",  # Using GPT-4o-mini for cost efficiency
+                model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant that provides comprehensive answers about software and business tools. Provide detailed, informative responses that mention relevant brands and tools."},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": query}
                 ],
-                max_tokens=300,
-                temperature=0.7
+                max_tokens=400,  # Increased for more detailed responses
+                temperature=0.3   # Lower temperature for more consistent recommendations
             )
             answer = response.choices[0].message.content
-            print(f"Real API response received for: {query}")
+            print(f"Enhanced API response received for: {query}")
         
-        # Check if brand is mentioned
-        brand_mentioned = brand_name.lower() in answer.lower()
-        
-        # Find position if mentioned
-        position = None
-        if brand_mentioned:
-            sentences = answer.split('.')
-            for i, sentence in enumerate(sentences):
-                if brand_name.lower() in sentence.lower():
-                    position = i + 1
-                    break
-        
-        # Extract competitor mentions (look for capitalized words that could be brand names)
-        competitors_mentioned = []
-        words = answer.split()
-        for word in words:
-            cleaned_word = word.strip('.,!?":;()[]')
-            if (cleaned_word.istitle() and len(cleaned_word) > 3 and 
-                cleaned_word not in ['Here', 'Some', 'Many', 'Most', 'These', 'Those', 'When', 'While', 'With', 'What', 'Where', 'They', 'This', 'That', 'Than', 'Then'] and
-                not cleaned_word.endswith('ly')):
-                competitors_mentioned.append(cleaned_word)
-        
-        # Remove duplicates and limit
-        competitors_mentioned = list(dict.fromkeys(competitors_mentioned))[:5]
+        # Enhanced data extraction
+        analysis = extract_enhanced_insights(answer, brand_name, competitors, keywords)
         
         return {
             "query": query,
             "platform": "ChatGPT",
             "model": "gpt-4o-mini",
             "response": answer,
-            "brand_mentioned": brand_mentioned,
-            "position": position,
-            "competitors_mentioned": competitors_mentioned,
+            "brand_mentioned": analysis["brand_mentioned"],
+            "ranking_position": analysis["ranking_position"],
+            "sentiment": analysis["sentiment"],
+            "competitors_mentioned": analysis["competitors_mentioned"],
+            "key_features_mentioned": analysis["key_features"],
+            "target_audience": analysis["target_audience"],
+            "use_cases": analysis["use_cases"],
             "timestamp": datetime.utcnow(),
-            "tokens_used": len(answer.split()) + len(query.split())  # Rough estimate
+            "tokens_used": len(answer.split()) + len(query.split())
         }
         
     except Exception as e:
-        print(f"Error in ChatGPT scan: {str(e)}")
+        print(f"Error in enhanced ChatGPT scan: {str(e)}")
         return {
             "query": query,
             "platform": "ChatGPT",
             "model": "gpt-4o-mini",
             "error": str(e),
             "brand_mentioned": False,
-            "position": None,
+            "ranking_position": None,
+            "sentiment": "neutral",
             "competitors_mentioned": [],
+            "key_features_mentioned": [],
+            "target_audience": [],
+            "use_cases": [],
             "timestamp": datetime.utcnow(),
             "tokens_used": 0
         }
+
+def extract_enhanced_insights(response: str, brand_name: str, competitors: List[str], keywords: List[str]) -> Dict[str, Any]:
+    """Extract comprehensive insights from ChatGPT response"""
+    response_lower = response.lower()
+    brand_lower = brand_name.lower()
+    
+    # Check if brand is mentioned
+    brand_mentioned = brand_lower in response_lower
+    
+    # Extract ranking position with better logic
+    ranking_position = None
+    sentiment = "neutral"
+    
+    if brand_mentioned:
+        # Look for numbered lists and rankings
+        lines = response.split('\n')
+        for i, line in enumerate(lines):
+            if brand_lower in line.lower():
+                # Check for numbered patterns
+                if line.strip().startswith(('1.', '2.', '3.', '4.', '5.')):
+                    ranking_position = int(line.strip()[0])
+                # Check for ordinal indicators
+                elif any(word in line.lower() for word in ['first', 'top choice', 'best option', 'leading']):
+                    ranking_position = 1
+                elif any(word in line.lower() for word in ['second', 'runner-up', 'alternative']):
+                    ranking_position = 2
+                
+                # Sentiment analysis
+                if any(word in line.lower() for word in ['excellent', 'outstanding', 'best', 'top', 'leading', 'superior']):
+                    sentiment = "positive"
+                elif any(word in line.lower() for word in ['limited', 'lacking', 'poor', 'expensive', 'difficult']):
+                    sentiment = "negative"
+                break
+    
+    # Find mentioned competitors
+    competitors_mentioned = []
+    for competitor in competitors:
+        if competitor.lower() in response_lower:
+            competitors_mentioned.append(competitor)
+    
+    # Extract key features mentioned
+    key_features = []
+    feature_indicators = ['feature', 'capability', 'function', 'integration', 'automation', 'analytics', 'reporting']
+    for keyword in keywords:
+        if keyword.lower() in response_lower:
+            # Find context around the keyword
+            for indicator in feature_indicators:
+                if indicator in response_lower and keyword.lower() in response_lower:
+                    key_features.append(f"{keyword} {indicator}")
+    
+    # Extract target audience mentions
+    target_audience = []
+    audience_terms = ['small business', 'enterprise', 'startup', 'mid-market', 'large company', 'team', 'freelancer']
+    for term in audience_terms:
+        if term in response_lower:
+            target_audience.append(term)
+    
+    # Extract use cases
+    use_cases = []
+    if brand_mentioned:
+        sentences = response.split('.')
+        for sentence in sentences:
+            if brand_lower in sentence.lower():
+                if any(word in sentence.lower() for word in ['for', 'ideal', 'perfect', 'suited', 'designed']):
+                    use_cases.append(sentence.strip())
+    
+    return {
+        "brand_mentioned": brand_mentioned,
+        "ranking_position": ranking_position,
+        "sentiment": sentiment,
+        "competitors_mentioned": competitors_mentioned,
+        "key_features": key_features[:3],  # Top 3 features
+        "target_audience": target_audience[:2],  # Top 2 audience types
+        "use_cases": use_cases[:2]  # Top 2 use cases
+    }
 
 # Authentication endpoints
 @app.post("/api/auth/register")
