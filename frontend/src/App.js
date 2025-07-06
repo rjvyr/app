@@ -325,7 +325,7 @@ const RegisterForm = () => {
 
 // Main Dashboard Component
 const Dashboard = () => {
-  const { user, logout, backendUrl, token } = useAuth();
+  const { user, logout, backendUrl, token, setUser } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [dashboardData, setDashboardData] = useState(null);
   const [competitorData, setCompetitorData] = useState(null);
