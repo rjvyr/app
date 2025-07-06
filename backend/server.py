@@ -772,6 +772,33 @@ async def get_brand(brand_id: str, current_user: dict = Depends(get_current_user
     
     return {"brand": brand}
 
+@app.put("/api/brands/{brand_id}")
+async def update_brand(brand_id: str, brand_update: BrandUpdate, current_user: dict = Depends(get_current_user)):
+    """Update brand keywords and competitors (name, industry, website cannot be changed)"""
+    # Verify brand belongs to user
+    existing_brand = await db.brands.find_one({"_id": brand_id, "user_id": current_user["_id"]})
+    if not existing_brand:
+        raise HTTPException(status_code=404, detail="Brand not found")
+    
+    # Update only keywords and competitors
+    update_data = {
+        "keywords": brand_update.keywords,
+        "competitors": brand_update.competitors,
+        "updated_at": datetime.utcnow()
+    }
+    
+    result = await db.brands.update_one(
+        {"_id": brand_id, "user_id": current_user["_id"]},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=400, detail="Failed to update brand")
+    
+    # Return updated brand
+    updated_brand = await db.brands.find_one({"_id": brand_id, "user_id": current_user["_id"]})
+    return {"brand": updated_brand, "message": "Brand updated successfully"}
+
 # Scanning endpoints
 @app.post("/api/scans")
 async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_current_user)):
