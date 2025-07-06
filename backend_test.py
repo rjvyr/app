@@ -228,6 +228,22 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         self.assertTrue(len(data["scans"]) > 0)
         print("✅ Get scan results test passed")
         
+    def test_10_get_real_dashboard(self):
+        """Test getting real dashboard data"""
+        if not hasattr(self.__class__, 'token'):
+            self.skipTest("Login test failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        response = requests.get(f"{self.base_url}/api/dashboard/real", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("user", data)
+        self.assertIn("overall_visibility", data)
+        self.assertIn("total_queries", data)
+        self.assertIn("total_mentions", data)
+        self.assertIn("platform_breakdown", data)
+        print("✅ Get real dashboard test passed")
+
     def test_11_verify_openai_integration(self):
         """Test to verify OpenAI API integration is working properly"""
         if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id'):
@@ -266,22 +282,6 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         self.assertTrue(result["tokens_used"] > 0)
         
         print("✅ OpenAI API integration verification test passed")
-
-    def test_10_get_real_dashboard(self):
-        """Test getting real dashboard data"""
-        if not hasattr(self.__class__, 'token'):
-            self.skipTest("Login test failed, skipping this test")
-            
-        headers = {"Authorization": f"Bearer {self.__class__.token}"}
-        response = requests.get(f"{self.base_url}/api/dashboard/real", headers=headers)
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertIn("user", data)
-        self.assertIn("overall_visibility", data)
-        self.assertIn("total_queries", data)
-        self.assertIn("total_mentions", data)
-        self.assertIn("platform_breakdown", data)
-        print("✅ Get real dashboard test passed")
 
     def test_12_get_real_competitors(self):
         """Test getting real competitors data"""
@@ -385,5 +385,279 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         self.assertTrue(user_data["subscription_active"])
         print("✅ Enterprise plan features verification test passed")
         
+    def test_18_scan_usage_tracking(self):
+        """Test real-time scan usage tracking"""
+        if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id'):
+            self.skipTest("Previous tests failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        
+        # Get initial user info to check scan count
+        initial_user_response = requests.get(f"{self.base_url}/api/auth/me", headers=headers)
+        self.assertEqual(initial_user_response.status_code, 200)
+        initial_user_data = initial_user_response.json()
+        initial_scans_used = initial_user_data["scans_used"]
+        
+        # Run a quick scan (should use 5 scans)
+        scan_data = {
+            "brand_id": self.__class__.brand_id,
+            "scan_type": "quick"
+        }
+        
+        scan_response = requests.post(f"{self.base_url}/api/scans", json=scan_data, headers=headers)
+        self.assertEqual(scan_response.status_code, 200)
+        scan_data = scan_response.json()
+        self.assertIn("scan_id", scan_data)
+        self.assertIn("results", scan_data)
+        self.assertEqual(len(scan_data["results"]), 5)  # Quick scan should have 5 results
+        
+        # Get updated user info to check scan count
+        updated_user_response = requests.get(f"{self.base_url}/api/auth/me", headers=headers)
+        self.assertEqual(updated_user_response.status_code, 200)
+        updated_user_data = updated_user_response.json()
+        updated_scans_used = updated_user_data["scans_used"]
+        
+        # Verify scan count increased by 5 (quick scan uses 5 scans)
+        self.assertEqual(updated_scans_used, initial_scans_used + 5)
+        print(f"✅ Scan usage tracking test passed: Initial scans used: {initial_scans_used}, Updated scans used: {updated_scans_used}")
+        
+    def test_19_brand_filtering_dashboard(self):
+        """Test brand filtering for dashboard endpoint"""
+        if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id') or not hasattr(self.__class__, 'second_brand_id'):
+            self.skipTest("Previous tests failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        
+        # Run scans for both brands to generate data
+        # First brand scan
+        scan_data_1 = {
+            "brand_id": self.__class__.brand_id,
+            "scan_type": "quick"
+        }
+        scan_response_1 = requests.post(f"{self.base_url}/api/scans", json=scan_data_1, headers=headers)
+        self.assertEqual(scan_response_1.status_code, 200)
+        
+        # Second brand scan
+        scan_data_2 = {
+            "brand_id": self.__class__.second_brand_id,
+            "scan_type": "quick"
+        }
+        scan_response_2 = requests.post(f"{self.base_url}/api/scans", json=scan_data_2, headers=headers)
+        self.assertEqual(scan_response_2.status_code, 200)
+        
+        # Wait a moment for data to be processed
+        time.sleep(1)
+        
+        # Get dashboard data without brand filter
+        all_brands_response = requests.get(f"{self.base_url}/api/dashboard/real", headers=headers)
+        self.assertEqual(all_brands_response.status_code, 200)
+        all_brands_data = all_brands_response.json()
+        
+        # Get dashboard data with first brand filter
+        first_brand_response = requests.get(f"{self.base_url}/api/dashboard/real?brand_id={self.__class__.brand_id}", headers=headers)
+        self.assertEqual(first_brand_response.status_code, 200)
+        first_brand_data = first_brand_response.json()
+        
+        # Get dashboard data with second brand filter
+        second_brand_response = requests.get(f"{self.base_url}/api/dashboard/real?brand_id={self.__class__.second_brand_id}", headers=headers)
+        self.assertEqual(second_brand_response.status_code, 200)
+        second_brand_data = second_brand_response.json()
+        
+        # Verify that filtered data is different from all data
+        # The total queries should be different when filtered
+        self.assertNotEqual(first_brand_data["total_queries"], second_brand_data["total_queries"], 
+                           "Brand filtering not working - both brands show same data")
+        
+        # All brands data should include data from both brands
+        self.assertGreaterEqual(all_brands_data["total_queries"], 
+                              first_brand_data["total_queries"] + second_brand_data["total_queries"])
+        
+        print("✅ Brand filtering for dashboard endpoint test passed")
+        
+    def test_20_brand_filtering_competitors(self):
+        """Test brand filtering for competitors endpoint"""
+        if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id') or not hasattr(self.__class__, 'second_brand_id'):
+            self.skipTest("Previous tests failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        
+        # Get competitors data without brand filter
+        all_brands_response = requests.get(f"{self.base_url}/api/competitors/real", headers=headers)
+        self.assertEqual(all_brands_response.status_code, 200)
+        all_brands_data = all_brands_response.json()
+        
+        # Get competitors data with first brand filter
+        first_brand_response = requests.get(f"{self.base_url}/api/competitors/real?brand_id={self.__class__.brand_id}", headers=headers)
+        self.assertEqual(first_brand_response.status_code, 200)
+        first_brand_data = first_brand_response.json()
+        
+        # Get competitors data with second brand filter
+        second_brand_response = requests.get(f"{self.base_url}/api/competitors/real?brand_id={self.__class__.second_brand_id}", headers=headers)
+        self.assertEqual(second_brand_response.status_code, 200)
+        second_brand_data = second_brand_response.json()
+        
+        # Verify that filtered data is different
+        # The competitors should be different for each brand
+        first_brand_competitors = set([comp["name"] for comp in first_brand_data["competitors"]])
+        second_brand_competitors = set([comp["name"] for comp in second_brand_data["competitors"]])
+        
+        # There should be some difference in competitors between brands
+        self.assertNotEqual(first_brand_competitors, second_brand_competitors, 
+                           "Brand filtering not working - both brands show same competitors")
+        
+        print("✅ Brand filtering for competitors endpoint test passed")
+        
+    def test_21_brand_filtering_queries(self):
+        """Test brand filtering for queries endpoint"""
+        if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id') or not hasattr(self.__class__, 'second_brand_id'):
+            self.skipTest("Previous tests failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        
+        # Get queries data without brand filter
+        all_brands_response = requests.get(f"{self.base_url}/api/queries/real", headers=headers)
+        self.assertEqual(all_brands_response.status_code, 200)
+        all_brands_data = all_brands_response.json()
+        
+        # Get queries data with first brand filter
+        first_brand_response = requests.get(f"{self.base_url}/api/queries/real?brand_id={self.__class__.brand_id}", headers=headers)
+        self.assertEqual(first_brand_response.status_code, 200)
+        first_brand_data = first_brand_response.json()
+        
+        # Get queries data with second brand filter
+        second_brand_response = requests.get(f"{self.base_url}/api/queries/real?brand_id={self.__class__.second_brand_id}", headers=headers)
+        self.assertEqual(second_brand_response.status_code, 200)
+        second_brand_data = second_brand_response.json()
+        
+        # Verify that filtered data is different
+        # The queries should be different for each brand
+        first_brand_queries = set([q["query"] for q in first_brand_data["queries"]])
+        second_brand_queries = set([q["query"] for q in second_brand_data["queries"]])
+        
+        # There should be some difference in queries between brands
+        self.assertNotEqual(first_brand_queries, second_brand_queries, 
+                           "Brand filtering not working - both brands show same queries")
+        
+        print("✅ Brand filtering for queries endpoint test passed")
+        
+    def test_22_brand_filtering_recommendations(self):
+        """Test brand filtering for recommendations endpoint"""
+        if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id') or not hasattr(self.__class__, 'second_brand_id'):
+            self.skipTest("Previous tests failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        
+        # Get recommendations data without brand filter
+        all_brands_response = requests.get(f"{self.base_url}/api/recommendations/real", headers=headers)
+        self.assertEqual(all_brands_response.status_code, 200)
+        all_brands_data = all_brands_response.json()
+        
+        # Get recommendations data with first brand filter
+        first_brand_response = requests.get(f"{self.base_url}/api/recommendations/real?brand_id={self.__class__.brand_id}", headers=headers)
+        self.assertEqual(first_brand_response.status_code, 200)
+        first_brand_data = first_brand_response.json()
+        
+        # Get recommendations data with second brand filter
+        second_brand_response = requests.get(f"{self.base_url}/api/recommendations/real?brand_id={self.__class__.second_brand_id}", headers=headers)
+        self.assertEqual(second_brand_response.status_code, 200)
+        second_brand_data = second_brand_response.json()
+        
+        # Verify that recommendations are returned for each brand
+        self.assertIn("recommendations", first_brand_data)
+        self.assertIn("recommendations", second_brand_data)
+        
+        # Verify that data points are different for each brand
+        self.assertNotEqual(first_brand_data["data_points"], second_brand_data["data_points"], 
+                           "Brand filtering not working - both brands show same data points")
+        
+        print("✅ Brand filtering for recommendations endpoint test passed")
+        
+    def test_23_scan_execution_and_usage_updates(self):
+        """Test scan execution and usage updates"""
+        if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id'):
+            self.skipTest("Previous tests failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        
+        # Get initial user info to check scan count
+        initial_user_response = requests.get(f"{self.base_url}/api/auth/me", headers=headers)
+        self.assertEqual(initial_user_response.status_code, 200)
+        initial_user_data = initial_user_response.json()
+        initial_scans_used = initial_user_data["scans_used"]
+        
+        # Run a standard scan (should use 25 scans)
+        scan_data = {
+            "brand_id": self.__class__.brand_id,
+            "scan_type": "standard"
+        }
+        
+        scan_response = requests.post(f"{self.base_url}/api/scans", json=scan_data, headers=headers)
+        self.assertEqual(scan_response.status_code, 200)
+        scan_data = scan_response.json()
+        self.assertIn("scan_id", scan_data)
+        self.assertIn("results", scan_data)
+        self.assertIn("scans_used", scan_data)
+        
+        # Verify the scan results contain real AI responses
+        for result in scan_data["results"]:
+            self.assertEqual(result["platform"], "ChatGPT")
+            self.assertEqual(result["model"], "gpt-4o-mini")
+            self.assertIn("response", result)
+            self.assertTrue(len(result["response"]) > 50)
+            self.assertIn("brand_mentioned", result)
+            self.assertIn("competitors_mentioned", result)
+            self.assertIn("tokens_used", result)
+        
+        # Get updated user info to check scan count
+        updated_user_response = requests.get(f"{self.base_url}/api/auth/me", headers=headers)
+        self.assertEqual(updated_user_response.status_code, 200)
+        updated_user_data = updated_user_response.json()
+        updated_scans_used = updated_user_data["scans_used"]
+        
+        # Verify scan count increased by the number of queries in the scan
+        self.assertEqual(updated_scans_used, initial_scans_used + len(scan_data["results"]))
+        print(f"✅ Scan execution and usage updates test passed: Initial scans used: {initial_scans_used}, Updated scans used: {updated_scans_used}")
+        
+    def test_24_user_data_consistency(self):
+        """Test user data consistency after scanning"""
+        if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id'):
+            self.skipTest("Previous tests failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        
+        # Get initial user info
+        initial_user_response = requests.get(f"{self.base_url}/api/auth/me", headers=headers)
+        self.assertEqual(initial_user_response.status_code, 200)
+        initial_user_data = initial_user_response.json()
+        initial_scans_used = initial_user_data["scans_used"]
+        
+        # Run a quick scan
+        scan_data = {
+            "brand_id": self.__class__.brand_id,
+            "scan_type": "quick"
+        }
+        
+        scan_response = requests.post(f"{self.base_url}/api/scans", json=scan_data, headers=headers)
+        self.assertEqual(scan_response.status_code, 200)
+        scan_data = scan_response.json()
+        scans_used_in_response = scan_data["scans_used"]
+        
+        # Get updated user info
+        updated_user_response = requests.get(f"{self.base_url}/api/auth/me", headers=headers)
+        self.assertEqual(updated_user_response.status_code, 200)
+        updated_user_data = updated_user_response.json()
+        updated_scans_used = updated_user_data["scans_used"]
+        
+        # Verify scan count in user data matches the expected value
+        self.assertEqual(updated_scans_used, initial_scans_used + scans_used_in_response)
+        
+        # Verify scan count in dashboard matches user data
+        dashboard_response = requests.get(f"{self.base_url}/api/dashboard/real", headers=headers)
+        self.assertEqual(dashboard_response.status_code, 200)
+        dashboard_data = dashboard_response.json()
+        self.assertEqual(dashboard_data["user"]["scans_used"], updated_scans_used)
+        
+        print(f"✅ User data consistency test passed: Scans used in scan response: {scans_used_in_response}, Updated user scans used: {updated_scans_used}")
+
 if __name__ == "__main__":
     unittest.main()
