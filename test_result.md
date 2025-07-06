@@ -265,6 +265,17 @@ backend:
         - working: true
           agent: "testing"
           comment: "Verified that the source extraction logic is working correctly. The extract_source_domains_from_response and extract_source_articles_from_response functions properly parse domains and articles from ChatGPT responses using regex patterns. Fallback logic is implemented for when no sources are found in responses."
+  - task: "Brand Update Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Verified that the new PUT /api/brands/{brand_id} endpoint works correctly. It properly allows updating keywords and competitors while preventing changes to name/industry/website. Authentication is required and user ownership is properly enforced - users can only update their own brands."
 
 metadata:
   created_by: "main_agent"
