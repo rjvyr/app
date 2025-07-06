@@ -289,65 +289,63 @@ async def send_email(to_email: str, subject: str, body: str):
 
 
 async def run_enhanced_chatgpt_scan(query: str, brand_name: str, industry: str, keywords: List[str], competitors: List[str]) -> Dict[str, Any]:
-    """Run an enhanced scan through ChatGPT with optimized prompts for actionable insights"""
+    """Enhanced ChatGPT scan with comprehensive data extraction"""
     try:
         if not openai or not os.environ.get("OPENAI_API_KEY"):
-            # Enhanced mock response for testing with varied, realistic responses
-            mock_responses = [
-                f"For {industry} businesses, here are the top recommended solutions:\n\n1. {brand_name} - Excellent for comprehensive {keywords[0] if keywords else 'management'} with advanced features and competitive pricing\n2. {competitors[0] if competitors else 'CompetitorA'} - Good for basic needs but limited scalability and higher costs\n3. {competitors[1] if competitors else 'CompetitorB'} - Enterprise-focused with higher pricing but more features\n\nKey considerations: {brand_name} stands out for its user-friendly interface and robust integration capabilities. Many users prefer it over alternatives due to cost-effectiveness.",
-                f"When comparing {industry} platforms, several options stand out. {brand_name} ranks well for mid-market companies due to its balance of features and affordability. Popular alternatives include {', '.join(competitors[:2]) if competitors else 'various competitors'}, though they often lack key features that {brand_name} provides. For businesses focusing on {keywords[0] if keywords else 'efficiency'}, {brand_name} offers superior value.",
-                f"The best {industry} solutions for 2024 include:\n\n1. {competitors[0] if competitors else 'MarketLeader'} - Industry standard but expensive\n2. {brand_name} - Rising star with excellent {keywords[0] if keywords else 'functionality'} and great support\n3. {competitors[1] if competitors else 'Alternative'} - Good for large enterprises\n\n{brand_name} is particularly recommended for businesses seeking cost-effective {industry} solutions without compromising on quality.",
-                f"Looking for {industry} tools? Here's what users recommend:\n\n• {brand_name}: Best for {keywords[0] if keywords else 'core features'} with intuitive design\n• {competitors[0] if competitors else 'Competitor'}: More expensive but feature-rich\n• {competitors[1] if competitors else 'AnotherOption'}: Good for specific use cases\n\nMost reviews highlight {brand_name}'s ease of use and competitive pricing as key differentiators in the {industry} space.",
-                f"For {industry} management, you have several good options. {brand_name} excels in {keywords[0] if keywords else 'user experience'} and offers great value for money. While {competitors[0] if competitors else 'competitors'} might have more features, {brand_name} strikes the right balance for most businesses. Consider your budget and specific {industry} needs when choosing.",
-            ]
-            
-            # Use hash to ensure consistent but varied responses
-            response_index = hash(query + brand_name) % len(mock_responses)
-            answer = mock_responses[response_index]
-            print(f"Using enhanced mock response for query: {query}")
-        else:
-            print(f"Making enhanced OpenAI API call for query: {query}")
-            
-            # Enhanced system prompt for better results
-            system_prompt = f"""You are a business software expert who helps companies choose the right tools. 
+            print("OpenAI not available, using mock data")
+            return generate_mock_scan_result(query, brand_name, keywords, competitors)
+        
+        # Enhanced prompt for comprehensive analysis WITH SOURCE EXTRACTION
+        system_prompt = f"""You are an expert AI brand visibility analyst. Analyze the following search query and provide detailed insights about brand mentions, competitive landscape, and market position.
 
-Your expertise covers {industry} solutions and you understand the competitive landscape including tools like {', '.join(competitors[:3]) if competitors else 'various solutions'}.
+Query: "{query}"
+Brand to analyze: {brand_name}
+Industry: {industry}
+Key competitors: {', '.join(competitors[:5])}
+Brand keywords: {', '.join(keywords[:5])}
 
-When answering software recommendation questions:
-1. Provide a ranked list of 3-5 specific tools with brief explanations
-2. Mention key differentiators (pricing, features, target audience)
-3. Include real brand names and be specific about capabilities
-4. Consider the context: small business vs enterprise needs
-5. Be objective but highlight what makes each tool unique
-6. Focus on practical business value and use cases
-7. Mention specific websites, articles, or sources when relevant
+Please provide a comprehensive analysis that includes:
+1. Brand presence and visibility assessment
+2. Competitive positioning analysis
+3. Market insights and trends
+4. Content opportunities and gaps
+5. Audience targeting recommendations
 
-Key industry context: {industry}
-Relevant capabilities to consider: {', '.join(keywords[:3]) if keywords else 'core functionality'}"""
+IMPORTANT: Also identify and list the TOP 5 MOST RELEVANT SOURCE DOMAINS and TOP 5 MOST RELEVANT SOURCE ARTICLES that would be most influential for this query and brand. Use your knowledge to suggest:
 
-            user_prompt = f"Generate a realistic, varied response about {industry} solutions for this query: {query}"
+SOURCE DOMAINS (format as "DOMAIN: domain.com - brief description"):
+- List 5 most relevant and authoritative websites/domains that would likely rank or provide information for this query
+- Include a mix of: industry-specific sites, review platforms, news sites, forums, and official brand websites
+- Make them specific to the brand and query context
 
-            from openai import OpenAI
-            client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-            
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                max_tokens=400,
-                temperature=0.5  # Balanced for variety but consistency
-            )
-            answer = response.choices[0].message.content
+SOURCE ARTICLES (format as "ARTICLE: Full URL - Article Title"):
+- List 5 most relevant and specific articles/pages that would likely contain information about this query
+- Include actual URLs that would realistically exist for this type of content
+- Make them specific to the brand, industry, and query context
+
+Format your response as a detailed market analysis report followed by the source information."""
+
+        response = await openai.AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY")).chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Analyze this query: {query}"}
+            ],
+            max_tokens=1000,
+            temperature=0.7
+        )
+        
+        answer = response.choices[0].message.content
+        
+        if os.environ.get("DEBUG") == "true":
             print(f"Enhanced API response received for: {query}")
         
         # Enhanced data extraction with source extraction
         analysis = extract_enhanced_insights(answer, brand_name, competitors, keywords)
         
-        # Extract source domains and articles from the response
-        source_domains = extract_source_domains(answer, industry, keywords)
-        source_articles = extract_source_articles(answer, industry, keywords)
+        # Extract source domains and articles from the ACTUAL response
+        source_domains = extract_source_domains_from_response(answer, brand_name, industry, keywords)
+        source_articles = extract_source_articles_from_response(answer, brand_name, industry, keywords)
         
         return {
             "query": query,
