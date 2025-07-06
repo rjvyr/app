@@ -1686,7 +1686,7 @@ const Dashboard = () => {
               <h1 className="text-xl font-bold text-gray-900" style={{fontFamily: 'Inter, sans-serif'}}>FutureSEO</h1>
               
               {/* Desktop Navigation */}
-              <nav className="hidden md:flex space-x-4 lg:space-x-6">
+              <nav className="hidden md:flex space-x-1 lg:space-x-2 xl:space-x-4">
                 {[
                   { id: 'overview', name: 'Overview', icon: '📊' },
                   { id: 'competitors', name: 'Competitors', icon: '🏆' },
