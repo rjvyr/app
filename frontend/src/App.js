@@ -214,18 +214,9 @@ const RegisterForm = () => {
   if (success) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-100 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
-          <div className="text-center mb-8">
-            {/* FutureSEO Logo */}
-            <div className="mb-4 flex justify-center">
-              <img 
-                src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQwIiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDY0MCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xNCAxMTJWNDhIMjQuNzE0M1Y1Ny43MTQzSDQ5LjE0MjlWNjcuNDI4Nkg0NS4xNDI5VjEwMi4yODZIMzQuNDI4NlYxMTJIMTRaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik0xMDcuMTQzIDExMlY0OEgxMTcuODU3VjEwMi4yODZIMTQyLjI4NlY0OEgxNTNWMTEySDEwNy4xNDNaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik0xOTguMjg2IDQ4SDIwOVY1Ny43MTQzSDIzMy40MjlWNjcuNDI4Nkg0OS4xNDI5VjQ4WiIgZmlsbD0iIzI1NjNFQiIvPgo8cGF0aCBkPSJNMjU2IDExMlY0OEgyNjYuNzE0VjEwMi4yODZIMjkxLjE0M1Y0OEgzMDEuODU3VjExMkgyNTZaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik0zNDkuMTQzIDExMlY0OEgzNTkuODU3VjEwMi4yODZIMzg0LjI4NlY0OEgzOTVWMTEySDM0OS4xNDNaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik00NDIuMjg2IDExMlY0OEg0NzYuNTcxQzQ4Mi44NTcgNDggNDg4IDUzLjE0MjkgNDg4IDU5LjQyODZWNjkuMTQyOUM0ODggNzUuNDI4NiA0ODIuODU3IDgwLjU3MTQgNDc2LjU3MSA4MC41NzE0SDQ1M1Y5MEg0ODhWMTAwLjU3MUg0NTNWMTEySDQ0Mi4yODZaTTQ3Ni41NzEgNTcuNzE0M0g0NTNWNzAuODU3MUg0NzYuNTcxQzQ3OC4yODYgNzAuODU3MSA0NzkuNzE0IDY5LjQyODYgNDc5LjcxNCA2Ny43MTQzVjYwLjg1NzFDNDc5LjcxNCA1OS4xNDI5IDQ3OC4yODYgNTcuNzE0MyA0NzYuNTcxIDU3LjcxNDNaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik01MzUuMTQzIDExMlY0OEg1ODEuNDI5VjU3LjcxNDNINTQ1Ljg1N1Y3NS40Mjg2SDU3OC41NzFWODUuMTQyOUg1NDUuODU3VjEwMi4yODZINTgxLjQyOVYxMTJINTM1LjE0M1oiIGZpbGw9IiMyNTYzRUIiLz4+IDxjaXJjbGUgY3g9IjU4NCIgY3k9IjgwIiByPSI0NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjU2M0VCIiBzdHJva2Utd2lkdGg9IjYiLz4KPGxpbmUgeDE9IjU2NCIgeTE9IjYwIiB4Mj0iNjA0IiB5Mj0iMTAwIiBzdHJva2U9IiMyNTYzRUIiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxsaW5lIHgxPSI1NjQiIHkxPSIxMDAiIHgyPSI2MDQiIHkyPSI2MCIgc3Ryb2tlPSIjMjU2M0VCIiBzdHJva2Utd2lkdGg9IjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8bGluZSB4MT0iNTU2IiB5MT0iMTA4IiB4Mj0iNTU2IiB5Mj0iMTQ0IiBzdHJva2U9IiMyNTYzRUIiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxsaW5lIHgxPSI1NjQiIHkxPSIxMTYiIHgyPSI1NzYiIHkyPSIxMzYiIHN0cm9rZT0iIzI1NjNFQiIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+"
-                alt="FutureSEO Logo"
-                className="h-12 w-auto"
-              />
-            </div>
-          <h1 className="text-3xl font-bold text-gray-900" style={{fontFamily: 'Inter, sans-serif'}}>FutureSEO</h1>
-          <p className="text-gray-600 mt-2 text-lg font-medium">AIO is the new SEO</p>
+        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4" style={{fontFamily: 'Inter, sans-serif'}}>FutureSEO</h1>
+          <p className="text-gray-600 mb-6 text-lg font-medium">AIO is the new SEO</p>
           <div className="text-green-600 text-6xl mb-4">✓</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Account Created!</h2>
           <p className="text-gray-600 mb-6">Please check your email to verify your account.</p>
@@ -239,14 +230,7 @@ const RegisterForm = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
         <div className="text-center mb-8">
-          {/* FutureSEO Logo */}
-          <div className="mb-4 flex justify-center">
-            <img 
-              src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQwIiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDY0MCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xNCAxMTJWNDhIMjQuNzE0M1Y1Ny43MTQzSDQ5LjE0MjlWNjcuNDI4Nkg0NS4xNDI5VjEwMi4yODZIMzQuNDI4NlYxMTJIMTRaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik0xMDcuMTQzIDExMlY0OEgxMTcuODU3VjEwMi4yODZIMTQyLjI4NlY0OEgxNTNWMTEySDEwNy4xNDNaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik0xOTguMjg2IDQ4SDIwOVY1Ny43MTQzSDIzMy40MjlWNjcuNDI4Nkg0OS4xNDI5VjQ4WiIgZmlsbD0iIzI1NjNFQiIvPgo8cGF0aCBkPSJNMjU2IDExMlY0OEgyNjYuNzE0VjEwMi4yODZIMjkxLjE0M1Y0OEgzMDEuODU3VjExMkgyNTZaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik0zNDkuMTQzIDExMlY0OEgzNTkuODU3VjEwMi4yODZIMzg0LjI4NlY0OEgzOTVWMTEySDM0OS4xNDNaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik00NDIuMjg2IDExMlY0OEg0NzYuNTcxQzQ4Mi44NTcgNDggNDg4IDUzLjE0MjkgNDg4IDU5LjQyODZWNjkuMTQyOUM0ODggNzUuNDI4NiA0ODIuODU3IDgwLjU3MTQgNDc2LjU3MSA4MC41NzE0SDQ1M1Y5MEg0ODhWMTAwLjU3MUg0NTNWMTEySDQ0Mi4yODZaTTQ3Ni41NzEgNTcuNzE0M0g0NTNWNzAuODU3MUg0NzYuNTcxQzQ3OC4yODYgNzAuODU3MSA0NzkuNzE0IDY5LjQyODYgNDc5LjcxNCA2Ny43MTQzVjYwLjg1NzFDNDc5LjcxNCA1OS4xNDI5IDQ3OC4yODYgNTcuNzE0MyA0NzYuNTcxIDU3LjcxNDNaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik01MzUuMTQzIDExMlY0OEg1ODEuNDI5VjU3LjcxNDNINTQ1Ljg1N1Y3NS40Mjg2SDU3OC41NzFWODUuMTQyOUg1NDUuODU3VjEwMi4yODZINTgxLjQyOVYxMTJINTM1LjE0M1oiIGZpbGw9IiMyNTYzRUIiLz4+IDxjaXJjbGUgY3g9IjU4NCIgY3k9IjgwIiByPSI0NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjU2M0VCIiBzdHJva2Utd2lkdGg9IjYiLz4KPGxpbmUgeDE9IjU2NCIgeTE9IjYwIiB4Mj0iNjA0IiB5Mj0iMTAwIiBzdHJva2U9IiMyNTYzRUIiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxsaW5lIHgxPSI1NjQiIHkxPSIxMDAiIHgyPSI2MDQiIHkyPSI2MCIgc3Ryb2tlPSIjMjU2M0VCIiBzdHJva2Utd2lkdGg9IjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8bGluZSB4MT0iNTU2IiB5MT0iMTA4IiB4Mj0iNTU2IiB5Mj0iMTQ0IiBzdHJva2U9IiMyNTYzRUIiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxsaW5lIHgxPSI1NjQiIHkxPSIxMTYiIHgyPSI1NzYiIHkyPSIxMzYiIHN0cm9rZT0iIzI1NjNFQiIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+"
-              alt="FutureSEO Logo"
-              className="h-12 w-auto"
-            />
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900" style={{fontFamily: 'Inter, sans-serif'}}>FutureSEO</h1>
           <p className="text-gray-600 mt-2 text-lg font-medium">AIO is the new SEO</p>
         </div>
         
@@ -355,6 +339,8 @@ const Dashboard = () => {
   const [scanLoading, setScanLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [weeklyTrackingData, setWeeklyTrackingData] = useState(null);
+  const [sourceDomainsData, setSourceDomainsData] = useState(null);
+  const [sourceArticlesData, setSourceArticlesData] = useState(null);
 
   useEffect(() => {
     fetchAllRealData();
@@ -362,7 +348,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     // Don't auto-select first brand, let user choose
-    // This allows "All Brands" to be the default view
   }, [brands]);
 
   // Refetch data when brand selection changes
@@ -379,20 +364,22 @@ const Dashboard = () => {
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       
-      const [dashResponse, compResponse, queryResponse, recResponse, brandsResponse] = await Promise.all([
+      const [dashResponse, compResponse, queryResponse, recResponse, brandsResponse, weeklyResponse] = await Promise.all([
         fetch(`${backendUrl}/api/dashboard/real`, { headers }),
         fetch(`${backendUrl}/api/competitors/real`, { headers }),
         fetch(`${backendUrl}/api/queries/real`, { headers }),
         fetch(`${backendUrl}/api/recommendations/real`, { headers }),
-        fetch(`${backendUrl}/api/brands`, { headers })
+        fetch(`${backendUrl}/api/brands`, { headers }),
+        fetch(`${backendUrl}/api/tracking/weekly?weeks=8`, { headers })
       ]);
 
-      const [dashData, compData, queryData, recData, brandsData] = await Promise.all([
+      const [dashData, compData, queryData, recData, brandsData, weeklyData] = await Promise.all([
         dashResponse.json(),
         compResponse.json(),
         queryResponse.json(),
         recResponse.json(),
-        brandsResponse.json()
+        brandsResponse.json(),
+        weeklyResponse.json()
       ]);
 
       setDashboardData(dashData);
@@ -400,6 +387,10 @@ const Dashboard = () => {
       setQueriesData(queryData);
       setRecommendationsData(recData);
       setBrands(brandsData.brands);
+      setWeeklyTrackingData(weeklyData);
+      
+      // Fetch source data
+      await fetchSourceData(headers);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -413,28 +404,58 @@ const Dashboard = () => {
       const headers = { 'Authorization': `Bearer ${token}` };
       
       // Add brand_id parameter to API calls for brand-specific data
-      const [dashResponse, compResponse, queryResponse, recResponse] = await Promise.all([
+      const [dashResponse, compResponse, queryResponse, recResponse, weeklyResponse] = await Promise.all([
         fetch(`${backendUrl}/api/dashboard/real?brand_id=${brandId}`, { headers }),
         fetch(`${backendUrl}/api/competitors/real?brand_id=${brandId}`, { headers }),
         fetch(`${backendUrl}/api/queries/real?brand_id=${brandId}`, { headers }),
-        fetch(`${backendUrl}/api/recommendations/real?brand_id=${brandId}`, { headers })
+        fetch(`${backendUrl}/api/recommendations/real?brand_id=${brandId}`, { headers }),
+        fetch(`${backendUrl}/api/tracking/weekly?brand_id=${brandId}&weeks=8`, { headers })
       ]);
 
-      const [dashData, compData, queryData, recData] = await Promise.all([
+      const [dashData, compData, queryData, recData, weeklyData] = await Promise.all([
         dashResponse.json(),
         compResponse.json(),
         queryResponse.json(),
-        recResponse.json()
+        recResponse.json(),
+        weeklyResponse.json()
       ]);
 
       setDashboardData(dashData);
       setCompetitorData(compData);
       setQueriesData(queryData);
       setRecommendationsData(recData);
+      setWeeklyTrackingData(weeklyData);
+      
+      // Fetch source data for specific brand
+      await fetchSourceData(headers, brandId);
     } catch (error) {
       console.error('Error fetching brand-specific data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSourceData = async (headers, brandId = null) => {
+    try {
+      const brandParam = brandId ? `?brand_id=${brandId}` : '';
+      
+      const [domainsResponse, articlesResponse] = await Promise.all([
+        fetch(`${backendUrl}/api/source-domains${brandParam}`, { headers }),
+        fetch(`${backendUrl}/api/source-articles${brandParam}`, { headers })
+      ]);
+
+      const [domainsData, articlesData] = await Promise.all([
+        domainsResponse.json(),
+        articlesResponse.json()
+      ]);
+
+      setSourceDomainsData(domainsData);
+      setSourceArticlesData(articlesData);
+    } catch (error) {
+      console.error('Error fetching source data:', error);
+      // Set empty data if API calls fail
+      setSourceDomainsData({ domains: [], total: 0 });
+      setSourceArticlesData({ articles: [], total: 0 });
     }
   };
 
@@ -556,6 +577,105 @@ const Dashboard = () => {
     );
   };
 
+  const renderWeeklyGrowthTable = () => {
+    if (!weeklyTrackingData || !weeklyTrackingData.weekly_data || weeklyTrackingData.weekly_data.length === 0) {
+      return (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">📈 Week-over-Week Growth</h3>
+          <div className="text-center py-8 text-gray-500">
+            <div className="text-4xl mb-4">📊</div>
+            <p className="text-lg font-medium mb-2">No tracking data yet</p>
+            <p className="text-sm">Run scans for a few weeks to see growth trends!</p>
+          </div>
+        </div>
+      );
+    }
+
+    const changes = weeklyTrackingData.week_over_week_changes || {};
+    
+    return (
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">📈 Week-over-Week Growth</h3>
+          <span className="text-sm text-gray-500">{weeklyTrackingData.total_weeks} weeks tracked</span>
+        </div>
+        
+        {/* Growth Summary */}
+        {Object.keys(changes).length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            {Object.entries(changes).map(([brandId, change]) => {
+              const brandName = brands.find(b => b._id === brandId)?.name || 'Unknown';
+              return (
+                <div key={brandId} className="text-center">
+                  <div className="text-sm text-gray-600">{brandName}</div>
+                  <div className={`text-2xl font-bold ${change.visibility_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {change.visibility_change >= 0 ? '+' : ''}{change.visibility_change}%
+                  </div>
+                  <div className="text-xs text-gray-500">Visibility Change</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Weekly Data Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left font-medium text-gray-900">Week</th>
+                <th className="px-4 py-3 text-center font-medium text-gray-900">Visibility</th>
+                <th className="px-4 py-3 text-center font-medium text-gray-900">Avg Position</th>
+                <th className="px-4 py-3 text-center font-medium text-gray-900">Queries</th>
+                <th className="px-4 py-3 text-center font-medium text-gray-900">Trend</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {weeklyTrackingData.weekly_data.slice(0, 8).map((weekData, index) => {
+                const isCurrentWeek = index === 0;
+                const prevWeek = weeklyTrackingData.weekly_data[index + 1];
+                
+                // Calculate trends for the first brand (or combined data)
+                const brandIds = Object.keys(weekData.brands);
+                const mainBrandId = selectedBrandId || brandIds[0];
+                const currentData = weekData.brands[mainBrandId];
+                const prevData = prevWeek?.brands[mainBrandId];
+                
+                if (!currentData) return null;
+                
+                const visibilityTrend = prevData ? currentData.visibility_score - prevData.visibility_score : 0;
+                const positionTrend = prevData ? prevData.average_position - currentData.average_position : 0; // Lower is better
+                
+                return (
+                  <tr key={weekData.week} className={isCurrentWeek ? 'bg-blue-50' : ''}>
+                    <td className="px-4 py-3 font-medium text-gray-900">
+                      {weekData.week}
+                      {isCurrentWeek && <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Current</span>}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="font-medium">{currentData.visibility_score}%</span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="font-medium">{currentData.average_position}</span>
+                    </td>
+                    <td className="px-4 py-3 text-center">{currentData.total_queries}</td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center space-x-2">
+                        {visibilityTrend > 0 && <span className="text-green-600">↗️ +{visibilityTrend.toFixed(1)}%</span>}
+                        {visibilityTrend < 0 && <span className="text-red-600">↘️ {visibilityTrend.toFixed(1)}%</span>}
+                        {visibilityTrend === 0 && <span className="text-gray-500">→</span>}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   const renderOverview = () => (
     <div className="space-y-6">
       {renderEnterpriseWelcome()}
@@ -585,7 +705,8 @@ const Dashboard = () => {
           <div className="text-lg text-gray-600 mb-4">
             {dashboardData?.overall_visibility > 70 ? 'Excellent' : 
              dashboardData?.overall_visibility > 50 ? 'Good' : 
-             dashboardData?.overall_visibility > 30 ? 'Fair' : 'Run scans to see your score'}
+             dashboardData?.overall_visibility > 30 ? 'Fair' : 
+             dashboardData?.overall_visibility > 0 ? 'Needs Work' : 'No Data Yet'}
           </div>
           <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
             <span>{dashboardData?.total_mentions || 0}/{dashboardData?.total_queries || 0} queries mention your brand</span>
@@ -663,6 +784,9 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Week-over-Week Growth Table */}
+      {renderWeeklyGrowthTable()}
 
       {/* Quick Actions */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -788,6 +912,244 @@ const Dashboard = () => {
       </div>
     </div>
   );
+
+  const renderSourceDomains = () => {
+    const domains = sourceDomainsData?.domains || [];
+    
+    return (
+      <div className="space-y-6">
+        {renderEnterpriseWelcome()}
+        {renderBrandSelector()}
+        
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Source Domains</h2>
+            <p className="text-gray-600 mt-1">Which domains hold the most influence for your relevant queries</p>
+          </div>
+          <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">
+            <span>📊</span>
+            <span>Export Data</span>
+          </button>
+        </div>
+
+        {/* Category Filters */}
+        <div className="flex space-x-2 overflow-x-auto pb-2">
+          {['All Categories', 'Business', 'Social media', 'Other', 'Publisher'].map((category) => (
+            <button
+              key={category}
+              className={`px-4 py-2 rounded-full text-sm whitespace-nowrap ${
+                category === 'All Categories'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search by domain..."
+            className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <div className="absolute left-3 top-3.5 text-gray-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Domains Table */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Root Domain</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Impact</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trend</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pages</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {domains.map((domain, index) => (
+                  <tr key={domain.domain} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm text-gray-900">{index + 1}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-3">
+                        <img 
+                          src={`https://www.google.com/s2/favicons?domain=${domain.domain}&sz=32`} 
+                          alt="" 
+                          className="w-6 h-6 rounded"
+                          onError={(e) => {e.target.style.display = 'none'}}
+                        />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{domain.domain}</div>
+                          <div className="text-xs text-gray-500">Root domain</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        domain.category === 'Business' ? 'bg-blue-100 text-blue-800' :
+                        domain.category === 'Social media' ? 'bg-green-100 text-green-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {domain.category}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium text-gray-900">{domain.impact}%</span>
+                        <div className="w-20 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full" 
+                            style={{width: `${domain.impact}%`}}
+                          ></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600">{domain.trend}</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{domain.pages}</td>
+                    <td className="px-6 py-4">
+                      <button className="text-gray-400 hover:text-gray-600">
+                        <span className="text-sm">Actions ▼</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {domains.length === 0 && (
+            <div className="text-center py-12 text-gray-500">
+              <div className="text-4xl mb-4">🌐</div>
+              <p className="text-lg font-medium mb-2">No source domain data yet</p>
+              <p className="text-sm">Run scans to see which domains mention your brand!</p>
+            </div>
+          )}
+        </div>
+
+        {/* Pagination */}
+        {domains.length > 0 && (
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-700">
+              Showing 1 to {Math.min(10, domains.length)} of {sourceDomainsData?.total || domains.length} results
+            </div>
+            <div className="flex space-x-1">
+              <button className="px-3 py-2 text-sm bg-blue-600 text-white rounded">1</button>
+              <button className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">2</button>
+              <button className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">...</button>
+              <button className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">15</button>
+              <button className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">></button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderSourceArticles = () => {
+    const articles = sourceArticlesData?.articles || [];
+    
+    return (
+      <div className="space-y-6">
+        {renderEnterpriseWelcome()}
+        {renderBrandSelector()}
+        
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Source Articles</h2>
+            <p className="text-gray-600 mt-1">Explore the specific articles and pages that contribute to your AI visibility</p>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search by URL..."
+            className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <div className="absolute left-3 top-3.5 text-gray-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Articles Table */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">URL</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Impact</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Queries</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {articles.map((article, index) => (
+                  <tr key={article.url} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm text-gray-900">{index + 1}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-start space-x-3">
+                        <img 
+                          src={`https://www.google.com/s2/favicons?domain=${new URL(article.url).hostname}&sz=32`} 
+                          alt="" 
+                          className="w-6 h-6 rounded mt-1"
+                          onError={(e) => {e.target.style.display = 'none'}}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm text-blue-600 hover:text-blue-800 truncate">
+                            <a href={article.url} target="_blank" rel="noopener noreferrer">
+                              {article.url}
+                            </a>
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">{article.title || 'No title available'}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium text-gray-900">{article.impact}%</span>
+                        <div className="w-16 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full" 
+                            style={{width: `${article.impact}%`}}
+                          ></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{article.queries}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {articles.length === 0 && (
+            <div className="text-center py-12 text-gray-500">
+              <div className="text-4xl mb-4">📄</div>
+              <p className="text-lg font-medium mb-2">No source article data yet</p>
+              <p className="text-sm">Run scans to see which specific articles mention your brand!</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const renderCompetitors = () => (
     <div className="space-y-6">
@@ -1203,14 +1565,7 @@ const Dashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4 md:space-x-8">
-              {/* FutureSEO Logo */}
-              <div className="flex items-center">
-                <img 
-                  src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQwIiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDY0MCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xNCAxMTJWNDhIMjQuNzE0M1Y1Ny43MTQzSDQ5LjE0MjlWNjcuNDI4Nkg0NS4xNDI5VjEwMi4yODZIMzQuNDI4NlYxMTJIMTRaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik0xMDcuMTQzIDExMlY0OEgxMTcuODU3VjEwMi4yODZIMTQyLjI4NlY0OEgxNTNWMTEySDEwNy4xNDNaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik0xOTguMjg2IDQ4SDIwOVY1Ny43MTQzSDIzMy40MjlWNjcuNDI4Nkg0OS4xNDI5VjQ4WiIgZmlsbD0iIzI1NjNFQiIvPgo8cGF0aCBkPSJNMjU2IDExMlY0OEgyNjYuNzE0VjEwMi4yODZIMjkxLjE0M1Y0OEgzMDEuODU3VjExMkgyNTZaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik0zNDkuMTQzIDExMlY0OEgzNTkuODU3VjEwMi4yODZIMzg0LjI4NlY0OEgzOTVWMTEySDM0OS4xNDNaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik00NDIuMjg2IDExMlY0OEg0NzYuNTcxQzQ4Mi44NTcgNDggNDg4IDUzLjE0MjkgNDg4IDU5LjQyODZWNjkuMTQyOUM0ODggNzUuNDI4NiA0ODIuODU3IDgwLjU3MTQgNDc2LjU3MSA4MC41NzE0SDQ1M1Y5MEg0ODhWMTAwLjU3MUg0NTNWMTEySDQ0Mi4yODZaTTQ3Ni41NzEgNTcuNzE0M0g0NTNWNzAuODU3MUg0NzYuNTcxQzQ3OC4yODYgNzAuODU3MSA0NzkuNzE0IDY5LjQyODYgNDc5LjcxNCA2Ny43MTQzVjYwLjg1NzFDNDc5LjcxNCA1OS4xNDI5IDQ3OC4yODYgNTcuNzE0MyA0NzYuNTcxIDU3LjcxNDNaIiBmaWxsPSIjMjU2M0VCIi8+CjxwYXRoIGQ9Ik01MzUuMTQzIDExMlY0OEg1ODEuNDI5VjU3LjcxNDNINTQ1Ljg1N1Y3NS40Mjg2SDU3OC41NzFWODUuMTQyOUg1NDUuODU3VjEwMi4yODZINTgxLjQyOVYxMTJINTM1LjE0M1oiIGZpbGw9IiMyNTYzRUIiLz4+IDxjaXJjbGUgY3g9IjU4NCIgY3k9IjgwIiByPSI0NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjU2M0VCIiBzdHJva2Utd2lkdGg9IjYiLz4KPGxpbmUgeDE9IjU2NCIgeTE9IjYwIiB4Mj0iNjA0IiB5Mj0iMTAwIiBzdHJva2U9IiMyNTYzRUIiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxsaW5lIHgxPSI1NjQiIHkxPSIxMDAiIHgyPSI2MDQiIHkyPSI2MCIgc3Ryb2tlPSIjMjU2M0VCIiBzdHJva2Utd2lkdGg9IjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8bGluZSB4MT0iNTU2IiB5MT0iMTA4IiB4Mj0iNTU2IiB5Mj0iMTQ0IiBzdHJva2U9IiMyNTYzRUIiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxsaW5lIHgxPSI1NjQiIHkxPSIxMTYiIHgyPSI1NzYiIHkyPSIxMzYiIHN0cm9rZT0iIzI1NjNFQiIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+"
-                  alt="FutureSEO Logo"
-                  className="h-8 w-auto"
-                />
-              </div>
+              <h1 className="text-xl font-bold text-gray-900" style={{fontFamily: 'Inter, sans-serif'}}>FutureSEO</h1>
               
               {/* Desktop Navigation */}
               <nav className="hidden md:flex space-x-4 lg:space-x-6">
@@ -1219,6 +1574,8 @@ const Dashboard = () => {
                   { id: 'competitors', name: 'Competitors', icon: '🏆' },
                   { id: 'queries', name: 'Queries', icon: '🔍' },
                   { id: 'recommendations', name: 'Recommendations', icon: '💡' },
+                  { id: 'source-domains', name: 'Source Domains', icon: '🌐' },
+                  { id: 'source-articles', name: 'Source Articles', icon: '📄' },
                   { id: 'brands', name: 'Brands', icon: '🎯' },
                   { id: 'plans', name: 'Plans', icon: '💳' },
                   { id: 'settings', name: 'Settings', icon: '⚙️' }
@@ -1275,6 +1632,8 @@ const Dashboard = () => {
                 { id: 'competitors', name: 'Competitors', icon: '🏆' },
                 { id: 'queries', name: 'Queries', icon: '🔍' },
                 { id: 'recommendations', name: 'Recommendations', icon: '💡' },
+                { id: 'source-domains', name: 'Source Domains', icon: '🌐' },
+                { id: 'source-articles', name: 'Source Articles', icon: '📄' },
                 { id: 'brands', name: 'Brands', icon: '🎯' },
                 { id: 'plans', name: 'Plans', icon: '💳' },
                 { id: 'settings', name: 'Settings', icon: '⚙️' }
@@ -1306,6 +1665,8 @@ const Dashboard = () => {
         {activeTab === 'competitors' && renderCompetitors()}
         {activeTab === 'queries' && renderQueries()}
         {activeTab === 'recommendations' && renderRecommendations()}
+        {activeTab === 'source-domains' && renderSourceDomains()}
+        {activeTab === 'source-articles' && renderSourceArticles()}
         {activeTab === 'brands' && renderBrands()}
         {activeTab === 'add-brand' && renderAddBrand()}
         {activeTab === 'plans' && <PlansPage backendUrl={backendUrl} user={user} token={token} />}
