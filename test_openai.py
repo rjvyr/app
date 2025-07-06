@@ -10,15 +10,31 @@ print(f"OPENAI_API_KEY: {os.environ.get('OPENAI_API_KEY')}")
 
 # Try to import OpenAI
 try:
-    from openai import OpenAI
+    import openai
     print("OpenAI package imported successfully")
+    print(f"OpenAI version: {openai.__version__}")
     
-    # Try to create a client
-    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-    print("OpenAI client created successfully")
+    # Set API key
+    openai.api_key = os.environ.get("OPENAI_API_KEY")
+    print("OpenAI API key set successfully")
     
-    # Try to make a simple API call
+    # Try to make a simple API call using the older client
     try:
+        from openai import OpenAI
+        
+        # Create a custom HTTP client to avoid proxy issues
+        import httpx
+        http_client = httpx.Client(
+            timeout=30.0,
+            limits=httpx.Limits(max_keepalive_connections=20, max_connections=100)
+        )
+        
+        # Create a new client with the custom HTTP client
+        client = OpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY"),
+            http_client=http_client
+        )
+        
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -38,10 +54,7 @@ except ImportError as e:
 try:
     import httpx
     print("httpx package imported successfully")
-    
-    # Try to create a client
-    client = httpx.Client(timeout=10.0)
-    print("httpx client created successfully")
+    print(f"httpx version: {httpx.__version__}")
     
 except ImportError as e:
     print(f"Failed to import httpx: {e}")
