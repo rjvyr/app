@@ -999,6 +999,106 @@ async def get_scan_results(brand_id: str, current_user: dict = Depends(get_curre
     
     return {"scans": scans}
 
+@app.get("/api/source-domains")
+async def get_source_domains(brand_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    """Get source domains analysis - which domains mention your brand most"""
+    try:
+        # Filter scans by brand if brand_id is provided
+        scan_filter = {"user_id": current_user["_id"]}
+        if brand_id:
+            scan_filter["brand_id"] = brand_id
+        
+        # Get scan results
+        all_scans = await db.scans.find(scan_filter).to_list(length=1000)
+        
+        # Mock source domains data for now (will enhance with real analysis later)
+        mock_domains = [
+            {"domain": "shopify.com", "category": "Business", "impact": 92, "trend": "Compiling", "pages": 92},
+            {"domain": "reddit.com", "category": "Social media", "impact": 52, "trend": "Compiling", "pages": 15},
+            {"domain": "wholesalehelpe...", "category": "Business", "impact": 24, "trend": "Compiling", "pages": 5},
+            {"domain": "wizzcommerce...", "category": "Business", "impact": 24, "trend": "Compiling", "pages": 4},
+            {"domain": "sparklayer.io", "category": "Business", "impact": 20, "trend": "Compiling", "pages": 2},
+            {"domain": "heyamplify.com", "category": "Business", "impact": 16, "trend": "Compiling", "pages": 1},
+            {"domain": "bsscommerce....", "category": "Business", "impact": 16, "trend": "Compiling", "pages": 2},
+            {"domain": "novochat.co", "category": "Business", "impact": 16, "trend": "Compiling", "pages": 1},
+            {"domain": "bogos.io", "category": "Other", "impact": 16, "trend": "Compiling", "pages": 3},
+            {"domain": "gempages.net", "category": "Business", "impact": 16, "trend": "Compiling", "pages": 2}
+        ]
+        
+        # Filter based on brand_id if provided (for demo, reduce some results)
+        if brand_id:
+            # Filter to show realistic brand-specific data
+            mock_domains = mock_domains[:6]  # Fewer results for specific brand
+        
+        return {
+            "domains": mock_domains,
+            "total": len(mock_domains)
+        }
+        
+    except Exception as e:
+        print(f"Error fetching source domains: {e}")
+        return {"domains": [], "total": 0}
+
+@app.get("/api/source-articles")
+async def get_source_articles(brand_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    """Get source articles analysis - which specific articles mention your brand"""
+    try:
+        # Filter scans by brand if brand_id is provided
+        scan_filter = {"user_id": current_user["_id"]}
+        if brand_id:
+            scan_filter["brand_id"] = brand_id
+        
+        # Get scan results
+        all_scans = await db.scans.find(scan_filter).to_list(length=1000)
+        
+        # Mock source articles data for now (will enhance with real analysis later)
+        mock_articles = [
+            {
+                "url": "https://apps.shopify.com/categories/finding-products-sourcing-options-wholesale/all",
+                "title": "Wholesale Solutions for Shopify - Product Sourcing Options",
+                "impact": 20.0,
+                "queries": 5
+            },
+            {
+                "url": "https://apps.shopify.com/b2b-solution-custom-pricing",
+                "title": "B2B Solution - Custom Pricing for Wholesale",
+                "impact": 16.0,
+                "queries": 4
+            },
+            {
+                "url": "https://heyamplify.com/blog/top-shopify-apps-for-b2b-stores-boosting",
+                "title": "Top Shopify Apps for B2B Stores - Business Growth",
+                "impact": 14.0,
+                "queries": 3
+            },
+            {
+                "url": "https://www.reddit.com/r/shopify/comments/wholesale-pricing-apps",
+                "title": "Best Wholesale Pricing Apps for Shopify Discussion",
+                "impact": 12.0,
+                "queries": 3
+            },
+            {
+                "url": "https://sparklayer.io/blog/wholesale-vs-retail-pricing-strategies",
+                "title": "Wholesale vs Retail Pricing Strategies Guide",
+                "impact": 10.0,
+                "queries": 2
+            }
+        ]
+        
+        # Filter based on brand_id if provided
+        if brand_id:
+            # Filter to show realistic brand-specific data
+            mock_articles = mock_articles[:4]  # Fewer results for specific brand
+        
+        return {
+            "articles": mock_articles,
+            "total": len(mock_articles)
+        }
+        
+    except Exception as e:
+        print(f"Error fetching source articles: {e}")
+        return {"articles": [], "total": 0}
+
 @app.get("/api/tracking/weekly")
 async def get_weekly_tracking(brand_id: Optional[str] = None, weeks: int = 8, current_user: dict = Depends(get_current_user)):
     """Get week-over-week performance tracking data"""
