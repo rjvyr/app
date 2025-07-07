@@ -175,65 +175,141 @@ def calculate_competitive_score(insights_text: str, brand_name: str) -> int:
     
     return max(0, min(100, base_score + score_adjustment))
 
-async def generate_content_opportunities(brand_name: str, industry: str, keywords: List[str], competitors: List[str], scan_results: List[Dict]) -> Dict[str, Any]:
+def parse_content_brief(brief_text: str) -> Dict[str, Any]:
+    """Parse structured content brief from GPT response"""
+    brief = {
+        "content_type": "",
+        "key_angles": [],
+        "competitor_comparison": [],
+        "unique_value_props": [],
+        "target_keywords": [],
+        "content_structure": [],
+        "call_to_action": ""
+    }
+    
     try:
-        # Calculate basic metrics
-        total_queries = len(scan_results)
-        mentioned_queries = sum(1 for result in scan_results if result.get("brand_mentioned", False))
+        lines = brief_text.split('\n')
+        current_section = None
         
-        # Find gaps and opportunities
-        missed_opportunities = [result for result in scan_results if not result.get("brand_mentioned", False)]
-        competitor_wins = []
+        for line in lines:
+            line = line.strip()
+            if 'CONTENT_TYPE:' in line:
+                brief["content_type"] = line.split(':', 1)[1].strip()
+            elif 'KEY_ANGLES:' in line:
+                current_section = 'key_angles'
+            elif 'COMPETITOR_COMPARISON:' in line:
+                current_section = 'competitor_comparison'
+            elif 'UNIQUE_VALUE_PROPS:' in line:
+                current_section = 'unique_value_props'
+            elif 'TARGET_KEYWORDS:' in line:
+                current_section = 'target_keywords'
+            elif 'CONTENT_STRUCTURE:' in line:
+                current_section = 'content_structure'
+            elif 'CALL_TO_ACTION:' in line:
+                brief["call_to_action"] = line.split(':', 1)[1].strip()
+                current_section = None
+            elif line.startswith('•') or line.startswith('-') or line.startswith('*'):
+                if current_section:
+                    clean_line = line.lstrip('•-* ').strip()
+                    brief[current_section].append(clean_line)
         
-        for result in missed_opportunities:
-            for competitor in result.get("competitors_mentioned", []):
-                competitor_wins.append({
-                    "query": result["query"],
-                    "competitor": competitor,
-                    "user_position": None,
-                    "competitor_mentioned": True
-                })
+        return brief
         
-        # Generate content suggestions
-        content_opportunities = []
-        for i, opportunity in enumerate(missed_opportunities[:5]):  # Top 5 opportunities
-            content_opportunities.append({
-                "id": f"opp_{i}",
-                "query": opportunity["query"],
-                "priority": "High" if i < 2 else "Medium",
-                "impact": f"+{15 + i * 3}% visibility",
-                "time_estimate": f"{2 + i} weeks",
-                "current_response": opportunity.get("response", "")[:200] + "...",
-                "content_suggestions": [
-                    f"Create comprehensive guide addressing '{opportunity['query']}'",
-                    f"Develop case studies showcasing {brand_name} solutions",
-                    "Optimize existing content with relevant keywords"
-                ]
-            })
+    except Exception as e:
+        print(f"Error parsing content brief: {e}")
+        return brief
+
+def estimate_content_effort(parsed_brief: Dict[str, Any]) -> str:
+    """Estimate effort required for content creation"""
+    content_type = parsed_brief.get("content_type", "").lower()
+    structure_points = len(parsed_brief.get("content_structure", []))
+    
+    if "tutorial" in content_type or "guide" in content_type or structure_points > 5:
+        return "High (2-3 weeks)"
+    elif "comparison" in content_type or structure_points > 3:
+        return "Medium (1-2 weeks)"
+    else:
+        return "Low (3-5 days)"
+
+def estimate_content_impact(query: str, brand_name: str, competitors: List[str]) -> str:
+    """Estimate potential impact of content"""
+    query_words = len(query.split())
+    is_comparison = any(comp.lower() in query.lower() for comp in competitors)
+    
+    if is_comparison:
+        return "High - Direct competitor comparison"
+    elif query_words > 6:
+        return "Medium - Long-tail opportunity"
+    else:
+        return "Low - Broad competition"
+
+async def generate_content_brief_with_gpt(query: str, brand_name: str, industry: str, competitors: List[str], gpt_response: str) -> Dict[str, Any]:
+    """Generate actionable content brief using GPT for specific query"""
+    try:
+        if not openai or not os.environ.get("OPENAI_API_KEY"):
+            return {"error": "OpenAI not available"}
+        
+        # Create custom HTTP client
+        http_client = httpx.AsyncClient(
+            timeout=30.0,
+            limits=httpx.Limits(max_keepalive_connections=20, max_connections=100)
+        )
+        
+        client = openai.AsyncOpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY"),
+            http_client=http_client
+        )
+        
+        # Content brief generation prompt
+        brief_prompt = f"""Based on this search query and current AI response, create a focused content brief for {brand_name}.
+
+QUERY: "{query}"
+CURRENT AI RESPONSE: "{gpt_response[:500]}..."
+
+Create a specific, actionable content brief that would help {brand_name} rank better for this query.
+
+INCLUDE:
+1. CONTENT_TYPE: What type of content to create (guide, comparison, tutorial, etc.)
+2. KEY_ANGLES: Specific angles to emphasize about {brand_name}
+3. COMPETITOR_COMPARISON: Which competitors to compare against and why
+4. UNIQUE_VALUE_PROPS: What makes {brand_name} different to highlight
+5. TARGET_KEYWORDS: Specific keywords to include
+6. CONTENT_STRUCTURE: Suggested outline/structure
+7. CALL_TO_ACTION: How to drive action toward {brand_name}
+
+Be specific and actionable. No generic advice.
+
+Context: {brand_name} is in {industry} industry, competing with {', '.join(competitors[:3])}"""
+
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a content strategist creating specific, actionable content briefs."},
+                {"role": "user", "content": brief_prompt}
+            ],
+            max_tokens=600,
+            temperature=0.4
+        )
+        
+        content_brief = response.choices[0].message.content
+        
+        # Parse the brief into structured format
+        parsed_brief = parse_content_brief(content_brief)
+        
+        await http_client.aclose()
         
         return {
-            "total_opportunities": len(missed_opportunities),
-            "content_opportunities": content_opportunities,
-            "visibility_gap_analysis": {
-                "current_visibility": (mentioned_queries / total_queries) * 100 if total_queries > 0 else 0,
-                "potential_visibility": min(85, ((mentioned_queries + len(missed_opportunities) * 0.7) / total_queries) * 100) if total_queries > 0 else 0,
-                "gap_percentage": min(25, (len(missed_opportunities) / total_queries) * 100) if total_queries > 0 else 0,
-                "total_opportunities": len(missed_opportunities)
-            },
-            "competitor_analysis": {
-                "top_competing_brands": list(set([win["competitor"] for win in competitor_wins]))[:5],
-                "competitive_gaps": len(competitor_wins)
-            }
+            "query": query,
+            "content_brief": content_brief,
+            "structured_brief": parsed_brief,
+            "estimated_effort": estimate_content_effort(parsed_brief),
+            "expected_impact": estimate_content_impact(query, brand_name, competitors),
+            "generated_at": datetime.utcnow()
         }
         
     except Exception as e:
-        print(f"Error generating content opportunities: {e}")
-        return {
-            "total_opportunities": 0,
-            "content_opportunities": [],
-            "visibility_gap_analysis": {"gap_percentage": 0, "total_opportunities": 0},
-            "competitor_analysis": {"top_competing_brands": [], "competitive_gaps": 0}
-        }
+        print(f"Error generating content brief: {e}")
+        return {"error": str(e)}
 
 # Try to import OpenAI, fallback if not available
 try:
