@@ -898,15 +898,9 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
     await db.scan_progress.insert_one(progress_data)
     
     try:
-        # Generate queries based on scan type
-        if scan_request.scan_type == "quick":
-            queries = await generate_realistic_queries_with_gpt(brand["name"], brand["industry"], brand.get("keywords", []), brand.get("competitors", []), 5)
-        elif scan_request.scan_type == "standard":
-            queries = await generate_realistic_queries_with_gpt(brand["name"], brand["industry"], brand.get("keywords", []), brand.get("competitors", []), 25)
-        elif scan_request.scan_type == "deep":
-            queries = await generate_realistic_queries_with_gpt(brand["name"], brand["industry"], brand.get("keywords", []), brand.get("competitors", []), 50)
-        else:  # competitor
-            queries = await generate_realistic_queries_with_gpt(brand["name"], brand["industry"], brand.get("keywords", []), brand.get("competitors", []), 10)
+        # Generate queries based on scan type  
+        query_count = scans_cost
+        queries = await generate_realistic_queries_with_gpt(brand["name"], brand["industry"], brand.get("keywords", []), brand.get("competitors", []))
 
         # Process queries with progress updates
         scan_results = []
