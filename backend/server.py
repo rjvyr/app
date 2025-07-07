@@ -899,8 +899,9 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
     
     try:
         # Generate queries based on scan type  
-        query_count = scans_cost
-        queries = await generate_realistic_queries_with_gpt(brand["name"], brand["industry"], brand.get("keywords", []), brand.get("competitors", []))
+        all_queries = await generate_realistic_queries_with_gpt(brand["name"], brand["industry"], brand.get("keywords", []), brand.get("competitors", []))
+        # Limit queries to scan cost amount
+        queries = all_queries[:scans_cost]
 
         # Process queries with progress updates
         scan_results = []
