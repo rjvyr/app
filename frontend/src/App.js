@@ -430,36 +430,52 @@ const Dashboard = () => {
   };
 
   const fetchAllRealData = async () => {
+    setLoading(true);
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       
-      const [dashResponse, compResponse, queryResponse, recResponse, brandsResponse, weeklyResponse] = await Promise.all([
+      const [dashData, compData, queryData, recData, sourceDomainsData, sourceArticlesData] = await Promise.all([
         fetch(`${backendUrl}/api/dashboard/real`, { headers }),
         fetch(`${backendUrl}/api/competitors/real`, { headers }),
         fetch(`${backendUrl}/api/queries/real`, { headers }),
         fetch(`${backendUrl}/api/recommendations/real`, { headers }),
-        fetch(`${backendUrl}/api/brands`, { headers }),
-        fetch(`${backendUrl}/api/tracking/weekly?weeks=8`, { headers })
+        fetch(`${backendUrl}/api/source-domains`, { headers }),
+        fetch(`${backendUrl}/api/source-articles`, { headers })
       ]);
 
-      const [dashData, compData, queryData, recData, brandsData, weeklyData] = await Promise.all([
-        dashResponse.json(),
-        compResponse.json(),
-        queryResponse.json(),
-        recResponse.json(),
-        brandsResponse.json(),
-        weeklyResponse.json()
-      ]);
-
-      setDashboardData(dashData);
-      setCompetitorData(compData);
-      setQueriesData(queryData);
-      setRecommendationsData(recData);
-      setBrands(brandsData.brands);
-      setWeeklyTrackingData(weeklyData);
+      if (dashData.ok) {
+        const data = await dashData.json();
+        setDashboardData(data);
+      }
       
-      // Fetch source data
-      await fetchSourceData(headers);
+      if (compData.ok) {
+        const data = await compData.json();
+        setCompetitorData(data);
+      }
+      
+      if (queryData.ok) {
+        const data = await queryData.json();
+        setQueriesData(data);
+      }
+      
+      if (recData.ok) {
+        const data = await recData.json();
+        setRecommendationsData(data);
+      }
+      
+      if (sourceDomainsData.ok) {
+        const data = await sourceDomainsData.json();
+        setSourceDomainsData(data);
+      }
+      
+      if (sourceArticlesData.ok) {
+        const data = await sourceArticlesData.json();
+        setSourceArticlesData(data);
+      }
+      
+      // Fetch historical data for growth tracking
+      await fetchHistoricalData();
+      
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
