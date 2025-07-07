@@ -1771,6 +1771,65 @@ const Dashboard = () => {
     </div>
   );
 
+  const renderScanModal = () => {
+    if (!scanLoading) return null;
+
+    const progressPercentage = totalQueries > 0 ? (scanProgress / totalQueries) * 100 : 0;
+    const timeRemaining = totalQueries > 0 ? Math.ceil((totalQueries - scanProgress) * 3) : 0; // 3 seconds per query estimate
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+        <div className="bg-white p-8 rounded-2xl max-w-lg w-full mx-4 shadow-2xl">
+          <div className="text-center">
+            {/* Animated Icon */}
+            <div className="text-6xl mb-6 animate-pulse">🚀</div>
+            
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              AI Visibility Scan in Progress
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Analyzing your brand across AI platforms...
+            </p>
+            
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500 ease-out"
+                style={{width: `${progressPercentage}%`}}
+              ></div>
+            </div>
+            
+            {/* Progress Stats */}
+            <div className="flex justify-between text-sm text-gray-600 mb-6">
+              <span>{scanProgress} of {totalQueries} queries completed</span>
+              <span>{Math.round(progressPercentage)}% complete</span>
+            </div>
+            
+            {/* Current Query */}
+            {scanCurrentQuery && (
+              <div className="bg-blue-50 p-4 rounded-lg mb-6">
+                <div className="text-sm font-medium text-blue-900 mb-1">Currently analyzing:</div>
+                <div className="text-sm text-blue-700 italic">"{scanCurrentQuery}"</div>
+              </div>
+            )}
+            
+            {/* Time Estimate */}
+            <div className="text-sm text-gray-500">
+              ⏱️ Estimated time remaining: {timeRemaining > 60 ? `${Math.ceil(timeRemaining/60)} minutes` : `${timeRemaining} seconds`}
+            </div>
+            
+            {/* Warning */}
+            <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="text-xs text-yellow-800">
+                Please don't close this window. Scan will complete automatically.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderScanPopup = () => {
     if (!showScanPopup || !newBrandForScan) return null;
 
