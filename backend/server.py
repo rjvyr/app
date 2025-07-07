@@ -943,7 +943,7 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
         raise HTTPException(status_code=404, detail="Brand not found")
     
     # Create scan progress tracking
-    scan_id = str(uuid.uuid4())
+    scan_id = str(uuid4())
     progress_data = {
         "_id": scan_id,
         "user_id": current_user["_id"],
