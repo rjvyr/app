@@ -1242,6 +1242,101 @@ async def get_scan_results(brand_id: str, current_user: dict = Depends(get_curre
     
     return {"scans": scans}
 
+@app.get("/api/historical-data")
+async def get_historical_data(brand_id: str = None, current_user: dict = Depends(get_current_user)):
+    """Get historical scan data for growth tracking"""
+    try:
+        # Build filter
+        scan_filter = {"user_id": current_user["_id"]}
+        if brand_id:
+            scan_filter["brand_id"] = brand_id
+        
+        # Get scans from last 8 weeks, sorted by date
+        from datetime import timedelta
+        eight_weeks_ago = datetime.utcnow() - timedelta(weeks=8)
+        scan_filter["timestamp"] = {"$gte": eight_weeks_ago}
+        
+        scans = await db.scans.find(scan_filter).sort("timestamp", 1).to_list(length=1000)
+        
+        if not scans:
+            return {
+                "historical_data": [],
+                "has_data": False,
+                "message": "No historical data available. Run more scans to see growth trends."
+            }
+        
+        # Group scans by week
+        weekly_data = {}
+        for scan in scans:
+            # Get week number from timestamp
+            week_start = scan["timestamp"] - timedelta(days=scan["timestamp"].weekday())
+            week_key = week_start.strftime("%Y-W%U")
+            
+            if week_key not in weekly_data:
+                weekly_data[week_key] = {
+                    "week_start": week_start,
+                    "scans": [],
+                    "total_visibility": 0,
+                    "total_mentions": 0,
+                    "total_queries": 0
+                }
+            
+            weekly_data[week_key]["scans"].append(scan)
+            weekly_data[week_key]["total_visibility"] += scan.get("visibility_score", 0)
+            weekly_data[week_key]["total_mentions"] += scan.get("mentioned_queries", 0)
+            weekly_data[week_key]["total_queries"] += len(scan.get("results", []))
+        
+        # Calculate weekly averages and format for chart
+        historical_data = []
+        for week_key in sorted(weekly_data.keys()):
+            week_info = weekly_data[week_key]
+            num_scans = len(week_info["scans"])
+            
+            avg_visibility = week_info["total_visibility"] / num_scans if num_scans > 0 else 0
+            avg_mentions = week_info["total_mentions"] / num_scans if num_scans > 0 else 0
+            
+            historical_data.append({
+                "week": week_info["week_start"].strftime("Week %U"),
+                "week_date": week_info["week_start"].strftime("%Y-%m-%d"),
+                "visibility_score": round(avg_visibility, 1),
+                "mentions": round(avg_mentions, 1),
+                "total_queries": week_info["total_queries"],
+                "scans_count": num_scans
+            })
+        
+        # Calculate week-over-week changes
+        for i in range(1, len(historical_data)):
+            prev_week = historical_data[i-1]
+            current_week = historical_data[i]
+            
+            if prev_week["visibility_score"] > 0:
+                change = ((current_week["visibility_score"] - prev_week["visibility_score"]) / prev_week["visibility_score"]) * 100
+                current_week["week_over_week_change"] = round(change, 1)
+            else:
+                current_week["week_over_week_change"] = 0
+        
+        # Get current metrics for comparison
+        latest_week = historical_data[-1] if historical_data else None
+        current_visibility = latest_week["visibility_score"] if latest_week else 0
+        current_change = latest_week.get("week_over_week_change", 0) if latest_week else 0
+        
+        return {
+            "historical_data": historical_data,
+            "has_data": True,
+            "current_visibility": current_visibility,
+            "week_over_week_change": current_change,
+            "total_weeks": len(historical_data),
+            "total_scans": sum(week["scans_count"] for week in historical_data)
+        }
+        
+    except Exception as e:
+        print(f"Error fetching historical data: {e}")
+        return {
+            "historical_data": [],
+            "has_data": False,
+            "message": "Error loading historical data"
+        }
+
 @app.get("/api/source-domains")
 async def get_source_domains(brand_id: Optional[str] = None, page: int = 1, limit: int = 5, current_user: dict = Depends(get_current_user)):
     """Get source domains analysis - which domains mention your brand most"""
