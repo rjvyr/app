@@ -362,6 +362,16 @@ const Dashboard = () => {
     }
   }, [brands, selectedBrandId]);
 
+  // Load initial data including brands
+  useEffect(() => {
+    if (user && token) {
+      Promise.all([
+        fetchBrands(),
+        fetchAllRealData()
+      ]);
+    }
+  }, [user, token]);
+
   // Fetch brand-specific data when selected brand changes
   useEffect(() => {
     if (selectedBrandId && brands.length > 0) {
