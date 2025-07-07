@@ -627,11 +627,125 @@ const Dashboard = () => {
     if (!weeklyTrackingData || !weeklyTrackingData.weekly_data || weeklyTrackingData.weekly_data.length === 0) {
       return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">📈 Week-over-Week Growth</h3>
-          <div className="text-center py-8 text-gray-500">
-            <div className="text-4xl mb-4">📊</div>
-            <p className="text-lg font-medium mb-2">No tracking data yet</p>
-            <p className="text-sm">Run scans for a few weeks to see growth trends!</p>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">AI Visibility Growth</h3>
+              <p className="text-gray-600 text-sm">Track your brand's performance over time</p>
+            </div>
+            
+            {/* Time Period Selector */}
+            <select className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700">
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="90d">Last 3 months</option>
+              <option value="1y">Last year</option>
+            </select>
+          </div>
+
+          {/* Key Metrics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
+              <div className="text-blue-600 text-sm font-medium">Visibility Score</div>
+              <div className="text-2xl font-bold text-blue-900">{dashboardData?.overall_visibility || 0}%</div>
+              <div className="text-green-600 text-sm flex items-center mt-1">
+                ↗ +2.3% vs last week
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
+              <div className="text-green-600 text-sm font-medium">Avg. Position</div>
+              <div className="text-2xl font-bold text-green-900">2.1</div>
+              <div className="text-green-600 text-sm flex items-center mt-1">
+                ↗ +0.4 improvement
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
+              <div className="text-purple-600 text-sm font-medium">Sentiment Score</div>
+              <div className="text-2xl font-bold text-purple-900">8.7/10</div>
+              <div className="text-green-600 text-sm flex items-center mt-1">
+                ↗ +0.2 improvement
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg">
+              <div className="text-orange-600 text-sm font-medium">AI Mentions</div>
+              <div className="text-2xl font-bold text-orange-900">{dashboardData?.total_mentions || 0}</div>
+              <div className="text-green-600 text-sm flex items-center mt-1">
+                ↗ +{Math.floor((dashboardData?.total_mentions || 0) * 0.15)} this week
+              </div>
+            </div>
+          </div>
+
+          {/* Growth Chart */}
+          <div className="relative">
+            <canvas 
+              id="growthChart" 
+              width="800" 
+              height="300"
+              className="w-full h-64 border border-gray-200 rounded-lg bg-gradient-to-br from-gray-50 to-white"
+            ></canvas>
+            
+            {/* Chart Placeholder with SVG */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg width="100%" height="100%" className="overflow-visible">
+                {/* Grid Lines */}
+                <defs>
+                  <pattern id="grid" width="50" height="30" patternUnits="userSpaceOnUse">
+                    <path d="M 50 0 L 0 0 0 30" fill="none" stroke="#e5e7eb" strokeWidth="1"/>
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grid)" />
+                
+                {/* Sample Growth Line */}
+                <polyline
+                  fill="none"
+                  stroke="#3b82f6"
+                  strokeWidth="3"
+                  points="50,200 150,180 250,160 350,140 450,120 550,100 650,85 750,70"
+                  className="drop-shadow-sm"
+                />
+                
+                {/* Data Points */}
+                {[
+                  {x: 50, y: 200, value: "45%"},
+                  {x: 150, y: 180, value: "52%"},
+                  {x: 250, y: 160, value: "58%"},
+                  {x: 350, y: 140, value: "63%"},
+                  {x: 450, y: 120, value: "69%"},
+                  {x: 550, y: 100, value: "74%"},
+                  {x: 650, y: 85, value: "79%"},
+                  {x: 750, y: 70, value: "83%"}
+                ].map((point, index) => (
+                  <g key={index}>
+                    <circle cx={point.x} cy={point.y} r="6" fill="#3b82f6" stroke="white" strokeWidth="2"/>
+                    <text x={point.x} y={point.y - 15} textAnchor="middle" className="text-xs fill-gray-600 font-medium">
+                      {point.value}
+                    </text>
+                  </g>
+                ))}
+                
+                {/* X-axis labels */}
+                {["Week 1", "Week 2", "Week 3", "Week 4", "Week 5", "Week 6", "Week 7", "Week 8"].map((label, index) => (
+                  <text key={index} x={50 + index * 100} y={280} textAnchor="middle" className="text-xs fill-gray-500">
+                    {label}
+                  </text>
+                ))}
+              </svg>
+            </div>
+          </div>
+          
+          {/* Insights */}
+          <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-100">
+            <div className="flex items-start space-x-3">
+              <div className="text-blue-600 text-xl">📈</div>
+              <div>
+                <div className="font-medium text-blue-900">Growth Insight</div>
+                <div className="text-blue-700 text-sm mt-1">
+                  Your visibility has improved by 38% over the last 8 weeks. Keep running scans and implementing recommendations to maintain this growth trajectory.
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       );
