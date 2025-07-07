@@ -653,7 +653,7 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
               <div className="text-blue-600 text-sm font-medium">Visibility Score</div>
-              <div className="text-2xl font-bold text-blue-900">{dashboardData?.overall_visibility || 0}%</div>
+              <div className="text-2xl font-bold text-blue-900">{Math.round(dashboardData?.overall_visibility || 0)}%</div>
               <div className="text-green-600 text-sm flex items-center mt-1">
                 ↗ +2.3% vs last week
               </div>
