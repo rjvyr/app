@@ -1162,7 +1162,7 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
         await db.source_articles.insert_one(article_data)
     
     # Save scan results
-    scan_id = str(uuid.uuid4())
+    scan_id = str(uuid4())
     scan_data = {
         "_id": scan_id,
         "user_id": current_user["_id"],
