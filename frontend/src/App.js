@@ -834,10 +834,9 @@ const Dashboard = () => {
           
           {/* Time Period Selector */}
           <select className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700">
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="90d">Last 3 months</option>
-            <option value="1y">Last year</option>
+            <option value="8w">Last 8 weeks</option>
+            <option value="12w">Last 12 weeks</option>
+            <option value="6m">Last 6 months</option>
           </select>
         </div>
 
