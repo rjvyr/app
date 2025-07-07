@@ -823,7 +823,7 @@ async def create_brand(brand: BrandCreate, current_user: dict = Depends(get_curr
     
     await db.brands.insert_one(brand_data)
     
-    return {"message": "Brand created successfully", "brand_id": brand_id}
+    return {"message": "Brand created successfully", "brand_id": brand_id, "brand": brand_data}
 
 @app.get("/api/brands")
 async def get_brands(current_user: dict = Depends(get_current_user)):
