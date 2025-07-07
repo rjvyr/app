@@ -1317,7 +1317,7 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
         # Limit queries to scan cost amount
         queries = all_queries[:scans_cost]
 
-        # Process queries with progress updates
+        # Process queries with progress updates and REAL GPT analysis
         scan_results = []
         for i, query in enumerate(queries):
             # Update progress
@@ -1340,7 +1340,7 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
             )
             scan_results.append(result)
         
-        # Complete scan
+        # Complete scan progress
         await db.scan_progress.update_one(
             {"_id": scan_id},
             {"$set": {
