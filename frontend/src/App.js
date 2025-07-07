@@ -343,6 +343,9 @@ const Dashboard = () => {
   const [historicalData, setHistoricalData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scanLoading, setScanLoading] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
+  const [scanCurrentQuery, setScanCurrentQuery] = useState('');
+  const [totalQueries, setTotalQueries] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [weeklyTrackingData, setWeeklyTrackingData] = useState(null);
   const [sourceDomainsData, setSourceDomainsData] = useState(null);
