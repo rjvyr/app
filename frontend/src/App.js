@@ -413,6 +413,22 @@ const Dashboard = () => {
     }
   };
 
+  const fetchHistoricalData = async (brandId = null) => {
+    try {
+      const headers = { 'Authorization': `Bearer ${token}` };
+      const brandParam = brandId ? `?brand_id=${brandId}` : '';
+      
+      const response = await fetch(`${backendUrl}/api/historical-data${brandParam}`, { headers });
+      if (response.ok) {
+        const data = await response.json();
+        setHistoricalData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching historical data:', error);
+      setHistoricalData({ has_data: false, historical_data: [] });
+    }
+  };
+
   const fetchAllRealData = async () => {
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
