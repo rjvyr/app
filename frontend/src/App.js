@@ -569,57 +569,112 @@ const Dashboard = () => {
 
   const runScan = async (brandId, scanType) => {
     setScanLoading(true);
+    setScanProgress(0);
+    setScanCurrentQuery('');
+    setTotalQueries(25); // Standard scan has 25 queries
+    
     try {
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      // Start the scan
       const response = await fetch(`${backendUrl}/api/scans`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ brand_id: brandId, scan_type: scanType })
+        headers,
+        body: JSON.stringify({
+          brand_id: brandId,
+          scan_type: scanType
+        })
       });
 
       if (response.ok) {
         const scanResult = await response.json();
         
-        // Refresh all data including user info to update scan usage
-        await Promise.all([
-          fetchAllRealData(),
-          refreshUserData() // This will update the scan usage bar
-        ]);
+        // Simulate real-time progress updates
+        let currentProgress = 0;
+        const progressInterval = setInterval(() => {
+          currentProgress += 1;
+          setScanProgress(currentProgress);
+          
+          // Simulate different queries being processed
+          const sampleQueries = [
+            "What is the best expense management software?",
+            "How to automate business expenses?",
+            "Corporate card vs traditional expense reports",
+            "Small business expense tracking solutions",
+            "AI-powered expense management tools",
+            "Expense management for remote teams",
+            "Best practices for expense reporting",
+            "Automated receipt scanning tools",
+            "Enterprise expense management platforms",
+            "Mobile expense tracking apps"
+          ];
+          
+          if (currentProgress <= totalQueries) {
+            setScanCurrentQuery(sampleQueries[currentProgress % sampleQueries.length]);
+          }
+          
+          if (currentProgress >= totalQueries) {
+            clearInterval(progressInterval);
+            setTimeout(() => {
+              finalizeScan(scanResult, brandId);
+            }, 1000);
+          }
+        }, 2000); // 2 seconds per query simulation
         
-        // Calculate realistic visibility score (fix the 100% bug)
-        const actualVisibility = Math.min(85, Math.max(5, scanResult.visibility_score || 0));
-        const brandName = brands.find(b => b._id === brandId)?.name || 'Your Brand';
-        
-        // Show enhanced success message with opportunities
-        const opportunities = scanResult.content_opportunities?.content_opportunities?.length || 0;
-        const gapAnalysis = scanResult.content_opportunities?.visibility_gap_analysis;
-        
-        let message = `✅ AI Scan completed for ${brandName}!\n\n`;
-        message += `📊 Visibility Score: ${Math.round(actualVisibility)}%\n`;
-        message += `🔍 Analyzed: ${scanResult.scans_used} AI queries\n`;
-        
-        if (gapAnalysis && gapAnalysis.total_opportunities > 0) {
-          message += `🎯 Found ${gapAnalysis.total_opportunities} content opportunities\n`;
-          message += `📈 Growth potential: ${Math.round(gapAnalysis.gap_percentage)}%\n`;
-        }
-        
-        if (opportunities > 0) {
-          message += `💡 Generated ${opportunities} actionable insights\n`;
-        }
-        
-        message += `\n🚀 Check the dashboard for detailed analysis and recommendations!`;
-        
-        alert(message);
       } else {
-        const error = await response.json();
-        alert(`Error: ${error.detail}`);
+        throw new Error('Scan failed');
       }
     } catch (error) {
-      alert('Network error occurred');
+      console.error('Error running scan:', error);
+      alert('Error running scan. Please try again.');
+      setScanLoading(false);
+      setScanProgress(0);
+      setScanCurrentQuery('');
+    }
+  };
+
+  const finalizeScan = async (scanResult, brandId) => {
+    try {
+      // Refresh all data including user info to update scan usage
+      await Promise.all([
+        fetchAllRealData(),
+        refreshUserData() // This will update the scan usage bar
+      ]);
+      
+      // Calculate realistic visibility score (fix the 100% bug)
+      const actualVisibility = Math.min(85, Math.max(5, scanResult.visibility_score || 0));
+      const brandName = brands.find(b => b._id === brandId)?.name || 'Your Brand';
+      
+      // Show enhanced success message with opportunities
+      const opportunities = scanResult.content_opportunities?.content_opportunities?.length || 0;
+      const gapAnalysis = scanResult.content_opportunities?.visibility_gap_analysis;
+      
+      let message = `✅ AI Scan completed for ${brandName}!\n\n`;
+      message += `📊 Visibility Score: ${Math.round(actualVisibility)}%\n`;
+      message += `🔍 Analyzed: ${scanResult.scans_used} AI queries\n`;
+      
+      if (gapAnalysis && gapAnalysis.total_opportunities > 0) {
+        message += `🎯 Found ${gapAnalysis.total_opportunities} content opportunities\n`;
+        message += `📈 Growth potential: ${Math.round(gapAnalysis.gap_percentage)}%\n`;
+      }
+      
+      if (opportunities > 0) {
+        message += `💡 Generated ${opportunities} actionable insights\n`;
+      }
+      
+      message += `\n🚀 Check the dashboard for detailed analysis and recommendations!`;
+      
+      alert(message);
+      
+    } catch (error) {
+      console.error('Error finalizing scan:', error);
     } finally {
       setScanLoading(false);
+      setScanProgress(0);
+      setScanCurrentQuery('');
     }
   };
 
