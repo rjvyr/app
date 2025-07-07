@@ -340,6 +340,7 @@ const Dashboard = () => {
   const [editingCompetitors, setEditingCompetitors] = useState('');
   const [showScanPopup, setShowScanPopup] = useState(false);
   const [newBrandForScan, setNewBrandForScan] = useState(null);
+  const [historicalData, setHistoricalData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scanLoading, setScanLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
