@@ -1257,6 +1257,20 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Actionable Insight */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-100 mb-6">
+          <div className="flex items-start space-x-3">
+            <div className="text-blue-600 text-xl">💡</div>
+            <div>
+              <div className="font-medium text-blue-900">Backlink Opportunity</div>
+              <div className="text-blue-700 text-sm mt-1">
+                <strong>Pro Tip:</strong> Reach out to these high-influence publications to secure backlinks or guest posting opportunities. 
+                Getting featured in these articles can significantly boost your AI visibility and establish your brand as an industry authority.
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Articles Table - Simplified */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
