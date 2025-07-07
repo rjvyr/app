@@ -601,41 +601,40 @@ const Dashboard = () => {
 
       if (response.ok) {
         const scanResult = await response.json();
+        const scanId = scanResult.scan_id;
         
-        // Simulate real-time progress updates
-        let currentProgress = 0;
-        const progressInterval = setInterval(() => {
-          currentProgress += 1;
-          setScanProgress(currentProgress);
-          
-          // Simulate different queries being processed
-          const sampleQueries = [
-            "What is the best expense management software?",
-            "How to automate business expenses?",
-            "Corporate card vs traditional expense reports",
-            "Small business expense tracking solutions",
-            "AI-powered expense management tools",
-            "Expense management for remote teams",
-            "Best practices for expense reporting",
-            "Automated receipt scanning tools",
-            "Enterprise expense management platforms",
-            "Mobile expense tracking apps"
-          ];
-          
-          if (currentProgress <= totalQueries) {
-            setScanCurrentQuery(sampleQueries[currentProgress % sampleQueries.length]);
+        // Poll for real progress updates
+        const progressInterval = setInterval(async () => {
+          try {
+            const progressResponse = await fetch(`${backendUrl}/api/scans/${scanId}/progress`, { headers });
+            if (progressResponse.ok) {
+              const progressData = await progressResponse.json();
+              
+              setScanProgress(progressData.progress);
+              setTotalQueries(progressData.total_queries);
+              setScanCurrentQuery(progressData.current_query);
+              
+              // Check if scan is completed
+              if (progressData.status === 'completed') {
+                clearInterval(progressInterval);
+                setTimeout(() => {
+                  finalizeScan(scanResult, brandId);
+                }, 1000);
+              } else if (progressData.status === 'failed') {
+                clearInterval(progressInterval);
+                alert('Scan failed. Please try again.');
+                setScanLoading(false);
+                setScanProgress(0);
+                setScanCurrentQuery('');
+              }
+            }
+          } catch (error) {
+            console.error('Error checking progress:', error);
           }
-          
-          if (currentProgress >= totalQueries) {
-            clearInterval(progressInterval);
-            setTimeout(() => {
-              finalizeScan(scanResult, brandId);
-            }, 1000);
-          }
-        }, 2000); // 2 seconds per query simulation
+        }, 2000); // Check every 2 seconds
         
       } else {
-        throw new Error('Scan failed');
+        throw new Error('Scan failed to start');
       }
     } catch (error) {
       console.error('Error running scan:', error);
