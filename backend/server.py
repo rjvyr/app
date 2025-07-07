@@ -1172,14 +1172,25 @@ async def update_brand(brand_id: str, brand_update: BrandUpdate, current_user: d
 # Scanning endpoints
 @app.post("/api/scans")
 async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_current_user)):
+    # Get brand data
+    brand = await db.brands.find_one({"_id": scan_request.brand_id, "user_id": current_user["_id"]})
+    if not brand:
+        raise HTTPException(status_code=404, detail="Brand not found")
+    
+    # Check weekly scan limit
+    scan_limit_check = await check_weekly_scan_limit(current_user["_id"], scan_request.brand_id)
+    if not scan_limit_check["can_scan"]:
+        raise HTTPException(
+            status_code=429, 
+            detail=f"Brand can only be scanned once per week. Next scan available in {scan_limit_check['days_remaining']} days."
+        )
+    
     # Check if user has enough scans
     scans_needed = {"quick": 5, "standard": 25, "deep": 50, "competitor": 10}
     scans_cost = scans_needed.get(scan_request.scan_type, 25)
     
     if current_user.get("scans_used", 0) + scans_cost > current_user.get("scans_limit", 50):
         raise HTTPException(status_code=400, detail="Insufficient scans remaining")
-    
-    # Get brand data
     brand = await db.brands.find_one({"_id": scan_request.brand_id, "user_id": current_user["_id"]})
     if not brand:
         raise HTTPException(status_code=404, detail="Brand not found")
