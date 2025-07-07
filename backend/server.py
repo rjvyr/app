@@ -1797,6 +1797,29 @@ async def get_scan_results(brand_id: str, current_user: dict = Depends(get_curre
     
     return {"scans": scans}
 
+@app.get("/api/scans/{scan_id}/progress")
+async def get_scan_progress(scan_id: str, current_user: dict = Depends(get_current_user)):
+    """Get the progress of a running scan"""
+    # Find the scan progress
+    progress = await db.scan_progress.find_one(
+        {"_id": scan_id, "user_id": current_user["_id"]}
+    )
+    
+    if not progress:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    
+    # Return progress information
+    return {
+        "scan_id": progress["_id"],
+        "status": progress["status"],
+        "progress": progress["progress"],
+        "total_queries": progress["total_queries"],
+        "current_query": progress.get("current_query", ""),
+        "started_at": progress["started_at"],
+        "completed_at": progress.get("completed_at"),
+        "error": progress.get("error")
+    }
+
 @app.get("/api/historical-data")
 async def get_historical_data(brand_id: str = None, current_user: dict = Depends(get_current_user)):
     """Get historical scan data for growth tracking"""
