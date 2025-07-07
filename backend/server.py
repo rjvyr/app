@@ -975,6 +975,28 @@ def extract_enhanced_insights(response: str, brand_name: str, competitors: List[
         "use_cases": use_cases[:2]  # Top 2 use cases
     }
 
+async def check_weekly_scan_limit(user_id: str, brand_id: str) -> Dict[str, Any]:
+    """Check if a brand can be scanned based on weekly limit"""
+    # Get the brand's last scan
+    last_scan = await db.scans.find_one(
+        {"user_id": user_id, "brand_id": brand_id},
+        sort=[("created_at", -1)]
+    )
+    
+    if not last_scan:
+        return {"can_scan": True, "days_remaining": 0}
+    
+    # Calculate days since last scan
+    days_since_scan = (datetime.utcnow() - last_scan["created_at"]).days
+    
+    if days_since_scan >= 7:
+        return {"can_scan": True, "days_remaining": 0}
+    else:
+        return {
+            "can_scan": False,
+            "days_remaining": 7 - days_since_scan
+        }
+
 # Authentication endpoints
 @app.post("/api/auth/register")
 async def register(user: UserCreate, background_tasks: BackgroundTasks):
