@@ -873,6 +873,14 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
     scans_cost = scans_needed.get(scan_request.scan_type, 25)
     
     if current_user.get("scans_used", 0) + scans_cost > current_user.get("scans_limit", 50):
+        raise HTTPException(status_code=400, detail="Insufficient scans remaining")
+    
+    # Get brand data
+    brand = await db.brands.find_one({"_id": scan_request.brand_id, "user_id": current_user["_id"]})
+    if not brand:
+        raise HTTPException(status_code=404, detail="Brand not found")
+    
+    if current_user.get("scans_used", 0) + scans_cost > current_user.get("scans_limit", 50):
         raise HTTPException(status_code=400, detail="Not enough scans remaining")
     
     # Get brand
