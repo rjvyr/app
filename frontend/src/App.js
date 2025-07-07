@@ -1467,6 +1467,50 @@ const Dashboard = () => {
     </div>
   );
 
+  const renderScanPopup = () => {
+    if (!showScanPopup || !newBrandForScan) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-xl max-w-md w-full mx-4">
+          <div className="text-center">
+            <div className="text-4xl mb-4">🚀</div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Brand "{newBrandForScan.name}" Added Successfully!
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Would you like to run an AI visibility scan now to see how your brand performs?
+            </p>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowScanPopup(false);
+                  setNewBrandForScan(null);
+                  setSelectedBrandId(newBrandForScan._id);
+                  runScan(newBrandForScan._id, 'standard');
+                }}
+                className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                Yes, Run Scan Now!
+              </button>
+              <button
+                onClick={() => {
+                  setShowScanPopup(false);
+                  setNewBrandForScan(null);
+                  setSelectedBrandId(newBrandForScan._id);
+                }}
+                className="flex-1 bg-gray-300 text-gray-700 px-4 py-3 rounded-lg font-medium hover:bg-gray-400 transition-colors"
+              >
+                Maybe Later
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderBrandEditModal = () => {
     if (!editingBrand) return null;
 
