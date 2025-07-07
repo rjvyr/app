@@ -30,8 +30,152 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
 from mock_data import generate_mock_scan_result
 from source_extraction import extract_source_domains_from_response, extract_source_articles_from_response
 
+async def analyze_competitors_with_gpt(brand_name: str, industry: str, competitors: List[str], keywords: List[str]) -> Dict[str, Any]:
+    """Run real GPT competitor analysis queries"""
+    try:
+        if not openai or not os.environ.get("OPENAI_API_KEY"):
+            return {"error": "OpenAI not available", "competitors": []}
+        
+        competitor_insights = []
+        
+        for competitor in competitors[:3]:  # Analyze top 3 competitors
+            # Create custom HTTP client to avoid proxy issues
+            http_client = httpx.AsyncClient(
+                timeout=30.0,
+                limits=httpx.Limits(max_keepalive_connections=20, max_connections=100)
+            )
+            
+            client = openai.AsyncOpenAI(
+                api_key=os.environ.get("OPENAI_API_KEY"),
+                http_client=http_client
+            )
+            
+            # Real competitor comparison prompt
+            comparison_prompt = f"""Compare {brand_name} vs {competitor} for {industry} solutions.
+
+Provide a detailed, objective analysis covering:
+1. Which brand is mentioned more frequently in AI responses
+2. Specific strengths where each brand excels
+3. Actual user pain points each brand solves better
+4. Pricing and positioning differences
+5. Market perception and reputation
+
+Be specific and factual. Quote examples where possible.
+
+Context: Industry = {industry}, Key capabilities = {', '.join(keywords[:5]) if keywords else 'general business tools'}"""
+
+            response = await client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a market research analyst providing objective competitive analysis."},
+                    {"role": "user", "content": comparison_prompt}
+                ],
+                max_tokens=800,
+                temperature=0.3
+            )
+            
+            competitor_analysis = response.choices[0].message.content
+            
+            # Extract key insights with another GPT call
+            insights_prompt = f"""Based on this competitive analysis: "{competitor_analysis}"
+
+Extract structured insights:
+1. WHO_WINS: Which brand (${brand_name} or ${competitor}) appears stronger overall?
+2. USER_STRENGTHS: Specific areas where ${brand_name} excels
+3. COMPETITOR_STRENGTHS: Specific areas where ${competitor} excels  
+4. WINNING_QUERIES: Types of search queries where ${competitor} likely ranks better
+5. USER_OPPORTUNITIES: How ${brand_name} can improve vs this competitor
+
+Format as clear, actionable bullet points."""
+
+            insights_response = await client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a strategic analyst extracting actionable insights."},
+                    {"role": "user", "content": insights_prompt}
+                ],
+                max_tokens=500,
+                temperature=0.2
+            )
+            
+            structured_insights = insights_response.choices[0].message.content
+            
+            # Parse the insights
+            insights_data = parse_competitor_insights(structured_insights, brand_name, competitor)
+            
+            competitor_insights.append({
+                "competitor_name": competitor,
+                "full_analysis": competitor_analysis,
+                "structured_insights": insights_data,
+                "winning_queries": insights_data.get("winning_queries", []),
+                "user_opportunities": insights_data.get("user_opportunities", []),
+                "competitive_score": calculate_competitive_score(structured_insights, brand_name)
+            })
+            
+            await http_client.aclose()
+        
+        return {
+            "competitor_insights": competitor_insights,
+            "analysis_date": datetime.utcnow(),
+            "total_competitors_analyzed": len(competitor_insights)
+        }
+        
+    except Exception as e:
+        print(f"Error in competitor analysis: {e}")
+        return {"error": str(e), "competitor_insights": []}
+
+def parse_competitor_insights(insights_text: str, brand_name: str, competitor: str) -> Dict[str, Any]:
+    """Parse structured insights from GPT response"""
+    insights = {
+        "who_wins": "Unknown",
+        "user_strengths": [],
+        "competitor_strengths": [],
+        "winning_queries": [],
+        "user_opportunities": []
+    }
+    
+    try:
+        lines = insights_text.split('\n')
+        current_section = None
+        
+        for line in lines:
+            line = line.strip()
+            if 'WHO_WINS:' in line:
+                insights["who_wins"] = competitor if competitor.lower() in line.lower() else brand_name
+            elif 'USER_STRENGTHS:' in line:
+                current_section = 'user_strengths'
+            elif 'COMPETITOR_STRENGTHS:' in line:
+                current_section = 'competitor_strengths'
+            elif 'WINNING_QUERIES:' in line:
+                current_section = 'winning_queries'
+            elif 'USER_OPPORTUNITIES:' in line:
+                current_section = 'user_opportunities'
+            elif line.startswith('•') or line.startswith('-') or line.startswith('*'):
+                if current_section:
+                    clean_line = line.lstrip('•-* ').strip()
+                    insights[current_section].append(clean_line)
+        
+        return insights
+        
+    except Exception as e:
+        print(f"Error parsing insights: {e}")
+        return insights
+
+def calculate_competitive_score(insights_text: str, brand_name: str) -> int:
+    """Calculate competitive score based on analysis"""
+    brand_mentions = insights_text.lower().count(brand_name.lower())
+    positive_words = ['better', 'stronger', 'superior', 'advantage', 'excels', 'leads']
+    negative_words = ['weaker', 'lacks', 'behind', 'struggles', 'limited']
+    
+    positive_score = sum(1 for word in positive_words if word in insights_text.lower())
+    negative_score = sum(1 for word in negative_words if word in insights_text.lower())
+    
+    base_score = 50
+    score_adjustment = (positive_score - negative_score) * 10
+    
+    return max(0, min(100, base_score + score_adjustment))
+
 async def generate_content_opportunities(brand_name: str, industry: str, keywords: List[str], competitors: List[str], scan_results: List[Dict]) -> Dict[str, Any]:
-    """Generate content opportunities based on scan results"""
     try:
         # Calculate basic metrics
         total_queries = len(scan_results)
