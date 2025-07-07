@@ -484,37 +484,57 @@ const Dashboard = () => {
   };
 
   const fetchBrandSpecificData = async (brandId) => {
+    if (!brandId) return;
+    
+    setLoading(true);
     try {
-      setLoading(true);
       const headers = { 'Authorization': `Bearer ${token}` };
+      const brandParam = `?brand_id=${brandId}`;
       
-      // Add brand_id parameter to API calls for brand-specific data
-      const [dashResponse, compResponse, queryResponse, recResponse, weeklyResponse] = await Promise.all([
-        fetch(`${backendUrl}/api/dashboard/real?brand_id=${brandId}`, { headers }),
-        fetch(`${backendUrl}/api/competitors/real?brand_id=${brandId}`, { headers }),
-        fetch(`${backendUrl}/api/queries/real?brand_id=${brandId}`, { headers }),
-        fetch(`${backendUrl}/api/recommendations/real?brand_id=${brandId}`, { headers }),
-        fetch(`${backendUrl}/api/tracking/weekly?brand_id=${brandId}&weeks=8`, { headers })
+      const [dashData, compData, queryData, recData, sourceDomainsData, sourceArticlesData] = await Promise.all([
+        fetch(`${backendUrl}/api/dashboard/real${brandParam}`, { headers }),
+        fetch(`${backendUrl}/api/competitors/real${brandParam}`, { headers }),
+        fetch(`${backendUrl}/api/queries/real${brandParam}`, { headers }),
+        fetch(`${backendUrl}/api/recommendations/real${brandParam}`, { headers }),
+        fetch(`${backendUrl}/api/source-domains${brandParam}`, { headers }),
+        fetch(`${backendUrl}/api/source-articles${brandParam}`, { headers })
       ]);
 
-      const [dashData, compData, queryData, recData, weeklyData] = await Promise.all([
-        dashResponse.json(),
-        compResponse.json(),
-        queryResponse.json(),
-        recResponse.json(),
-        weeklyResponse.json()
-      ]);
-
-      setDashboardData(dashData);
-      setCompetitorData(compData);
-      setQueriesData(queryData);
-      setRecommendationsData(recData);
-      setWeeklyTrackingData(weeklyData);
+      if (dashData.ok) {
+        const data = await dashData.json();
+        setDashboardData(data);
+      }
       
-      // Fetch source data for specific brand
-      await fetchSourceData(headers, brandId);
+      if (compData.ok) {
+        const data = await compData.json();
+        setCompetitorData(data);
+      }
+      
+      if (queryData.ok) {
+        const data = await queryData.json();
+        setQueriesData(data);
+      }
+      
+      if (recData.ok) {
+        const data = await recData.json();
+        setRecommendationsData(data);
+      }
+      
+      if (sourceDomainsData.ok) {
+        const data = await sourceDomainsData.json();
+        setSourceDomainsData(data);
+      }
+      
+      if (sourceArticlesData.ok) {
+        const data = await sourceArticlesData.json();
+        setSourceArticlesData(data);
+      }
+      
+      // Fetch brand-specific historical data
+      await fetchHistoricalData(brandId);
+      
     } catch (error) {
-      console.error('Error fetching brand-specific data:', error);
+      console.error('Error fetching brand data:', error);
     } finally {
       setLoading(false);
     }
