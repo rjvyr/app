@@ -29,6 +29,67 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
 from mock_data import generate_mock_scan_result
 from source_extraction import extract_source_domains_from_response, extract_source_articles_from_response
 
+async def generate_content_opportunities(brand_name: str, industry: str, keywords: List[str], competitors: List[str], scan_results: List[Dict]) -> Dict[str, Any]:
+    """Generate content opportunities based on scan results"""
+    try:
+        # Calculate basic metrics
+        total_queries = len(scan_results)
+        mentioned_queries = sum(1 for result in scan_results if result.get("brand_mentioned", False))
+        
+        # Find gaps and opportunities
+        missed_opportunities = [result for result in scan_results if not result.get("brand_mentioned", False)]
+        competitor_wins = []
+        
+        for result in missed_opportunities:
+            for competitor in result.get("competitors_mentioned", []):
+                competitor_wins.append({
+                    "query": result["query"],
+                    "competitor": competitor,
+                    "user_position": None,
+                    "competitor_mentioned": True
+                })
+        
+        # Generate content suggestions
+        content_opportunities = []
+        for i, opportunity in enumerate(missed_opportunities[:5]):  # Top 5 opportunities
+            content_opportunities.append({
+                "id": f"opp_{i}",
+                "query": opportunity["query"],
+                "priority": "High" if i < 2 else "Medium",
+                "impact": f"+{15 + i * 3}% visibility",
+                "time_estimate": f"{2 + i} weeks",
+                "current_response": opportunity.get("response", "")[:200] + "...",
+                "content_suggestions": [
+                    f"Create comprehensive guide addressing '{opportunity['query']}'",
+                    f"Develop case studies showcasing {brand_name} solutions",
+                    "Optimize existing content with relevant keywords"
+                ]
+            })
+        
+        return {
+            "total_opportunities": len(missed_opportunities),
+            "content_opportunities": content_opportunities,
+            "visibility_gap_analysis": {
+                "current_visibility": (mentioned_queries / total_queries) * 100 if total_queries > 0 else 0,
+                "potential_visibility": min(85, ((mentioned_queries + len(missed_opportunities) * 0.7) / total_queries) * 100) if total_queries > 0 else 0,
+                "gap_percentage": min(25, (len(missed_opportunities) / total_queries) * 100) if total_queries > 0 else 0,
+                "total_opportunities": len(missed_opportunities)
+            },
+            "competitor_analysis": {
+                "top_competing_brands": list(set([win["competitor"] for win in competitor_wins]))[:5],
+                "competitive_gaps": len(competitor_wins)
+            }
+        }
+        
+    except Exception as e:
+        print(f"Error generating content opportunities: {e}")
+        return {
+            "total_opportunities": 0,
+            "content_opportunities": [],
+            "visibility_gap_analysis": {"gap_percentage": 0, "total_opportunities": 0},
+            "competitor_analysis": {"top_competing_brands": [], "competitive_gaps": 0}
+        }
+
 # Try to import OpenAI, fallback if not available
 try:
     import openai
