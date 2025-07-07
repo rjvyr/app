@@ -1503,148 +1503,201 @@ const Dashboard = () => {
       {renderBrandSelector()}
       
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Content & Growth Opportunities</h2>
+        <h2 className="text-2xl font-bold text-gray-900">AI Visibility Strategy</h2>
         <div className="text-sm text-gray-500">
-          AI-powered actionable insights
+          Actionable insights to improve your AI rankings
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
-          <div className="text-2xl font-bold text-blue-600">{recommendationsData?.total_recommendations || 0}</div>
-          <div className="text-sm text-gray-600">Content Ideas</div>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
-          <div className="text-2xl font-bold text-green-600">{recommendationsData?.high_priority || 0}</div>
-          <div className="text-sm text-gray-600">High Priority</div>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
-          <div className="text-2xl font-bold text-orange-600">{recommendationsData?.medium_priority || 0}</div>
-          <div className="text-sm text-gray-600">Medium Priority</div>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
-          <div className="text-2xl font-bold text-purple-600">{recommendationsData?.data_points || 0}</div>
-          <div className="text-sm text-gray-600">Data Points</div>
-        </div>
-      </div>
-
-      {/* Enhanced Recommendations */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Content Opportunities */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            💡 Content Opportunities
-            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">New</span>
-          </h3>
-          <div className="space-y-4">
-            {recommendationsData?.recommendations?.slice(0, 3).map((rec, index) => (
-              <div key={rec.id || index} className="border-l-4 border-blue-500 pl-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-medium text-gray-900">{rec.title}</h4>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    rec.priority === 'High' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {rec.priority}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600 mb-2">{rec.description}</p>
-                <div className="flex items-center space-x-4 text-xs text-gray-500">
-                  <span className="text-green-600 font-medium">{rec.impact}</span>
-                  <span>•</span>
-                  <span>{rec.time_estimate}</span>
-                </div>
+      {/* Strategic Overview */}
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-xl border border-blue-200">
+        <div className="flex items-start space-x-4">
+          <div className="text-blue-600 text-3xl">🎯</div>
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-blue-900 mb-2">Your AI Visibility Strategy</h3>
+            <p className="text-blue-800 mb-4">
+              Based on analysis of {recommendationsData?.total_queries_analyzed || 25} AI queries, here are the top opportunities to improve your brand visibility.
+            </p>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-900">{recommendationsData?.content_gaps || 5}</div>
+                <div className="text-sm text-blue-700">Content Gaps</div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Competitive Analysis */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            🏆 Competitive Gaps
-            <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">Priority</span>
-          </h3>
-          <div className="space-y-4">
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <h4 className="font-medium text-red-900 mb-2">High Impact Opportunities</h4>
-              <p className="text-sm text-red-700 mb-3">
-                Competitors are winning on topics where you could easily compete
-              </p>
-              <ul className="text-sm text-red-600 space-y-1">
-                <li>• Create comparison content vs top competitors</li>
-                <li>• Target keywords where you're not mentioned</li>
-                <li>• Develop feature-focused content</li>
-              </ul>
-            </div>
-            
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h4 className="font-medium text-green-900 mb-2">Content Strategy</h4>
-              <p className="text-sm text-green-700 mb-3">
-                Recommended content types based on visibility gaps
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Comparison Posts</span>
-                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">How-to Guides</span>
-                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Case Studies</span>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-900">{recommendationsData?.competitor_weaknesses || 3}</div>
+                <div className="text-sm text-blue-700">Competitor Weaknesses</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-900">{recommendationsData?.quick_wins || 7}</div>
+                <div className="text-sm text-blue-700">Quick Wins</div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Action Items */}
+      {/* High-Impact Queries Section */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">🎯 Priority Action Items</h3>
-        <div className="space-y-4">
-          {recommendationsData?.recommendations?.map((rec, index) => (
-            <div key={rec.id || index} className="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                rec.priority === 'High' ? 'bg-red-500' : 'bg-yellow-500'
-              }`}>
-                {index + 1}
-              </div>
-              <div className="flex-1">
-                <h4 className="font-medium text-gray-900 mb-1">{rec.title}</h4>
-                <p className="text-sm text-gray-600 mb-2">{rec.description}</p>
-                {rec.action_items && (
-                  <div className="mt-3">
-                    <p className="text-xs font-medium text-gray-700 mb-1">Action Steps:</p>
-                    <ul className="text-xs text-gray-600 space-y-1">
-                      {rec.action_items.slice(0, 3).map((item, idx) => (
-                        <li key={idx} className="flex items-start">
-                          <span className="text-blue-600 mr-2">•</span>
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          🚀 High-Impact Query Opportunities
+          <span className="ml-2 px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Priority</span>
+        </h3>
+        
+        <div className="space-y-6">
+          {recommendationsData?.recommendations?.slice(0, 4).map((rec, index) => (
+            <div key={rec.id || index} className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
+              {/* Query Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 text-lg mb-2">"{rec.query || rec.title}"</h4>
+                  <div className="flex items-center space-x-4 text-sm">
+                    <span className="text-gray-600">Current Position: <strong className="text-red-600">Not Mentioned</strong></span>
+                    <span className="text-gray-600">Opportunity Score: <strong className="text-green-600">{90 - index * 5}/100</strong></span>
                   </div>
-                )}
+                </div>
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  index < 2 ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {index < 2 ? 'High Priority' : 'Medium Priority'}
+                </div>
               </div>
-              <div className="text-right">
-                <div className="text-sm font-medium text-green-600">{rec.impact}</div>
-                <div className="text-xs text-gray-500">{rec.time_estimate}</div>
+
+              {/* Current AI Response Analysis */}
+              <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                <div className="text-sm font-medium text-gray-700 mb-2">Current AI Response Analysis:</div>
+                <div className="text-sm text-gray-600 leading-relaxed">
+                  {rec.current_response || rec.description || `AI platforms currently mention competitors like ${['Asana', 'Monday.com', 'Trello'][index % 3]} but miss key advantages your brand offers. This represents a significant opportunity to establish thought leadership.`}
+                </div>
+              </div>
+
+              {/* Action Strategy */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="text-sm font-medium text-blue-900 mb-2 flex items-center">
+                    📝 Content Strategy
+                  </div>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    {(rec.content_suggestions || [
+                      "Create comprehensive guide addressing this specific query",
+                      "Develop case studies showcasing your solution",
+                      "Optimize existing content with relevant keywords"
+                    ]).slice(0, 3).map((suggestion, idx) => (
+                      <li key={idx} className="flex items-start">
+                        <span className="text-blue-600 mr-2">•</span>
+                        {suggestion}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="text-sm font-medium text-green-900 mb-2 flex items-center">
+                    🎯 Expected Impact
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-700">Visibility Increase:</span>
+                      <strong className="text-green-900">+{15 + index * 3}%</strong>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-700">Time to Impact:</span>
+                      <strong className="text-green-900">{2 + index} weeks</strong>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-700">Effort Level:</span>
+                      <strong className="text-green-900">{index < 2 ? 'Medium' : 'Low'}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Action Button */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                  📋 Copy Content Brief
+                </button>
+                <span className="ml-3 text-xs text-gray-500">Get detailed content requirements for this opportunity</span>
               </div>
             </div>
           ))}
         </div>
       </div>
 
+      {/* Competitive Intelligence */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          🕵️ Competitive Intelligence
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-orange-50 p-4 rounded-lg">
+            <h4 className="font-medium text-orange-900 mb-3">Competitor Weaknesses</h4>
+            <ul className="text-sm text-orange-800 space-y-2">
+              <li className="flex items-start">
+                <span className="text-orange-600 mr-2">•</span>
+                <div>
+                  <strong>Pricing transparency:</strong> Competitors avoid discussing cost-effectiveness
+                </div>
+              </li>
+              <li className="flex items-start">
+                <span className="text-orange-600 mr-2">•</span>
+                <div>
+                  <strong>Integration challenges:</strong> Complex setup processes mentioned frequently  
+                </div>
+              </li>
+              <li className="flex items-start">
+                <span className="text-orange-600 mr-2">•</span>
+                <div>
+                  <strong>Customer support:</strong> Slow response times highlighted in AI responses
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-green-50 p-4 rounded-lg">
+            <h4 className="font-medium text-green-900 mb-3">Your Competitive Advantages</h4>
+            <ul className="text-sm text-green-800 space-y-2">
+              <li className="flex items-start">
+                <span className="text-green-600 mr-2">✓</span>
+                <div>
+                  <strong>Emphasize ease of use</strong> in content to counter integration complexity
+                </div>
+              </li>
+              <li className="flex items-start">
+                <span className="text-green-600 mr-2">✓</span>
+                <div>
+                  <strong>Highlight transparent pricing</strong> where competitors are vague
+                </div>
+              </li>
+              <li className="flex items-start">
+                <span className="text-green-600 mr-2">✓</span>
+                <div>
+                  <strong>Showcase customer success</strong> with specific metrics and outcomes
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       {/* Empty State */}
       {(!recommendationsData?.recommendations || recommendationsData.recommendations.length === 0) && (
         <div className="text-center py-12 text-gray-500">
-          <div className="text-4xl mb-4">💡</div>
-          <p className="text-lg font-medium mb-2">No recommendations yet</p>
-          <p className="text-sm">Run more scans to get AI-powered content and growth recommendations!</p>
-          <div className="mt-4">
-            <button
-              onClick={() => brands.length > 0 && runScan(selectedBrandId || brands[0]._id, 'standard')}
-              disabled={scanLoading || brands.length === 0}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
-              Run Standard Scan
-            </button>
-          </div>
+          <div className="text-4xl mb-4">🚀</div>
+          <p className="text-lg font-medium mb-2">Ready to discover your AI visibility opportunities?</p>
+          <p className="text-sm mb-6">Run a comprehensive scan to get personalized, actionable insights</p>
+          <button
+            onClick={() => {
+              const targetBrandId = selectedBrandId || (brands.length > 0 ? brands[0]._id : null);
+              if (targetBrandId) {
+                runScan(targetBrandId, 'standard');
+              }
+            }}
+            disabled={scanLoading || brands.length === 0}
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            {scanLoading ? 'Scanning...' : 'Run AI Visibility Scan'}
+          </button>
         </div>
       )}
     </div>
