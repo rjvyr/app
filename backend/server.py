@@ -1350,83 +1350,69 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
             }}
         )
         
-        # Store final scan results
+        # Run enhanced GPT analysis on results
+        print("Running enhanced competitor analysis...")
+        competitor_analysis = await analyze_competitors_with_gpt(
+            brand["name"], 
+            brand["industry"], 
+            brand.get("competitors", []), 
+            brand.get("keywords", [])
+        )
+        
+        print("Analyzing query responses...")
+        query_analysis = await analyze_query_responses_with_gpt(scan_results, brand["name"])
+        
+        print("Generating content opportunities...")
+        content_opportunities = await generate_content_opportunities(
+            brand["name"], 
+            brand["industry"], 
+            brand.get("keywords", []), 
+            brand.get("competitors", []), 
+            scan_results
+        )
+        
+        # Calculate visibility metrics
+        total_queries = len(scan_results)
+        mentioned_queries = sum(1 for result in scan_results if result.get("brand_mentioned", False))
+        visibility_score = (mentioned_queries / total_queries) * 100 if total_queries > 0 else 0
+        
+        # Store comprehensive scan results
         scan_data = {
-            "_id": scan_id,
+            "_id": str(uuid4()),
             "user_id": current_user["_id"],
             "brand_id": scan_request.brand_id,
             "scan_type": scan_request.scan_type,
             "queries": queries,
             "results": scan_results,
+            "visibility_score": visibility_score,
+            "mentioned_queries": mentioned_queries,
+            "total_queries": total_queries,
+            "competitor_analysis": competitor_analysis,
+            "query_analysis": query_analysis,
+            "content_opportunities": content_opportunities,
             "scans_used": scans_cost,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.utcnow(),
+            "timestamp": datetime.utcnow()
         }
         
         await db.scans.insert_one(scan_data)
         
-        # Update user scan usage
+        # Update user scan count
         await db.users.update_one(
             {"_id": current_user["_id"]},
             {"$inc": {"scans_used": scans_cost}}
         )
         
-        # Calculate metrics
-        mentions = sum(1 for result in scan_results if result.get("brand_mentioned", False))
-        visibility_score = (mentions / len(scan_results)) * 100 if scan_results else 0
-        
-        # Store historical tracking data
-        historical_data = {
-            "brand_id": scan_request.brand_id,
-            "user_id": current_user["_id"],
-            "date": datetime.utcnow(),
-            "week": datetime.utcnow().strftime("%Y-W%U"),
-            "visibility_score": visibility_score,
-            "total_queries": len(scan_results),
-            "mentioned_queries": mentions,
-            "average_position": sum(result.get("ranking_position", 5) for result in scan_results if result.get("ranking_position")) / max(mentions, 1),
-            "sentiment_breakdown": {
-                "positive": sum(1 for result in scan_results if result.get("sentiment") == "positive"),
-                "neutral": sum(1 for result in scan_results if result.get("sentiment") == "neutral"),
-                "negative": sum(1 for result in scan_results if result.get("sentiment") == "negative")
-            },
-            "platform_breakdown": {
-                "ChatGPT": {
-                    "queries": len(scan_results),
-                    "mentions": mentions,
-                    "visibility_rate": visibility_score
-                }
-            }
-        }
-        
-        await db.weekly_tracking.insert_one(historical_data)
-        
-        # Update brand stats
-        await db.brands.update_one(
-            {"_id": scan_request.brand_id},
-            {
-                "$set": {
-                    "last_scanned": datetime.utcnow(),
-                    "visibility_score": visibility_score
-                },
-                "$inc": {"total_scans": len(queries)}
-            }
-        )
-        
-        # Generate content opportunities
-        content_opportunities = await generate_content_opportunities(
-            brand["name"],
-            brand["industry"], 
-            brand["keywords"],
-            brand["competitors"],
-            scan_results
-        )
-        
         return {
             "scan_id": scan_id,
-            "results": scan_results,
-            "visibility_score": visibility_score,
+            "message": f"Weekly scan completed for {brand['name']}",
             "scans_used": scans_cost,
-            "content_opportunities": content_opportunities
+            "visibility_score": visibility_score,
+            "total_queries": total_queries,
+            "mentioned_queries": mentioned_queries,
+            "content_opportunities": content_opportunities,
+            "competitor_insights": len(competitor_analysis.get("competitor_insights", [])),
+            "next_scan_available": datetime.utcnow() + timedelta(days=7)
         }
         
     except Exception as e:
