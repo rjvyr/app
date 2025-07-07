@@ -1917,6 +1917,8 @@ const Dashboard = () => {
                   setShowScanPopup(false);
                   setNewBrandForScan(null);
                   setSelectedBrandId(newBrandForScan._id);
+                  // Refresh brands list to ensure new brand appears
+                  fetchBrands();
                 }}
                 className="flex-1 bg-gray-300 text-gray-700 px-4 py-3 rounded-lg font-medium hover:bg-gray-400 transition-colors"
               >
