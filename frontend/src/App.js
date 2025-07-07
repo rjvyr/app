@@ -1871,7 +1871,8 @@ const AddBrandForm = ({ onSuccess }) => {
       });
 
       if (response.ok) {
-        onSuccess();
+        const brandData = await response.json();
+        onSuccess(brandData.brand);
       } else {
         const errorData = await response.json();
         setError(errorData.detail);
