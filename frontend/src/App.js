@@ -1835,6 +1835,9 @@ const Dashboard = () => {
       
       {/* Brand Edit Modal */}
       {renderBrandEditModal()}
+      
+      {/* Scan Popup */}
+      {renderScanPopup()}
     </div>
   );
 };
