@@ -880,6 +880,158 @@ async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_c
     if not brand:
         raise HTTPException(status_code=404, detail="Brand not found")
     
+    # Create scan progress tracking
+    scan_id = str(uuid.uuid4())
+    progress_data = {
+        "_id": scan_id,
+        "user_id": current_user["_id"],
+        "brand_id": scan_request.brand_id,
+        "scan_type": scan_request.scan_type,
+        "status": "running",
+        "progress": 0,
+        "total_queries": scans_cost,
+        "current_query": "",
+        "started_at": datetime.utcnow(),
+        "results": []
+    }
+    
+    await db.scan_progress.insert_one(progress_data)
+    
+    try:
+        # Generate queries based on scan type
+        if scan_request.scan_type == "quick":
+            queries = await generate_realistic_queries_with_gpt(brand["name"], brand["industry"], brand.get("keywords", []), brand.get("competitors", []), 5)
+        elif scan_request.scan_type == "standard":
+            queries = await generate_realistic_queries_with_gpt(brand["name"], brand["industry"], brand.get("keywords", []), brand.get("competitors", []), 25)
+        elif scan_request.scan_type == "deep":
+            queries = await generate_realistic_queries_with_gpt(brand["name"], brand["industry"], brand.get("keywords", []), brand.get("competitors", []), 50)
+        else:  # competitor
+            queries = await generate_realistic_queries_with_gpt(brand["name"], brand["industry"], brand.get("keywords", []), brand.get("competitors", []), 10)
+
+        # Process queries with progress updates
+        scan_results = []
+        for i, query in enumerate(queries):
+            # Update progress
+            await db.scan_progress.update_one(
+                {"_id": scan_id},
+                {"$set": {
+                    "progress": i + 1,
+                    "current_query": query,
+                    "updated_at": datetime.utcnow()
+                }}
+            )
+            
+            # Run actual ChatGPT scan
+            result = await run_enhanced_chatgpt_scan(
+                query, 
+                brand["name"], 
+                brand["industry"], 
+                brand.get("keywords", []), 
+                brand.get("competitors", [])
+            )
+            scan_results.append(result)
+        
+        # Complete scan
+        await db.scan_progress.update_one(
+            {"_id": scan_id},
+            {"$set": {
+                "status": "completed",
+                "progress": len(queries),
+                "completed_at": datetime.utcnow()
+            }}
+        )
+        
+        # Store final scan results
+        scan_data = {
+            "_id": scan_id,
+            "user_id": current_user["_id"],
+            "brand_id": scan_request.brand_id,
+            "scan_type": scan_request.scan_type,
+            "queries": queries,
+            "results": scan_results,
+            "scans_used": scans_cost,
+            "created_at": datetime.utcnow()
+        }
+        
+        await db.scans.insert_one(scan_data)
+        
+        # Update user scan usage
+        await db.users.update_one(
+            {"_id": current_user["_id"]},
+            {"$inc": {"scans_used": scans_cost}}
+        )
+        
+        # Calculate metrics
+        mentions = sum(1 for result in scan_results if result.get("brand_mentioned", False))
+        visibility_score = (mentions / len(scan_results)) * 100 if scan_results else 0
+        
+        # Store historical tracking data
+        historical_data = {
+            "brand_id": scan_request.brand_id,
+            "user_id": current_user["_id"],
+            "date": datetime.utcnow(),
+            "week": datetime.utcnow().strftime("%Y-W%U"),
+            "visibility_score": visibility_score,
+            "total_queries": len(scan_results),
+            "mentioned_queries": mentions,
+            "average_position": sum(result.get("ranking_position", 5) for result in scan_results if result.get("ranking_position")) / max(mentions, 1),
+            "sentiment_breakdown": {
+                "positive": sum(1 for result in scan_results if result.get("sentiment") == "positive"),
+                "neutral": sum(1 for result in scan_results if result.get("sentiment") == "neutral"),
+                "negative": sum(1 for result in scan_results if result.get("sentiment") == "negative")
+            },
+            "platform_breakdown": {
+                "ChatGPT": {
+                    "queries": len(scan_results),
+                    "mentions": mentions,
+                    "visibility_rate": visibility_score
+                }
+            }
+        }
+        
+        await db.weekly_tracking.insert_one(historical_data)
+        
+        # Update brand stats
+        await db.brands.update_one(
+            {"_id": scan_request.brand_id},
+            {
+                "$set": {
+                    "last_scanned": datetime.utcnow(),
+                    "visibility_score": visibility_score
+                },
+                "$inc": {"total_scans": len(queries)}
+            }
+        )
+        
+        # Generate content opportunities
+        content_opportunities = await generate_content_opportunities(
+            brand["name"],
+            brand["industry"], 
+            brand["keywords"],
+            brand["competitors"],
+            scan_results
+        )
+        
+        return {
+            "scan_id": scan_id,
+            "results": scan_results,
+            "visibility_score": visibility_score,
+            "scans_used": scans_cost,
+            "content_opportunities": content_opportunities
+        }
+        
+    except Exception as e:
+        # Mark scan as failed
+        await db.scan_progress.update_one(
+            {"_id": scan_id},
+            {"$set": {
+                "status": "failed",
+                "error": str(e),
+                "failed_at": datetime.utcnow()
+            }}
+        )
+        raise HTTPException(status_code=500, detail=f"Scan failed: {str(e)}")
+    
     if current_user.get("scans_used", 0) + scans_cost > current_user.get("scans_limit", 50):
         raise HTTPException(status_code=400, detail="Not enough scans remaining")
     
