@@ -30,6 +30,105 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
 from mock_data import generate_mock_scan_result
 from source_extraction import extract_source_domains_from_response, extract_source_articles_from_response
 
+async def analyze_query_responses_with_gpt(scan_results: List[Dict], brand_name: str) -> Dict[str, Any]:
+    """Analyze query responses to extract patterns and insights"""
+    try:
+        if not openai or not os.environ.get("OPENAI_API_KEY"):
+            return {"error": "OpenAI not available"}
+        
+        # Create custom HTTP client
+        http_client = httpx.AsyncClient(
+            timeout=30.0,
+            limits=httpx.Limits(max_keepalive_connections=20, max_connections=100)
+        )
+        
+        client = AsyncOpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY"),
+            http_client=http_client
+        )
+        
+        # Prepare analysis data
+        responses_text = "\n\n".join([
+            f"Query: {result['query']}\nResponse: {result['response'][:500]}..."
+            for result in scan_results[:5]  # Analyze top 5 responses
+        ])
+        
+        analysis_prompt = f"""Analyze these AI search responses about {brand_name} and extract key insights:
+
+{responses_text}
+
+Please provide structured analysis covering:
+1. COMMON_THEMES: Recurring topics or features mentioned
+2. BRAND_PERCEPTION: How {brand_name} is portrayed
+3. COMPETITOR_MENTIONS: Which competitors appear most often
+4. MARKET_POSITIONING: Where {brand_name} fits in the market
+5. IMPROVEMENT_AREAS: Gaps or opportunities for better visibility
+
+Format as clear, actionable insights."""
+
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a market research analyst extracting insights from search data."},
+                {"role": "user", "content": analysis_prompt}
+            ],
+            max_tokens=800,
+            temperature=0.4
+        )
+        
+        analysis = response.choices[0].message.content
+        
+        # Parse structured insights
+        insights = {
+            "common_themes": [],
+            "brand_perception": "",
+            "competitor_mentions": {},
+            "market_positioning": "",
+            "improvement_areas": []
+        }
+        
+        current_section = None
+        for line in analysis.split('\n'):
+            line = line.strip()
+            if 'COMMON_THEMES:' in line:
+                current_section = 'common_themes'
+            elif 'BRAND_PERCEPTION:' in line:
+                current_section = 'brand_perception'
+            elif 'COMPETITOR_MENTIONS:' in line:
+                current_section = 'competitor_mentions'
+            elif 'MARKET_POSITIONING:' in line:
+                current_section = 'market_positioning'
+            elif 'IMPROVEMENT_AREAS:' in line:
+                current_section = 'improvement_areas'
+            elif line and current_section:
+                if current_section == 'common_themes':
+                    if line.startswith('-') or line.startswith('•'):
+                        insights['common_themes'].append(line.lstrip('- •').strip())
+                elif current_section == 'brand_perception':
+                    insights['brand_perception'] += line + ' '
+                elif current_section == 'competitor_mentions':
+                    if ':' in line:
+                        comp, freq = line.split(':', 1)
+                        insights['competitor_mentions'][comp.strip()] = freq.strip()
+                elif current_section == 'market_positioning':
+                    insights['market_positioning'] += line + ' '
+                elif current_section == 'improvement_areas':
+                    if line.startswith('-') or line.startswith('•'):
+                        insights['improvement_areas'].append(line.lstrip('- •').strip())
+        
+        await http_client.aclose()
+        
+        return {
+            "analysis_date": datetime.utcnow(),
+            "queries_analyzed": len(scan_results),
+            "insights": insights,
+            "raw_analysis": analysis
+        }
+        
+    except Exception as e:
+        print(f"Error in query response analysis: {e}")
+        return {"error": str(e)}
+
 async def analyze_competitors_with_gpt(brand_name: str, industry: str, competitors: List[str], keywords: List[str]) -> Dict[str, Any]:
     """Run real GPT competitor analysis queries"""
     try:
