@@ -2251,6 +2251,9 @@ const Dashboard = () => {
         {activeTab === 'settings' && renderSettings()}
       </div>
       
+      {/* Scan Modal - Blocks everything during scanning */}
+      {renderScanModal()}
+      
       {/* Brand Edit Modal */}
       {renderBrandEditModal()}
       
