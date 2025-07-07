@@ -1652,9 +1652,12 @@ const Dashboard = () => {
   );
 
   const renderAddBrand = () => (
-    <AddBrandForm onSuccess={() => {
+    <AddBrandForm onSuccess={(newBrand) => {
       fetchAllRealData();
       setActiveTab('brands');
+      // Show scan popup for the new brand
+      setNewBrandForScan(newBrand);
+      setShowScanPopup(true);
     }} />
   );
 
