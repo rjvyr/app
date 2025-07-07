@@ -276,6 +276,23 @@ backend:
         - working: true
           agent: "testing"
           comment: "Verified that the new PUT /api/brands/{brand_id} endpoint works correctly. It properly allows updating keywords and competitors while preventing changes to name/industry/website. Authentication is required and user ownership is properly enforced - users can only update their own brands."
+  - task: "Scan Progress Tracking"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "User reported that the progress bar is stuck and not moving during scans."
+        - working: false
+          agent: "testing"
+          comment: "Identified that the scan progress tracking was being stored in MongoDB but there was no endpoint to retrieve it. The frontend was trying to call /api/scans/{scan_id}/progress which didn't exist."
+        - working: true
+          agent: "testing"
+          comment: "Implemented the missing /api/scans/{scan_id}/progress endpoint to retrieve scan progress information. Tested the endpoint and verified it correctly returns the scan status, progress, and other relevant information. The progress is properly updated during scan execution and the endpoint returns the correct data."
 
 metadata:
   created_by: "main_agent"
