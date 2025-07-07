@@ -306,6 +306,7 @@ test_plan:
     - "Source Domains and Articles Real Data Display"
     - "Real Source Data Extraction"
     - "Enhanced ChatGPT Integration"
+    - "Scan Progress Tracking"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
