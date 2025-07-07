@@ -835,49 +835,56 @@ const Dashboard = () => {
       {renderWeeklyGrowthTable()}
 
       {/* Quick Actions */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-        <p className="text-gray-600 text-sm mb-4">Choose the right scan type for your needs:</p>
+      <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+        <div className="text-center mb-8">
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">AI Visibility Analysis</h3>
+          <p className="text-gray-600">Discover how your brand performs across AI platforms and get actionable insights</p>
+        </div>
         
-        {/* Single Scan Action */}
-        <div className="grid grid-cols-1 max-w-md mx-auto">
-          <div className="relative group">
-            <button
-              onClick={() => {
-                const targetBrandId = selectedBrandId || (brands.length > 0 ? brands[0]._id : null);
-                if (targetBrandId) {
-                  runScan(targetBrandId, 'standard');
-                } else {
-                  alert('Please add a brand first from the Brands tab!');
-                }
-              }}
-              disabled={scanLoading}
-              className={`w-full p-6 border-2 border-dashed rounded-lg transition-colors ${
-                scanLoading 
-                  ? 'border-blue-300 bg-blue-50 opacity-75 cursor-not-allowed' 
-                  : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
-              }`}
-            >
-              <div className="text-center">
-                <div className="text-3xl mb-3">{scanLoading ? '⏳' : '🚀'}</div>
-                <div className="font-bold text-lg text-gray-900">
-                  {scanLoading ? 'Running AI Scan...' : 'Run AI Visibility Scan'}
-                </div>
-                <div className="text-sm text-gray-500 mt-2">25 queries • Comprehensive analysis</div>
-                <div className="text-xs text-blue-600 mt-2">Complete brand visibility report</div>
-                
-                {/* Progress Bar */}
-                {scanLoading && (
-                  <div className="mt-4">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '45%'}}></div>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">Analyzing your brand across AI platforms...</div>
-                  </div>
-                )}
+        {/* Single Scan Action - Improved */}
+        <div className="max-w-lg mx-auto">
+          <button
+            onClick={() => {
+              const targetBrandId = selectedBrandId || (brands.length > 0 ? brands[0]._id : null);
+              if (targetBrandId) {
+                runScan(targetBrandId, 'standard');
+              } else {
+                alert('Please add a brand first from the Brands tab!');
+              }
+            }}
+            disabled={scanLoading}
+            className={`w-full p-8 rounded-2xl transition-all duration-300 ${
+              scanLoading 
+                ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-not-allowed' 
+                : 'bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1'
+            }`}
+          >
+            <div className="text-center">
+              <div className="text-5xl mb-4">{scanLoading ? '⏳' : '🚀'}</div>
+              <div className="font-bold text-2xl mb-3">
+                {scanLoading ? 'Analyzing Your Brand...' : 'Run AI Visibility Scan'}
               </div>
-            </button>
-          </div>
+              <div className="text-blue-100 mb-4">Comprehensive analysis across 25 AI queries</div>
+              
+              {/* Enhanced Progress Bar */}
+              {scanLoading && (
+                <div className="mt-6">
+                  <div className="w-full bg-blue-400 bg-opacity-30 rounded-full h-3 mb-3">
+                    <div className="bg-white h-3 rounded-full animate-pulse transition-all duration-1000" style={{width: '65%'}}></div>
+                  </div>
+                  <div className="text-blue-100 text-sm">
+                    🔍 Scanning AI responses • 📊 Analyzing visibility • 📈 Calculating insights
+                  </div>
+                </div>
+              )}
+              
+              {!scanLoading && (
+                <div className="text-blue-100 text-sm">
+                  Get visibility scores, competitor analysis, and actionable recommendations
+                </div>
+              )}
+            </div>
+          </button>
         </div>
         
         {brands.length === 0 && (
