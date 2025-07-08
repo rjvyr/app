@@ -197,6 +197,18 @@ backend:
           agent: "testing"
           comment: "Verified pagination works correctly for both source domains and articles endpoints. Proper page counting and data segmentation confirmed."
           
+  - task: "Real-time Scan Usage Tracking"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Verified that scan usage is properly tracked in real-time. When a scan is performed, the user's scan count is immediately updated and correctly reflected in the /api/auth/me endpoint. Tests confirmed scan count increases by the exact number of queries executed."
+          
   - task: "Weekly Scan Limit"
     implemented: true
     working: true
