@@ -1919,9 +1919,9 @@ const Dashboard = () => {
               </div>
             )}
             
-            {/* Time Estimate - More realistic */}
+            {/* Fixed Time Message */}
             <div className="text-sm text-gray-500">
-              ⏱️ Estimated time remaining: {timeRemaining > 60 ? `${Math.ceil(timeRemaining/60)} minutes` : `${timeRemaining} seconds`}
+              ⏱️ The scan will take around 8-10 minutes, please don't close the window before the scan is complete.
             </div>
             
             {/* Warning */}
