@@ -1862,7 +1862,7 @@ const Dashboard = () => {
     if (!scanLoading) return null;
 
     const progressPercentage = totalQueries > 0 ? (scanProgress / totalQueries) * 100 : 0;
-    const timeRemaining = totalQueries > 0 ? Math.ceil((totalQueries - scanProgress) * 3) : 0; // 3 seconds per query estimate
+    const timeRemaining = totalQueries > 0 ? Math.ceil((totalQueries - scanProgress) * 1.5) : 0; // 1.5 seconds per query estimate
 
     console.log(`Progress Debug: scanProgress=${scanProgress}, totalQueries=${totalQueries}, percentage=${progressPercentage}%`);
 
@@ -1880,11 +1880,11 @@ const Dashboard = () => {
               Analyzing your brand across AI platforms...
             </p>
             
-            {/* Progress Bar */}
+            {/* Progress Bar - Smoother transitions */}
             <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
               <div 
-                className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500 ease-out"
-                style={{width: `${Math.max(progressPercentage, 5)}%`}}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-2000 ease-out"
+                style={{width: `${Math.max(progressPercentage, 2)}%`}}
               ></div>
             </div>
             
@@ -1902,7 +1902,7 @@ const Dashboard = () => {
               </div>
             )}
             
-            {/* Time Estimate */}
+            {/* Time Estimate - More realistic */}
             <div className="text-sm text-gray-500">
               ⏱️ Estimated time remaining: {timeRemaining > 60 ? `${Math.ceil(timeRemaining/60)} minutes` : `${timeRemaining} seconds`}
             </div>
