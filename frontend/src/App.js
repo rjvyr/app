@@ -634,7 +634,18 @@ const Dashboard = () => {
         }, 2000); // Check every 2 seconds
         
       } else {
-        throw new Error('Scan failed to start');
+        // Check if it's a 429 error (weekly scan limit)
+        const errorText = await response.text();
+        try {
+          const errorData = JSON.parse(errorText);
+          if (response.status === 429 && errorData.detail) {
+            alert(`⏰ Weekly Scan Limit\n\n${errorData.detail}\n\nThis helps us provide you with comprehensive weekly insights while managing API costs efficiently.`);
+          } else {
+            alert(`Error: ${errorData.detail || 'Scan failed to start'}`);
+          }
+        } catch {
+          alert('Error running scan. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Error running scan:', error);
