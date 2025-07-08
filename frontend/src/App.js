@@ -639,26 +639,14 @@ const Dashboard = () => {
     } catch (error) {
       console.error('Error running scan:', error);
       
-      // Handle specific error cases
-      if (error.message && error.message.includes('already been scanned this week')) {
-        // Extract the error message from the response
-        fetch(`${backendUrl}/api/scans`, {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify({ 
-            brand_id: brandId, 
-            scan_type: 'standard' 
-          })
-        }).then(response => response.json())
-        .then(data => {
-          if (data.detail && data.detail.includes('Next scan available on')) {
-            alert(`⏰ Weekly Scan Limit\n\n${data.detail}\n\nThis helps us provide you with comprehensive weekly insights while managing API costs efficiently.`);
-          } else {
-            alert('This brand has already been scanned this week. Weekly scans help provide comprehensive insights!');
-          }
-        }).catch(() => {
+      // Check if it's a weekly scan limit error (429 status)
+      if (error.response && error.response.status === 429) {
+        const errorData = await error.response.json();
+        if (errorData.detail && errorData.detail.includes('Next scan available on')) {
+          alert(`⏰ Weekly Scan Limit\n\n${errorData.detail}\n\nThis helps us provide you with comprehensive weekly insights while managing API costs efficiently.`);
+        } else {
           alert('This brand has already been scanned this week. Weekly scans help provide comprehensive insights!');
-        });
+        }
       } else {
         alert('Error running scan. Please try again.');
       }
