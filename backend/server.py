@@ -343,11 +343,16 @@ def estimate_content_impact(query: str, brand_name: str, competitors: List[str])
     else:
         return "Low - Broad competition"
 
-async def generate_content_brief_with_gpt(query: str, brand_name: str, industry: str, competitors: List[str], gpt_response: str) -> Dict[str, Any]:
-    """Generate actionable content brief using GPT for specific query"""
+async def generate_real_content_strategy_with_gpt(query: str, brand_name: str, industry: str, competitors: List[str], scan_results: List[Dict]) -> List[str]:
+    """Generate real, unique content strategy for a specific query using GPT"""
     try:
         if not openai or not os.environ.get("OPENAI_API_KEY"):
-            return {"error": "OpenAI not available"}
+            # Fallback strategies
+            return [
+                f"Create content specifically targeting: {query}",
+                f"Analyze {competitors[0] if competitors else 'competitors'} approach to this topic",
+                f"Develop {industry}-specific insights for this query"
+            ]
         
         # Create custom HTTP client
         http_client = httpx.AsyncClient(
@@ -355,61 +360,90 @@ async def generate_content_brief_with_gpt(query: str, brand_name: str, industry:
             limits=httpx.Limits(max_keepalive_connections=20, max_connections=100)
         )
         
-        client = openai.AsyncOpenAI(
+        client = AsyncOpenAI(
             api_key=os.environ.get("OPENAI_API_KEY"),
             http_client=http_client
         )
         
-        # Content brief generation prompt
-        brief_prompt = f"""Based on this search query and current AI response, create a focused content brief for {brand_name}.
+        # Analyze the scan results for this specific query context
+        relevant_context = ""
+        for result in scan_results:
+            if query.lower() in result.get('query', '').lower():
+                relevant_context += f"Query: {result['query']}\nAI Response: {result['response'][:300]}...\n\n"
+        
+        if not relevant_context:
+            relevant_context = f"Target query: {query}"
+        
+        # Content strategy generation prompt
+        strategy_prompt = f"""Based on this specific search query and context, create a targeted content strategy for {brand_name}.
 
 QUERY: "{query}"
-CURRENT AI RESPONSE: "{gpt_response[:500]}..."
+BRAND: {brand_name} (Industry: {industry})
+CONTEXT: {relevant_context}
 
-Create a specific, actionable content brief that would help {brand_name} rank better for this query.
+Create 3 specific, actionable content strategy items that would help {brand_name} rank better for this exact query. Make each strategy unique and targeted to this specific query - NOT generic advice.
 
-INCLUDE:
-1. CONTENT_TYPE: What type of content to create (guide, comparison, tutorial, etc.)
-2. KEY_ANGLES: Specific angles to emphasize about {brand_name}
-3. COMPETITOR_COMPARISON: Which competitors to compare against and why
-4. UNIQUE_VALUE_PROPS: What makes {brand_name} different to highlight
-5. TARGET_KEYWORDS: Specific keywords to include
-6. CONTENT_STRUCTURE: Suggested outline/structure
-7. CALL_TO_ACTION: How to drive action toward {brand_name}
+Focus on:
+1. Content type that would best answer this query
+2. Specific angles that would differentiate {brand_name}
+3. Actionable steps that address the user intent behind this query
 
-Be specific and actionable. No generic advice.
+Format as exactly 3 bullet points, each starting with an action verb. Be specific and avoid generic advice.
 
-Context: {brand_name} is in {industry} industry, competing with {', '.join(competitors[:3])}"""
+Examples of good strategies:
+- "Create an interactive ROI calculator showing cost savings compared to {competitors[0] if competitors else 'alternatives'}"
+- "Develop a detailed case study featuring a {industry} client's 90-day implementation journey"
+- "Build a comparison matrix highlighting {brand_name}'s unique features for this specific use case"
+
+Be specific to the query "{query}" and make each strategy actionable."""
 
         response = await client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a content strategist creating specific, actionable content briefs."},
-                {"role": "user", "content": brief_prompt}
+                {"role": "system", "content": "You are a content strategist who creates specific, actionable content strategies for search queries."},
+                {"role": "user", "content": strategy_prompt}
             ],
-            max_tokens=600,
-            temperature=0.4
+            max_tokens=400,
+            temperature=0.6
         )
         
-        content_brief = response.choices[0].message.content
+        strategy_text = response.choices[0].message.content
         
-        # Parse the brief into structured format
-        parsed_brief = parse_content_brief(content_brief)
+        # Parse the strategies into a list
+        strategies = []
+        lines = strategy_text.split('\n')
+        for line in lines:
+            line = line.strip()
+            if line.startswith('-') or line.startswith('•') or line.startswith('*'):
+                clean_strategy = line.lstrip('-•* ').strip()
+                if clean_strategy and len(clean_strategy) > 10:  # Filter out very short items
+                    strategies.append(clean_strategy)
         
         await http_client.aclose()
         
-        return {
-            "query": query,
-            "content_brief": content_brief,
-            "structured_brief": parsed_brief,
-            "estimated_effort": estimate_content_effort(parsed_brief),
-            "expected_impact": estimate_content_impact(query, brand_name, competitors),
-            "generated_at": datetime.utcnow()
-        }
+        # Return at least 3 strategies
+        if len(strategies) >= 3:
+            return strategies[:3]
+        elif len(strategies) > 0:
+            # If we got some but not enough, add fallbacks
+            while len(strategies) < 3:
+                strategies.append(f"Develop {industry}-specific content addressing this query from {brand_name}'s perspective")
+            return strategies
+        else:
+            # If parsing failed, return fallback
+            return [
+                f"Create comprehensive content specifically targeting: {query}",
+                f"Develop a unique {brand_name} perspective on this topic",
+                f"Build engaging content that differentiates from {competitors[0] if competitors else 'competitors'}"
+            ]
         
     except Exception as e:
-        print(f"Error generating content brief: {e}")
-        return {"error": str(e)}
+        print(f"Error generating content strategy: {e}")
+        return [
+            f"Create targeted content for: {query}",
+            f"Analyze competitive landscape for this specific query",
+            f"Develop {brand_name}-specific insights and solutions"
+        ]
 
 # Try to import OpenAI, fallback if not available
 try:
