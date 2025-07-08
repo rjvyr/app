@@ -100,9 +100,33 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         }
         
         response = requests.post(f"{self.base_url}/api/brands", json=brand_data, headers=headers)
+        print(f"Brand creation response: {response.status_code}")
+        print(f"Response content: {response.text}")
+        
         if response.status_code == 200:
             data = response.json()
-            return data.get("brand_id") or data.get("brand", {}).get("_id")
+            if "brand_id" in data:
+                return data["brand_id"]
+            elif "brand" in data and "_id" in data["brand"]:
+                return data["brand"]["_id"]
+        
+        # If we can't create a brand, try to upgrade to enterprise plan
+        upgrade_response = requests.post(
+            f"{self.base_url}/api/admin/upgrade-user?user_email={self.user_email}&new_plan=enterprise",
+            headers=headers
+        )
+        print(f"Upgrade response: {upgrade_response.status_code}")
+        
+        # Try again after upgrade
+        response = requests.post(f"{self.base_url}/api/brands", json=brand_data, headers=headers)
+        print(f"Brand creation response after upgrade: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            if "brand_id" in data:
+                return data["brand_id"]
+            elif "brand" in data and "_id" in data["brand"]:
+                return data["brand"]["_id"]
         
         return None
     
