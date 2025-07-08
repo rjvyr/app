@@ -330,9 +330,20 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
+  - task: "New Pricing Plans Implementation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py, /app/frontend/src/PlansPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
         - working: true
           agent: "main"
-          comment: "FIXED: Replaced fixed 65% width progress bar with real-time progress calculation. Progress bar now shows (scanProgress / totalQueries) * 100% and displays current query being processed. Enhanced scan button to show actual progress during scan execution."
+          comment: "NEW FEATURE: Implemented new weekly-based pricing structure with Free ($0), Starter ($39/$89), and Pro ($79/$149) plans. Added early access pricing for first 500 users with automatic seat tracking. Updated backend /api/plans endpoint and frontend PlansPage.js to display new pricing with early access badges and features."
+        - working: true
+          agent: "testing"
+          comment: "Verified new pricing plans structure works correctly. /api/plans endpoint returns proper pricing with early access logic, remaining seats calculation, and all plan features. Free plan shows limitations, Starter and Pro plans show weekly scan allocations and feature sets."
         - working: true
           agent: "testing"
           comment: "Verified that the scan progress tracking functionality is working correctly. The /api/scans/{scan_id}/progress endpoint returns the expected data structure with scan_id, status, progress, total_queries, current_query, started_at, and other fields. The progress is properly updated during scan execution, and the endpoint returns the correct data. The OpenAI integration is working properly with real responses being generated. The scan progress tracking system is functioning as expected."
