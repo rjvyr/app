@@ -612,11 +612,48 @@ SMTP_USERNAME = os.environ.get("SMTP_USERNAME")
 SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
 FROM_EMAIL = os.environ.get("FROM_EMAIL", "noreply@aivisibilitytracker.com")
 
-# Subscription plans
+# Subscription plans with new weekly-based pricing
 PLANS = {
-    "basic": {"name": "Basic", "price": 19.00, "scans": 50, "brands": 1, "features": ["chatgpt"]},
-    "pro": {"name": "Pro", "price": 49.00, "scans": 300, "brands": 3, "features": ["chatgpt", "gemini", "ai_overview"]},
-    "enterprise": {"name": "Enterprise", "price": 149.00, "scans": 1500, "brands": 10, "features": ["chatgpt", "gemini", "ai_overview", "advanced"]}
+    "free": {
+        "name": "Free Plan", 
+        "price": 0.00, 
+        "scans": 0, 
+        "brands": 1, 
+        "weekly_scans": 0,
+        "features": ["dashboard_preview"],
+        "description": "Limited preview access",
+        "limitations": ["Dashboard view only", "No scan access", "Sample data only"]
+    },
+    "starter": {
+        "name": "Starter Plan", 
+        "price": 39.00, 
+        "scans": 25, 
+        "brands": 1, 
+        "weekly_scans": 1,
+        "features": ["chatgpt", "full_dashboard", "weekly_scans"],
+        "description": "Perfect for individual brands",
+        "early_access_price": 39.00,
+        "regular_price": 89.00
+    },
+    "pro": {
+        "name": "Pro Plan", 
+        "price": 79.00, 
+        "scans": 100, 
+        "brands": 4, 
+        "weekly_scans": 4,
+        "features": ["chatgpt", "gemini", "ai_overview", "full_dashboard", "weekly_scans", "priority_support"],
+        "description": "Ideal for growing businesses",
+        "early_access_price": 79.00,
+        "regular_price": 149.00,
+        "popular": True
+    }
+}
+
+# Early access tracking
+EARLY_ACCESS_CONFIG = {
+    "total_seats": 500,
+    "current_users": 404,  # Will be updated dynamically
+    "remaining_seats": 96
 }
 
 # Pydantic models
