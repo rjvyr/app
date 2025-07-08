@@ -293,6 +293,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "Implemented the missing /api/scans/{scan_id}/progress endpoint to retrieve scan progress information. Tested the endpoint and verified it correctly returns the scan status, progress, and other relevant information. The progress is properly updated during scan execution and the endpoint returns the correct data."
+        - working: true
+          agent: "testing"
+          comment: "Verified that the scan progress tracking functionality is working correctly. The /api/scans/{scan_id}/progress endpoint returns the expected data structure with scan_id, status, progress, total_queries, current_query, started_at, and other fields. The progress is properly updated during scan execution, and the endpoint returns the correct data. The OpenAI integration is working properly with real responses being generated. The scan progress tracking system is functioning as expected."
 
 metadata:
   created_by: "main_agent"
