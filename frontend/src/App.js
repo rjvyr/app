@@ -1782,14 +1782,6 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Quick Action Button */}
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-                  📋 Copy Content Brief
-                </button>
-                <span className="ml-3 text-xs text-gray-500">Get detailed content requirements for this opportunity</span>
-              </div>
             </div>
           ))}
         </div>
