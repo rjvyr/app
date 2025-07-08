@@ -306,6 +306,9 @@ backend:
           agent: "testing"
           comment: "Implemented the missing /api/scans/{scan_id}/progress endpoint to retrieve scan progress information. Tested the endpoint and verified it correctly returns the scan status, progress, and other relevant information. The progress is properly updated during scan execution and the endpoint returns the correct data."
         - working: true
+          agent: "main"
+          comment: "PERMANENTLY FIXED: Identified that backend progress tracking was working but frontend progress bar showed fixed 65% width instead of real progress. Fixed frontend progress bar to use real progress data: scanProgress/totalQueries * 100. Also implemented weekly scan limit (once per week, Monday 11 AM PST) with proper error messaging. Backend and frontend progress tracking now working correctly."
+        - working: true
           agent: "testing"
           comment: "Verified that the scan progress tracking functionality is working correctly. The /api/scans/{scan_id}/progress endpoint returns the expected data structure with scan_id, status, progress, total_queries, current_query, started_at, and other fields. The progress is properly updated during scan execution, and the endpoint returns the correct data. The OpenAI integration is working properly with real responses being generated. The scan progress tracking system is functioning as expected."
 
