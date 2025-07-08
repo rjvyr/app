@@ -1864,6 +1864,8 @@ const Dashboard = () => {
     const progressPercentage = totalQueries > 0 ? (scanProgress / totalQueries) * 100 : 0;
     const timeRemaining = totalQueries > 0 ? Math.ceil((totalQueries - scanProgress) * 3) : 0; // 3 seconds per query estimate
 
+    console.log(`Progress Debug: scanProgress=${scanProgress}, totalQueries=${totalQueries}, percentage=${progressPercentage}%`);
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
         <div className="bg-white p-8 rounded-2xl max-w-lg w-full mx-4 shadow-2xl">
@@ -1882,7 +1884,7 @@ const Dashboard = () => {
             <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
               <div 
                 className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500 ease-out"
-                style={{width: `${progressPercentage}%`}}
+                style={{width: `${Math.max(progressPercentage, 5)}%`}}
               ></div>
             </div>
             
