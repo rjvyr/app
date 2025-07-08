@@ -1271,28 +1271,58 @@ async def update_brand(brand_id: str, brand_update: BrandUpdate, current_user: d
 # Scanning endpoints
 @app.post("/api/scans")
 async def run_scan(scan_request: ScanRequest, current_user: dict = Depends(get_current_user)):
-    # Get brand data
+    """Run AI visibility scan for a brand"""
+    
+    # Check weekly scan limit - Only allow one scan per brand per week (Monday 11 AM PST)
     brand = await db.brands.find_one({"_id": scan_request.brand_id, "user_id": current_user["_id"]})
     if not brand:
         raise HTTPException(status_code=404, detail="Brand not found")
     
-    # Check weekly scan limit
-    scan_limit_check = await check_weekly_scan_limit(current_user["_id"], scan_request.brand_id)
-    if not scan_limit_check["can_scan"]:
+    # Check if brand has been scanned this week
+    from datetime import timezone, timedelta
+    import pytz
+    
+    # PST timezone
+    pst = pytz.timezone('America/Los_Angeles')
+    now_pst = datetime.now(pst)
+    
+    # Get this week's Monday 11 AM PST
+    days_since_monday = now_pst.weekday()  # Monday is 0
+    this_monday = now_pst - timedelta(days=days_since_monday)
+    this_monday_11am = this_monday.replace(hour=11, minute=0, second=0, microsecond=0)
+    
+    # If it's before Monday 11 AM, use last week's Monday
+    if now_pst < this_monday_11am:
+        this_monday_11am = this_monday_11am - timedelta(weeks=1)
+    
+    # Check for scans since this week's Monday 11 AM PST
+    recent_scan = await db.scans.find_one({
+        "user_id": current_user["_id"],
+        "brand_id": scan_request.brand_id,
+        "timestamp": {"$gte": this_monday_11am.astimezone(timezone.utc).replace(tzinfo=None)}
+    })
+    
+    if recent_scan:
+        # Calculate next available scan time
+        next_monday_11am = this_monday_11am + timedelta(weeks=1)
+        next_scan_formatted = next_monday_11am.strftime("%B %d, %Y at 11:00 AM PST")
+        
         raise HTTPException(
             status_code=429, 
-            detail=f"Brand can only be scanned once per week. Next scan available in {scan_limit_check['days_remaining']} days."
+            detail=f"Brand '{brand['name']}' has already been scanned this week. Next scan available on {next_scan_formatted}"
         )
     
-    # Check if user has enough scans
-    scans_needed = {"quick": 5, "standard": 25, "deep": 50, "competitor": 10}
-    scans_cost = scans_needed.get(scan_request.scan_type, 25)
+    # Check scan limits based on plan
+    scans_cost = 25  # Standard scan cost
+    if scan_request.scan_type == "quick":
+        scans_cost = 5
+    elif scan_request.scan_type == "deep":
+        scans_cost = 50
+    elif scan_request.scan_type == "competitor":
+        scans_cost = 15
     
     if current_user.get("scans_used", 0) + scans_cost > current_user.get("scans_limit", 50):
         raise HTTPException(status_code=400, detail="Insufficient scans remaining")
-    brand = await db.brands.find_one({"_id": scan_request.brand_id, "user_id": current_user["_id"]})
-    if not brand:
-        raise HTTPException(status_code=404, detail="Brand not found")
     
     # Create scan progress tracking
     scan_id = str(uuid4())
