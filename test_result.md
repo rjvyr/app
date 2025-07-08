@@ -305,9 +305,31 @@ backend:
         - working: true
           agent: "testing"
           comment: "Implemented the missing /api/scans/{scan_id}/progress endpoint to retrieve scan progress information. Tested the endpoint and verified it correctly returns the scan status, progress, and other relevant information. The progress is properly updated during scan execution and the endpoint returns the correct data."
+  - task: "Weekly Scan Limit Implementation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
         - working: true
           agent: "main"
-          comment: "PERMANENTLY FIXED: Identified that backend progress tracking was working but frontend progress bar showed fixed 65% width instead of real progress. Fixed frontend progress bar to use real progress data: scanProgress/totalQueries * 100. Also implemented weekly scan limit (once per week, Monday 11 AM PST) with proper error messaging. Backend and frontend progress tracking now working correctly."
+          comment: "NEW FEATURE: Implemented weekly scan limit to allow only one scan per brand per week. Scans reset every Monday at 11 AM PST. Added timezone-aware logic using pytz library. Enhanced error messaging to show exact next available scan time. Helps manage API costs while providing comprehensive weekly insights."
+        - working: true
+          agent: "testing"
+          comment: "Verified weekly scan limit functionality works correctly. First scan succeeds, second scan returns 429 error with proper next available time (Monday 11 AM PST). Error handling and timezone logic working as expected."
+  - task: "Frontend Progress Bar Fix"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "FIXED: Replaced fixed 65% width progress bar with real-time progress calculation. Progress bar now shows (scanProgress / totalQueries) * 100% and displays current query being processed. Enhanced scan button to show actual progress during scan execution."
         - working: true
           agent: "testing"
           comment: "Verified that the scan progress tracking functionality is working correctly. The /api/scans/{scan_id}/progress endpoint returns the expected data structure with scan_id, status, progress, total_queries, current_query, started_at, and other fields. The progress is properly updated during scan execution, and the endpoint returns the correct data. The OpenAI integration is working properly with real responses being generated. The scan progress tracking system is functioning as expected."
