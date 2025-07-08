@@ -184,36 +184,6 @@ const PlansPage = ({ backendUrl, user, token }) => {
         ))}
       </div>
 
-      {/* Value Proposition */}
-      <div className="mt-12 bg-gray-50 p-8 rounded-xl">
-        <div className="text-center mb-6">
-          <h3 className="text-2xl font-bold text-gray-900">Why Weekly Scans?</h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="text-3xl mb-3">📊</div>
-            <h4 className="font-semibold text-gray-900">Comprehensive Analysis</h4>
-            <p className="text-gray-600 text-sm mt-2">
-              25 AI queries per scan provide deep insights into your brand visibility
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl mb-3">💰</div>
-            <h4 className="font-semibold text-gray-900">Cost Effective</h4>
-            <p className="text-gray-600 text-sm mt-2">
-              Weekly scans optimize API costs while providing actionable insights
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl mb-3">📈</div>
-            <h4 className="font-semibold text-gray-900">Growth Tracking</h4>
-            <p className="text-gray-600 text-sm mt-2">
-              Track week-over-week improvement in your AI visibility scores
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* FAQ */}
       <div className="mt-12 bg-white p-8 rounded-xl border border-gray-200">
         <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">Frequently Asked Questions</h3>
