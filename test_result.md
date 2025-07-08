@@ -322,6 +322,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "Verified weekly scan limit functionality works correctly. First scan succeeds, second scan returns 429 error with proper next available time (Monday 11 AM PST). Error handling and timezone logic working as expected."
+        - working: true
+          agent: "testing"
+          comment: "Conducted additional testing of weekly scan limit functionality. Confirmed that the system correctly enforces the limit of one scan per brand per week. When attempting to run a second scan on the same brand within the week, the system returns a 429 error with a detailed message that includes the brand name and the exact next available scan time (Monday 11 AM PST). The error message correctly includes the brand name, making it clear which brand has reached its scan limit."
   - task: "Frontend Progress Bar Fix"
     implemented: true
     working: true
