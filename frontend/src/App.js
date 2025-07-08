@@ -584,21 +584,24 @@ const Dashboard = () => {
     setScanLoading(true);
     setScanProgress(0);
     setScanCurrentQuery('');
-    setTotalQueries(25); // Standard scan has 25 queries
+    setTotalQueries(0);
+    
+    // Get brand name for better error messages
+    const selectedBrand = brands.find(b => b._id === brandId);
+    const brandName = selectedBrand?.name || 'Unknown Brand';
     
     try {
-      const headers = {
+      const headers = { 
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       };
 
-      // Start the scan
       const response = await fetch(`${backendUrl}/api/scans`, {
         method: 'POST',
-        headers,
-        body: JSON.stringify({
-          brand_id: brandId,
-          scan_type: scanType
+        headers: headers,
+        body: JSON.stringify({ 
+          brand_id: brandId, 
+          scan_type: scanType 
         })
       });
 
@@ -637,22 +640,36 @@ const Dashboard = () => {
         }, 2000); // Check every 2 seconds
         
       } else {
-        // Check if it's a 429 error (weekly scan limit)
-        const errorText = await response.text();
+        // Handle error responses properly
+        let errorMessage = 'Scan failed to start';
         try {
-          const errorData = JSON.parse(errorText);
+          const errorData = await response.json();
           if (response.status === 429 && errorData.detail) {
-            alert(`⏰ Weekly Scan Limit\n\n${errorData.detail}\n\nThis helps us provide you with comprehensive weekly insights while managing API costs efficiently.`);
+            // Weekly scan limit - show brand-specific message
+            if (errorData.detail.includes('already been scanned this week')) {
+              alert(`⏰ Weekly Scan Limit for ${brandName}\n\n${errorData.detail}\n\nEach brand can only be scanned once per week to provide comprehensive insights while managing costs efficiently.`);
+            } else {
+              alert(`⏰ Weekly Scan Limit\n\n${errorData.detail}`);
+            }
+            setScanLoading(false);
+            setScanProgress(0);
+            setScanCurrentQuery('');
+            return;
           } else {
-            alert(`Error: ${errorData.detail || 'Scan failed to start'}`);
+            errorMessage = errorData.detail || errorMessage;
           }
-        } catch {
-          alert('Error running scan. Please try again.');
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError);
         }
+        
+        alert(`Error: ${errorMessage}`);
+        setScanLoading(false);
+        setScanProgress(0);
+        setScanCurrentQuery('');
       }
     } catch (error) {
       console.error('Error running scan:', error);
-      alert('Error running scan. Please try again.');
+      alert(`Error running scan for ${brandName}. Please try again.`);
       setScanLoading(false);
       setScanProgress(0);
       setScanCurrentQuery('');
