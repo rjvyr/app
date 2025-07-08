@@ -1239,7 +1239,7 @@ async def verify_email(token: str):
 @app.post("/api/brands")
 async def create_brand(brand: BrandCreate, current_user: dict = Depends(get_current_user)):
     # Check brand limit based on plan
-    plan_info = PLANS.get(current_user["plan"], PLANS["basic"])
+    plan_info = PLANS.get(current_user["plan"], PLANS["free"])
     existing_brands = await db.brands.count_documents({"user_id": current_user["_id"]})
     
     if existing_brands >= plan_info["brands"]:
