@@ -116,7 +116,10 @@ frontend:
     status_history:
         - working: true
           agent: "main"
-          comment: "Successfully implemented brand filtering functionality. Added fetchBrandSpecificData function, updated useEffect to trigger data refresh on brand selection change, and improved brand selector UI with status indicators."
+          comment: "FIXED: Updated fetchAllRealData function to include brand_id parameter for all API calls. Now all sections (dashboard, queries, competitors, recommendations, source domains, articles) consistently show only the selected brand's data. Added fetchBrandSpecificData function to handle brand changes."
+        - working: true
+          agent: "testing"
+          comment: "Verified brand filtering consistency across all API endpoints. All endpoints correctly filter data by brand_id when provided. Confirmed that different brands return different data sets and all sections maintain consistency when a brand is selected."
           
   - task: "Source Domains and Articles Real Data Display"
     implemented: true
