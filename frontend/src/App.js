@@ -447,13 +447,16 @@ const Dashboard = () => {
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       
+      // Use selected brand ID if available
+      const brandParam = selectedBrandId ? `?brand_id=${selectedBrandId}` : '';
+      
       const [dashData, compData, queryData, recData, sourceDomainsData, sourceArticlesData] = await Promise.all([
-        fetch(`${backendUrl}/api/dashboard/real`, { headers }),
-        fetch(`${backendUrl}/api/competitors/real`, { headers }),
-        fetch(`${backendUrl}/api/queries/real`, { headers }),
-        fetch(`${backendUrl}/api/recommendations/real`, { headers }),
-        fetch(`${backendUrl}/api/source-domains`, { headers }),
-        fetch(`${backendUrl}/api/source-articles`, { headers })
+        fetch(`${backendUrl}/api/dashboard/real${brandParam}`, { headers }),
+        fetch(`${backendUrl}/api/competitors/real${brandParam}`, { headers }),
+        fetch(`${backendUrl}/api/queries/real${brandParam}`, { headers }),
+        fetch(`${backendUrl}/api/recommendations/real${brandParam}`, { headers }),
+        fetch(`${backendUrl}/api/source-domains${brandParam}`, { headers }),
+        fetch(`${backendUrl}/api/source-articles${brandParam}`, { headers })
       ]);
 
       if (dashData.ok) {
