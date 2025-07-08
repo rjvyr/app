@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const PlansPage = ({ backendUrl, user, token }) => {
   const [plans, setPlans] = useState([]);
+  const [earlyAccess, setEarlyAccess] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -12,7 +13,8 @@ const PlansPage = ({ backendUrl, user, token }) => {
     try {
       const response = await fetch(`${backendUrl}/api/plans`);
       const data = await response.json();
-      setPlans(data.plans);
+      setPlans(data.plans || []);
+      setEarlyAccess(data.early_access || null);
     } catch (error) {
       console.error('Error fetching plans:', error);
     } finally {
@@ -28,21 +30,35 @@ const PlansPage = ({ backendUrl, user, token }) => {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900">Choose Your Plan</h2>
-        <p className="text-gray-600 mt-2">Select the perfect plan for your AI visibility tracking needs</p>
+        <p className="text-gray-600 mt-2">Weekly AI visibility scans with comprehensive insights</p>
+        
+        {/* Early Access Banner */}
+        {earlyAccess?.available && (
+          <div className="mt-4 p-4 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
+            <p className="text-orange-800 font-bold">🔥 LIMITED EARLY ACCESS PRICING</p>
+            <p className="text-orange-700 text-sm">
+              Only {earlyAccess.remaining_seats} of {earlyAccess.total_seats} early access seats remaining!
+            </p>
+            <p className="text-orange-600 text-xs mt-1">
+              Lock in these prices for 6 months, then pricing increases
+            </p>
+          </div>
+        )}
+        
+        {/* Current Status */}
         <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-green-800 font-medium">🎉 Current Plan: ENTERPRISE (Full Access!)</p>
-          <p className="text-green-600 text-sm">Domain: futureseo.io (Ready for deployment!)</p>
-          <p className="text-green-600 text-sm">✓ 1,500 scans/month • ✓ 10 brands • ✓ All features unlocked</p>
+          <p className="text-green-800 font-medium">✅ Currently on ENTERPRISE Preview</p>
+          <p className="text-green-600 text-sm">Full access to test all features</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {plans.map((plan) => (
           <div
             key={plan.id}
             className={`relative bg-white p-8 rounded-2xl shadow-lg border-2 ${
               plan.popular ? 'border-blue-500 transform scale-105' : 'border-gray-200'
-            } ${plan.id === 'enterprise' ? 'bg-gradient-to-br from-purple-50 to-blue-50' : ''}`}
+            } ${plan.id === 'pro' ? 'bg-gradient-to-br from-blue-50 to-purple-50' : ''}`}
           >
             {plan.popular && (
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -52,123 +68,173 @@ const PlansPage = ({ backendUrl, user, token }) => {
               </div>
             )}
 
-            {plan.id === 'enterprise' && (
-              <div className="absolute -top-4 right-4">
-                <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">
-                  ACTIVE
+            {/* Early Access Badge */}
+            {plan.is_early_access && earlyAccess?.available && (
+              <div className="absolute -top-2 -right-2">
+                <span className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                  Early Access
                 </span>
               </div>
             )}
 
-            <div className="text-center">
+            <div className="text-center mb-6">
               <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
-              <div className="mt-4 flex items-baseline justify-center">
-                <span className="text-5xl font-extrabold text-gray-900">${plan.price}</span>
-                <span className="ml-1 text-xl text-gray-500">/{plan.interval}</span>
+              <p className="text-gray-600 text-sm mt-1">{plan.description}</p>
+              
+              {/* Pricing */}
+              <div className="mt-4">
+                <div className="flex items-center justify-center">
+                  <span className="text-4xl font-bold text-gray-900">
+                    ${plan.price}
+                  </span>
+                  <span className="text-gray-500 ml-2">/month</span>
+                </div>
+                
+                {/* Early Access Price Comparison */}
+                {plan.is_early_access && plan.regular_price > plan.price && (
+                  <div className="mt-2">
+                    <span className="text-gray-500 line-through text-sm">
+                      Regular: ${plan.regular_price}/month
+                    </span>
+                    <div className="text-green-600 text-sm font-medium">
+                      Save ${plan.regular_price - plan.price}/month for 6 months!
+                    </div>
+                  </div>
+                )}
               </div>
-              <p className="mt-2 text-gray-500">{plan.scans} AI scans per month</p>
             </div>
 
-            <ul className="mt-8 space-y-4">
-              {plan.features.map((feature, index) => (
-                <li key={index} className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-gray-600">{feature}</span>
-                </li>
-              ))}
-            </ul>
+            {/* Features */}
+            <div className="space-y-4 mb-8">
+              {/* Main Features */}
+              <div className="space-y-2">
+                <div className="flex items-center">
+                  <span className="text-green-500 mr-2">✓</span>
+                  <span className="text-gray-700">
+                    {plan.brands} brand{plan.brands > 1 ? 's' : ''} tracking
+                  </span>
+                </div>
+                
+                {plan.weekly_scans > 0 ? (
+                  <div className="flex items-center">
+                    <span className="text-green-500 mr-2">✓</span>
+                    <span className="text-gray-700">
+                      {plan.weekly_scans} full scan{plan.weekly_scans > 1 ? 's' : ''} per week
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <span className="text-red-500 mr-2">✗</span>
+                    <span className="text-gray-500">No scan access</span>
+                  </div>
+                )}
 
-            <div className="mt-8">
-              {plan.id === 'enterprise' ? (
-                <button className="w-full bg-green-100 text-green-700 py-3 px-4 rounded-lg font-medium cursor-not-allowed">
-                  ✓ Current Plan - Full Access
-                </button>
-              ) : (
-                <button className="w-full bg-gray-100 text-gray-500 py-3 px-4 rounded-lg font-medium cursor-not-allowed">
-                  Available Plan
-                </button>
-              )}
+                {/* Feature List */}
+                {plan.features.map((feature, index) => (
+                  <div key={index} className="flex items-center">
+                    <span className="text-green-500 mr-2">✓</span>
+                    <span className="text-gray-700 text-sm capitalize">
+                      {feature.replace('_', ' ').replace('chatgpt', 'ChatGPT')}
+                    </span>
+                  </div>
+                ))}
+                
+                {/* Limitations for Free Plan */}
+                {plan.limitations && plan.limitations.map((limitation, index) => (
+                  <div key={index} className="flex items-center">
+                    <span className="text-red-500 mr-2">✗</span>
+                    <span className="text-gray-500 text-sm">{limitation}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {plan.id === 'enterprise' && (
-              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-800 text-sm font-medium">🚀 Perfect for futureseo.io!</p>
-                <p className="text-green-600 text-xs">Full feature testing + enterprise capabilities</p>
+            {/* CTA Button */}
+            <button
+              className={`w-full py-3 px-6 rounded-lg font-medium transition-colors ${
+                plan.id === 'free'
+                  ? 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                  : plan.popular
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-gray-900 text-white hover:bg-gray-800'
+              }`}
+              onClick={() => {
+                if (plan.id === 'free') {
+                  alert('Free plan: Dashboard preview only. Upgrade to start scanning!');
+                } else {
+                  alert(`${plan.name} plan selected! Integration with Paddle coming soon.`);
+                }
+              }}
+            >
+              {plan.id === 'free' ? 'Current Plan' : `Choose ${plan.name}`}
+            </button>
+
+            {/* Weekly Scan Highlight */}
+            {plan.weekly_scans > 0 && (
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="text-blue-800 text-xs font-medium text-center">
+                  🗓️ Every Monday 11 AM PST
+                </div>
+                <div className="text-blue-700 text-xs text-center mt-1">
+                  Comprehensive weekly insights with 25 AI queries per scan
+                </div>
               </div>
             )}
           </div>
         ))}
       </div>
 
-      {/* Feature Comparison */}
-      <div className="mt-12 bg-white p-8 rounded-xl border border-gray-200">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Feature Comparison</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 text-gray-900 font-medium">Feature</th>
-                <th className="text-center py-3 text-gray-900 font-medium">Basic</th>
-                <th className="text-center py-3 text-gray-900 font-medium">Pro</th>
-                <th className="text-center py-3 text-gray-900 font-medium">Enterprise</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              <tr>
-                <td className="py-4 text-gray-600">AI Platforms</td>
-                <td className="py-4 text-center text-gray-600">ChatGPT only</td>
-                <td className="py-4 text-center text-green-600">✓ All platforms</td>
-                <td className="py-4 text-center text-green-600 font-bold">✓ All platforms</td>
-              </tr>
-              <tr>
-                <td className="py-4 text-gray-600">Brands</td>
-                <td className="py-4 text-center text-gray-600">1</td>
-                <td className="py-4 text-center text-gray-600">3</td>
-                <td className="py-4 text-center text-green-600 font-bold">10</td>
-              </tr>
-              <tr>
-                <td className="py-4 text-gray-600">Monthly Scans</td>
-                <td className="py-4 text-center text-gray-600">50</td>
-                <td className="py-4 text-center text-gray-600">300</td>
-                <td className="py-4 text-center text-green-600 font-bold">1,500</td>
-              </tr>
-              <tr>
-                <td className="py-4 text-gray-600">Competitor Analysis</td>
-                <td className="py-4 text-center text-gray-400">✗</td>
-                <td className="py-4 text-center text-green-600">✓</td>
-                <td className="py-4 text-center text-green-600 font-bold">✓ Advanced</td>
-              </tr>
-              <tr>
-                <td className="py-4 text-gray-600">Weekly Recommendations</td>
-                <td className="py-4 text-center text-gray-400">✗</td>
-                <td className="py-4 text-center text-green-600">✓</td>
-                <td className="py-4 text-center text-green-600 font-bold">✓ Custom</td>
-              </tr>
-              <tr>
-                <td className="py-4 text-gray-600">Team Collaboration</td>
-                <td className="py-4 text-center text-gray-400">✗</td>
-                <td className="py-4 text-center text-gray-400">✗</td>
-                <td className="py-4 text-center text-green-600 font-bold">✓ Full Access</td>
-              </tr>
-            </tbody>
-          </table>
+      {/* Value Proposition */}
+      <div className="mt-12 bg-gray-50 p-8 rounded-xl">
+        <div className="text-center mb-6">
+          <h3 className="text-2xl font-bold text-gray-900">Why Weekly Scans?</h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="text-center">
+            <div className="text-3xl mb-3">📊</div>
+            <h4 className="font-semibold text-gray-900">Comprehensive Analysis</h4>
+            <p className="text-gray-600 text-sm mt-2">
+              25 AI queries per scan provide deep insights into your brand visibility
+            </p>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl mb-3">💰</div>
+            <h4 className="font-semibold text-gray-900">Cost Effective</h4>
+            <p className="text-gray-600 text-sm mt-2">
+              Weekly scans optimize API costs while providing actionable insights
+            </p>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl mb-3">📈</div>
+            <h4 className="font-semibold text-gray-900">Growth Tracking</h4>
+            <p className="text-gray-600 text-sm mt-2">
+              Track week-over-week improvement in your AI visibility scores
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Domain Info */}
-      <div className="mt-8 p-6 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl">
-        <div className="flex items-center space-x-4">
-          <div className="text-4xl">🌐</div>
+      {/* FAQ */}
+      <div className="mt-12 bg-white p-8 rounded-xl border border-gray-200">
+        <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">Frequently Asked Questions</h3>
+        <div className="space-y-4">
           <div>
-            <h4 className="font-bold text-gray-900">🎉 Ready for futureseo.io Deployment!</h4>
-            <p className="text-gray-600">Your Enterprise plan gives you full access to test all features before going live.</p>
-            <div className="mt-2 flex space-x-4 text-sm">
-              <span className="bg-green-100 text-green-700 px-2 py-1 rounded">✓ 1,500 scans/month</span>
-              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">✓ 10 brands</span>
-              <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded">✓ All features</span>
-            </div>
+            <h4 className="font-semibold text-gray-900">When do scans run?</h4>
+            <p className="text-gray-600 text-sm mt-1">
+              Every Monday at 11 AM PST. You'll receive comprehensive weekly insights with actionable recommendations.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900">What's included in early access pricing?</h4>
+            <p className="text-gray-600 text-sm mt-1">
+              Lock in current pricing for 6 months. After that, Starter becomes $89/month and Pro becomes $149/month.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900">Can I upgrade or downgrade anytime?</h4>
+            <p className="text-gray-600 text-sm mt-1">
+              Yes! Changes take effect at your next billing cycle. Early access pricing will be honored for your 6-month period.
+            </p>
           </div>
         </div>
       </div>
