@@ -2565,10 +2565,41 @@ async def get_real_recommendations(brand_id: Optional[str] = None, current_user:
     # Generate real recommendations based on data
     recommendations = []
     
-    # Top missed keywords
+    # Get all scan results for context
+    all_scan_results = []
+    for scan in all_scans:
+        for result in scan.get("results", []):
+            all_scan_results.append(result)
+    
+    # Top missed keywords with real GPT-generated strategies
     if missed_keywords:
         top_missed = sorted(missed_keywords.items(), key=lambda x: x[1], reverse=True)[:3]
         for keyword, count in top_missed:
+            # Find queries related to this keyword for context
+            related_queries = [result.get('query', '') for result in all_scan_results 
+                             if keyword.lower() in result.get('query', '').lower()]
+            sample_query = related_queries[0] if related_queries else f"How to use {keyword} for business"
+            
+            # Get brand info for the content strategy
+            primary_brand = brands[0] if brands else {"industry": "Business Software", "competitors": []}
+            
+            # Generate real content strategy using GPT
+            try:
+                content_strategies = await generate_real_content_strategy_with_gpt(
+                    sample_query, 
+                    primary_brand.get("name", "Your Brand"),
+                    primary_brand.get("industry", "Business Software"), 
+                    primary_brand.get("competitors", []),
+                    all_scan_results
+                )
+            except Exception as e:
+                print(f"Error generating content strategy: {e}")
+                content_strategies = [
+                    f"Create comprehensive guide about {keyword}",
+                    f"Optimize existing content for {keyword}",
+                    f"Write comparison articles featuring {keyword}"
+                ]
+            
             recommendations.append({
                 "id": f"keyword_{keyword}",
                 "title": f"Target '{keyword}' queries",
@@ -2576,18 +2607,39 @@ async def get_real_recommendations(brand_id: Optional[str] = None, current_user:
                 "category": "Content Strategy",
                 "impact": f"+{min(count * 3, 20)}% potential visibility",
                 "description": f"You're missing {count} queries related to '{keyword}'. This is a high-opportunity area.",
-                "action_items": [
-                    f"Create comprehensive guide about {keyword}",
-                    f"Optimize existing content for {keyword}",
-                    f"Write comparison articles featuring {keyword}"
-                ],
+                "action_items": content_strategies,
                 "time_estimate": f"{count * 2} hours"
             })
     
-    # Competitor advantages
+    # Competitor advantages with real strategies
     if competitor_advantages:
         top_competitors = sorted(competitor_advantages.items(), key=lambda x: x[1], reverse=True)[:2]
         for competitor, count in top_competitors:
+            # Find queries where this competitor appears
+            competitor_queries = [result.get('query', '') for result in all_scan_results 
+                                if competitor.lower() in result.get('response', '').lower()]
+            sample_query = competitor_queries[0] if competitor_queries else f"Best alternatives to {competitor}"
+            
+            # Get brand info for the competitive strategy
+            primary_brand = brands[0] if brands else {"industry": "Business Software", "competitors": []}
+            
+            # Generate real competitive strategy using GPT
+            try:
+                competitive_strategies = await generate_real_content_strategy_with_gpt(
+                    sample_query,
+                    primary_brand.get("name", "Your Brand"),
+                    primary_brand.get("industry", "Business Software"), 
+                    primary_brand.get("competitors", []),
+                    all_scan_results
+                )
+            except Exception as e:
+                print(f"Error generating competitive strategy: {e}")
+                competitive_strategies = [
+                    f"Create direct comparison: Your Brand vs {competitor}",
+                    f"Analyze {competitor}'s content strategy",
+                    f"Target {competitor}'s weakness areas"
+                ]
+            
             recommendations.append({
                 "id": f"competitor_{competitor}",
                 "title": f"Compete with {competitor}",
@@ -2595,11 +2647,7 @@ async def get_real_recommendations(brand_id: Optional[str] = None, current_user:
                 "category": "Competitive Strategy", 
                 "impact": f"+{min(count * 2, 15)}% potential visibility",
                 "description": f"{competitor} appears in {count} queries where you don't. Focus on direct competition.",
-                "action_items": [
-                    f"Create direct comparison: Your Brand vs {competitor}",
-                    f"Analyze {competitor}'s content strategy",
-                    f"Target {competitor}'s weakness areas"
-                ],
+                "action_items": competitive_strategies,
                 "time_estimate": f"{count + 3} hours"
             })
     
