@@ -347,4 +347,38 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
             self.fail(f"Unexpected response code: {first_scan_response.status_code}")
 
 if __name__ == "__main__":
-    unittest.main()
+    # Create a test suite with our tests
+    suite = unittest.TestSuite()
+    suite.addTest(AIBrandVisibilityAPITest('test_01_pricing_plans_structure'))
+    suite.addTest(AIBrandVisibilityAPITest('test_02_brand_filtering_consistency'))
+    suite.addTest(AIBrandVisibilityAPITest('test_03_weekly_scan_limit'))
+    
+    # Run the tests with a text test runner
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(suite)
+    
+    # Print summary
+    print("\n=== TEST SUMMARY ===")
+    print(f"Total tests: {result.testsRun}")
+    print(f"Failures: {len(result.failures)}")
+    print(f"Errors: {len(result.errors)}")
+    print(f"Skipped: {len(result.skipped)}")
+    
+    # Print detailed results
+    if result.failures:
+        print("\n=== FAILURES ===")
+        for test, error in result.failures:
+            print(f"\n{test}")
+            print(error)
+    
+    if result.errors:
+        print("\n=== ERRORS ===")
+        for test, error in result.errors:
+            print(f"\n{test}")
+            print(error)
+    
+    if result.skipped:
+        print("\n=== SKIPPED ===")
+        for test, reason in result.skipped:
+            print(f"\n{test}")
+            print(reason)
