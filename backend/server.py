@@ -2625,68 +2625,54 @@ async def upgrade_user_plan(user_email: str, new_plan: str, current_user: dict =
     return {"message": f"User {user_email} upgraded to {new_plan} plan successfully"}
 
 @app.get("/api/plans")
-async def get_available_plans():
-    return {
-        "plans": [
-            {
-                "id": "basic",
-                "name": "Basic",
-                "price": 19.00,
-                "interval": "month",
-                "features": [
-                    "1 brand tracking",
-                    "50 AI scans/month", 
-                    "ChatGPT analysis only",
-                    "Basic dashboard",
-                    "Email support"
-                ],
-                "scans": 50,
-                "brands": 1,
-                "popular": False
-            },
-            {
-                "id": "pro", 
-                "name": "Pro",
-                "price": 49.00,
-                "interval": "month",
-                "features": [
-                    "3 brands tracking",
-                    "300 AI scans/month",
-                    "ChatGPT + Gemini + AI Overview",
-                    "Full competitor analysis",
-                    "Weekly recommendations",
-                    "Priority email support",
-                    "Export reports",
-                    "API access"
-                ],
-                "scans": 300,
-                "brands": 3,
-                "popular": True
-            },
-            {
-                "id": "enterprise",
-                "name": "Enterprise", 
-                "price": 149.00,
-                "interval": "month",
-                "features": [
-                    "10 brands tracking",
-                    "1500 AI scans/month",
-                    "All AI platforms",
-                    "Advanced dashboard",
-                    "Unlimited competitor tracking",
-                    "Custom recommendations", 
-                    "Blog content analysis",
-                    "Slack/Discord alerts",
-                    "Phone support",
-                    "Custom reports",
-                    "Team collaboration"
-                ],
-                "scans": 1500,
-                "brands": 10,
-                "popular": False
+async def get_plans():
+    """Get available subscription plans with early access pricing"""
+    try:
+        # Get current user count from database
+        user_count = await db.users.count_documents({})
+        remaining_seats = max(0, EARLY_ACCESS_CONFIG["total_seats"] - user_count)
+        is_early_access = remaining_seats > 0
+        
+        plans_list = []
+        for plan_id, plan_data in PLANS.items():
+            plan_info = {
+                "id": plan_id,
+                "name": plan_data["name"],
+                "description": plan_data["description"],
+                "brands": plan_data["brands"],
+                "weekly_scans": plan_data.get("weekly_scans", 0),
+                "features": plan_data["features"],
+                "popular": plan_data.get("popular", False)
             }
-        ]
-    }
+            
+            # Set pricing based on early access
+            if is_early_access and "early_access_price" in plan_data:
+                plan_info["price"] = plan_data["early_access_price"]
+                plan_info["regular_price"] = plan_data.get("regular_price", plan_data["price"])
+                plan_info["is_early_access"] = True
+            else:
+                plan_info["price"] = plan_data.get("regular_price", plan_data["price"])
+                plan_info["is_early_access"] = False
+            
+            # Add limitations for free plan
+            if plan_id == "free":
+                plan_info["limitations"] = plan_data.get("limitations", [])
+            
+            plans_list.append(plan_info)
+        
+        return {
+            "plans": plans_list,
+            "early_access": {
+                "available": is_early_access,
+                "remaining_seats": remaining_seats,
+                "total_seats": EARLY_ACCESS_CONFIG["total_seats"],
+                "current_users": user_count
+            }
+        }
+        
+    except Exception as e:
+        print(f"Error fetching plans: {e}")
+        return {"plans": [], "early_access": {"available": False, "remaining_seats": 0}}
 async def create_checkout(checkout_request: CheckoutRequest, current_user: dict = Depends(get_current_user)):
     if not paddle_checkout or not PaddleCheckout:
         # Mock response for testing
