@@ -1160,14 +1160,23 @@ const Dashboard = () => {
               </div>
               <div className="text-blue-100 mb-4">Comprehensive analysis across 25 AI queries</div>
               
-              {/* Enhanced Progress Bar */}
+              {/* Enhanced Progress Display - Shows real progress during scan */}
               {scanLoading && (
                 <div className="mt-6">
                   <div className="w-full bg-blue-400 bg-opacity-30 rounded-full h-3 mb-3">
-                    <div className="bg-white h-3 rounded-full animate-pulse transition-all duration-1000" style={{width: '65%'}}></div>
+                    <div 
+                      className="bg-white h-3 rounded-full transition-all duration-1000" 
+                      style={{
+                        width: `${totalQueries > 0 ? (scanProgress / totalQueries) * 100 : 10}%`
+                      }}
+                    ></div>
                   </div>
                   <div className="text-blue-100 text-sm">
-                    🔍 Scanning AI responses • 📊 Analyzing visibility • 📈 Calculating insights
+                    {scanCurrentQuery ? (
+                      <>🔍 Analyzing: "{scanCurrentQuery}" • Query {scanProgress} of {totalQueries}</>
+                    ) : (
+                      <>🔍 Scanning AI responses • 📊 Analyzing visibility • 📈 Calculating insights</>
+                    )}
                   </div>
                 </div>
               )}
