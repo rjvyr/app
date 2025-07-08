@@ -197,7 +197,7 @@ backend:
           agent: "testing"
           comment: "Verified pagination works correctly for both source domains and articles endpoints. Proper page counting and data segmentation confirmed."
           
-  - task: "Real-time Scan Usage Tracking"
+  - task: "Weekly Scan Limit"
     implemented: true
     working: true
     file: "/app/backend/server.py"
@@ -207,7 +207,7 @@ backend:
     status_history:
         - working: true
           agent: "testing"
-          comment: "Verified that scan usage is properly tracked in real-time. When a scan is performed, the user's scan count is immediately updated and correctly reflected in the /api/auth/me endpoint. Tests confirmed scan count increases by the exact number of queries executed."
+          comment: "Verified that the weekly scan limit functionality is working correctly. The system properly enforces the limit of one scan per brand per week. When attempting to run a second scan on the same brand within the week, the system returns a 429 error with a detailed message that includes the exact next available scan time (Monday 11 AM PST). The implementation correctly calculates the next available scan time based on the current week's Monday at 11 AM PST."
           
   - task: "Scan Execution with OpenAI Integration"
     implemented: true
