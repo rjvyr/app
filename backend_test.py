@@ -421,6 +421,80 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         self.assertEqual(updated_scans_used, initial_scans_used + 5)
         print(f"✅ Scan usage tracking test passed: Initial scans used: {initial_scans_used}, Updated scans used: {updated_scans_used}")
         
+    def test_30_weekly_scan_limit(self):
+        """Test weekly scan limit functionality"""
+        if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id'):
+            self.skipTest("Previous tests failed, skipping this test")
+            
+        headers = {"Authorization": f"Bearer {self.__class__.token}"}
+        
+        # Create a new brand specifically for this test
+        brand_data = {
+            "name": "WeeklyScanLimitTestBrand",
+            "industry": "E-commerce Platform",
+            "keywords": ["online store", "e-commerce", "shopping cart"],
+            "competitors": ["Shopify", "WooCommerce", "BigCommerce"],
+            "website": "https://weeklyscanlimittest.com"
+        }
+        
+        brand_response = requests.post(f"{self.base_url}/api/brands", json=brand_data, headers=headers)
+        self.assertEqual(brand_response.status_code, 200)
+        brand_data = brand_response.json()
+        test_brand_id = brand_data["brand_id"]
+        
+        # Run first scan - should succeed
+        scan_data = {
+            "brand_id": test_brand_id,
+            "scan_type": "quick"
+        }
+        
+        first_scan_response = requests.post(f"{self.base_url}/api/scans", json=scan_data, headers=headers)
+        self.assertEqual(first_scan_response.status_code, 200)
+        first_scan_data = first_scan_response.json()
+        self.assertIn("scan_id", first_scan_data)
+        
+        # Save scan_id for progress tracking test
+        scan_id = first_scan_data["scan_id"]
+        
+        # Run second scan immediately - should fail with 429 error
+        second_scan_response = requests.post(f"{self.base_url}/api/scans", json=scan_data, headers=headers)
+        self.assertEqual(second_scan_response.status_code, 429)
+        second_scan_data = second_scan_response.json()
+        self.assertIn("detail", second_scan_data)
+        
+        # Verify error message includes next available scan time
+        error_message = second_scan_data["detail"]
+        self.assertIn("Next scan available on", error_message)
+        self.assertIn("Monday", error_message)
+        self.assertIn("11:00 AM PST", error_message)
+        
+        print("✅ Weekly scan limit test passed")
+        print(f"Error message: {error_message}")
+        
+        # Test scan progress tracking
+        progress_response = requests.get(f"{self.base_url}/api/scans/{scan_id}/progress", headers=headers)
+        self.assertEqual(progress_response.status_code, 200)
+        progress_data = progress_response.json()
+        
+        # Verify progress data structure
+        self.assertIn("scan_id", progress_data)
+        self.assertEqual(progress_data["scan_id"], scan_id)
+        self.assertIn("status", progress_data)
+        self.assertIn("progress", progress_data)
+        self.assertIn("total_queries", progress_data)
+        self.assertIn("started_at", progress_data)
+        
+        # Verify status is either "running" or "completed"
+        self.assertIn(progress_data["status"], ["running", "completed"])
+        
+        # If completed, verify progress equals total_queries
+        if progress_data["status"] == "completed":
+            self.assertEqual(progress_data["progress"], progress_data["total_queries"])
+            self.assertIn("completed_at", progress_data)
+        
+        print("✅ Scan progress tracking test passed")
+        print(f"Progress data: {json.dumps(progress_data, indent=2)}")
+        
     def test_19_brand_filtering_dashboard(self):
         """Test brand filtering for dashboard endpoint"""
         if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id') or not hasattr(self.__class__, 'second_brand_id'):
