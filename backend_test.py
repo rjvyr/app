@@ -874,5 +874,154 @@ class AIBrandVisibilityAPITest(unittest.TestCase):
         
         print("✅ Brand filtering for source articles endpoint test passed")
 
+def test_30_scan_progress_tracking(self):
+    """Test scan progress tracking functionality"""
+    if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id'):
+        self.skipTest("Previous tests failed, skipping this test")
+        
+    headers = {"Authorization": f"Bearer {self.__class__.token}"}
+    
+    # Start a scan
+    scan_data = {
+        "brand_id": self.__class__.brand_id,
+        "scan_type": "quick"
+    }
+    
+    scan_response = requests.post(f"{self.base_url}/api/scans", json=scan_data, headers=headers)
+    self.assertEqual(scan_response.status_code, 200)
+    scan_result = scan_response.json()
+    self.assertIn("scan_id", scan_result)
+    
+    scan_id = scan_result["scan_id"]
+    print(f"Started scan with ID: {scan_id}")
+    
+    # Poll the progress endpoint to track scan progress
+    max_attempts = 10
+    progress_values = []
+    
+    for attempt in range(max_attempts):
+        progress_response = requests.get(f"{self.base_url}/api/scans/{scan_id}/progress", headers=headers)
+        self.assertEqual(progress_response.status_code, 200)
+        progress_data = progress_response.json()
+        
+        print(f"Progress check {attempt+1}: Status={progress_data['status']}, Progress={progress_data['progress']}/{progress_data['total_queries']}")
+        progress_values.append(progress_data['progress'])
+        
+        # If scan is completed or failed, break the loop
+        if progress_data['status'] in ['completed', 'failed']:
+            break
+            
+        # Wait before next poll
+        time.sleep(2)
+    
+    # Verify that progress was tracked correctly
+    self.assertGreater(len(progress_values), 1, "Progress should have been polled multiple times")
+    
+    # Check if progress increased over time
+    is_progress_increasing = False
+    for i in range(1, len(progress_values)):
+        if progress_values[i] > progress_values[i-1]:
+            is_progress_increasing = True
+            break
+            
+    self.assertTrue(is_progress_increasing, "Progress should increase during scan execution")
+    
+    # Final progress check
+    final_progress_response = requests.get(f"{self.base_url}/api/scans/{scan_id}/progress", headers=headers)
+    self.assertEqual(final_progress_response.status_code, 200)
+    final_progress_data = final_progress_response.json()
+    
+    # Verify final status
+    self.assertIn(final_progress_data['status'], ['completed', 'failed'], 
+                 f"Scan should be completed or failed, but status is {final_progress_data['status']}")
+    
+    if final_progress_data['status'] == 'completed':
+        self.assertEqual(final_progress_data['progress'], final_progress_data['total_queries'],
+                       "Progress should equal total queries when scan is completed")
+        
+    print("✅ Scan progress tracking test passed")
+    
+def test_31_openai_integration_with_progress(self):
+    """Test OpenAI integration with progress tracking"""
+    if not hasattr(self.__class__, 'token') or not hasattr(self.__class__, 'brand_id'):
+        self.skipTest("Previous tests failed, skipping this test")
+        
+    headers = {"Authorization": f"Bearer {self.__class__.token}"}
+    
+    # Start a scan
+    scan_data = {
+        "brand_id": self.__class__.brand_id,
+        "scan_type": "quick"
+    }
+    
+    scan_response = requests.post(f"{self.base_url}/api/scans", json=scan_data, headers=headers)
+    self.assertEqual(scan_response.status_code, 200)
+    scan_result = scan_response.json()
+    self.assertIn("scan_id", scan_result)
+    
+    scan_id = scan_result["scan_id"]
+    print(f"Started scan with ID: {scan_id}")
+    
+    # Poll the progress endpoint until completion
+    max_attempts = 15
+    completed = False
+    
+    for attempt in range(max_attempts):
+        progress_response = requests.get(f"{self.base_url}/api/scans/{scan_id}/progress", headers=headers)
+        self.assertEqual(progress_response.status_code, 200)
+        progress_data = progress_response.json()
+        
+        print(f"Progress check {attempt+1}: Status={progress_data['status']}, Progress={progress_data['progress']}/{progress_data['total_queries']}")
+        
+        if progress_data['status'] == 'completed':
+            completed = True
+            break
+            
+        # Wait before next poll
+        time.sleep(2)
+    
+    self.assertTrue(completed, "Scan should complete within the expected time")
+    
+    # Verify scan results contain OpenAI responses
+    scan_results_response = requests.get(f"{self.base_url}/api/scans/{self.__class__.brand_id}", headers=headers)
+    self.assertEqual(scan_results_response.status_code, 200)
+    scan_results_data = scan_results_response.json()
+    
+    # Verify scan results contain expected data
+    self.assertIn("scans", scan_results_data)
+    self.assertTrue(len(scan_results_data["scans"]) > 0)
+    
+    # Find the scan we just ran
+    found_scan = None
+    for scan in scan_results_data["scans"]:
+        if scan.get("_id") == scan_id:
+            found_scan = scan
+            break
+    
+    if not found_scan:
+        # Try to find by timestamp (most recent scan)
+        found_scan = scan_results_data["scans"][0]
+    
+    self.assertIsNotNone(found_scan, "Could not find the scan results")
+    
+    # Check if the scan has results with OpenAI responses
+    self.assertIn("results", found_scan)
+    self.assertTrue(len(found_scan["results"]) > 0)
+    
+    # Verify OpenAI integration
+    for result in found_scan["results"]:
+        self.assertEqual(result["platform"], "ChatGPT")
+        self.assertEqual(result["model"], "gpt-4o-mini")
+        self.assertIn("response", result)
+        self.assertTrue(len(result["response"]) > 100)  # Real responses are typically longer
+        self.assertIn("tokens_used", result)
+        self.assertTrue(result["tokens_used"] > 0)
+        
+        # Check for source domains and articles
+        self.assertIn("source_domains", result)
+        self.assertIn("source_articles", result)
+    
+    print("✅ OpenAI integration with progress tracking test passed")
+
 if __name__ == "__main__":
     unittest.main()
