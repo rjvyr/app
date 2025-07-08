@@ -181,4 +181,38 @@ class ScanLimitAndProgressTest(unittest.TestCase):
         print("✅ OpenAI integration test passed")
 
 if __name__ == "__main__":
-    unittest.main()
+    # Create a test suite with individual test methods
+    suite = unittest.TestSuite()
+    
+    # Create an instance of the test class
+    test_instance = ScanLimitAndProgressTest()
+    
+    # Add test methods to the suite
+    suite.addTest(ScanLimitAndProgressTest('test_01_register_and_login'))
+    
+    # Run the first test
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    
+    # If the first test passed, run the second test
+    if result.wasSuccessful():
+        print("\nRunning test_02_create_brand_and_test_scan_limit...")
+        suite = unittest.TestSuite()
+        suite.addTest(test_instance)  # Use the same instance to maintain state
+        suite.addTest(ScanLimitAndProgressTest('test_02_create_brand_and_test_scan_limit'))
+        result = unittest.TextTestRunner(verbosity=2).run(suite)
+    
+    # If the second test passed, run the third test
+    if result.wasSuccessful():
+        print("\nRunning test_03_scan_progress_tracking...")
+        suite = unittest.TestSuite()
+        suite.addTest(test_instance)  # Use the same instance to maintain state
+        suite.addTest(ScanLimitAndProgressTest('test_03_scan_progress_tracking'))
+        result = unittest.TextTestRunner(verbosity=2).run(suite)
+    
+    # If the third test passed, run the fourth test
+    if result.wasSuccessful():
+        print("\nRunning test_04_openai_integration...")
+        suite = unittest.TestSuite()
+        suite.addTest(test_instance)  # Use the same instance to maintain state
+        suite.addTest(ScanLimitAndProgressTest('test_04_openai_integration'))
+        result = unittest.TextTestRunner(verbosity=2).run(suite)
